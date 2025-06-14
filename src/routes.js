@@ -37,12 +37,14 @@ Coded by www.creative-tim.com
 
 // Material Dashboard 2 React layouts
 import Dashboard from "layouts/dashboard";
+import Students from "layouts/students";
 import Tables from "layouts/tables";
 import Billing from "layouts/billing";
 import RTL from "layouts/rtl";
 import Notifications from "layouts/notifications";
 import Profile from "layouts/profile";
 import SignIn from "layouts/authentication/sign-in";
+import StudentProfile from "layouts/students/studentProfile";
 import SignUp from "layouts/authentication/sign-up";
 
 // @mui icons
@@ -59,18 +61,26 @@ const routes = [
   },
   {
     type: "collapse",
-    name: "Tables",
-    key: "tables",
+    name: "Estudiantes",
+    key: "estudiantes",
     icon: <Icon fontSize="small">table_view</Icon>,
-    route: "/tables",
-    component: <Tables />,
+    route: "/estudiantes",
+    component: <Students />,
+  },
+  {
+    type: "url",
+    name: "Estudiantes",
+    key: "estudiantes",
+    icon: <Icon fontSize="small">table_view</Icon>,
+    route: "/estudiantes/:id",
+    component: <StudentProfile />,
   },
   {
     type: "collapse",
-    name: "Billing",
-    key: "billing",
+    name: "Docentes",
+    key: "Docente",
     icon: <Icon fontSize="small">receipt_long</Icon>,
-    route: "/billing",
+    route: "/docentes",
     component: <Billing />,
   },
   {
