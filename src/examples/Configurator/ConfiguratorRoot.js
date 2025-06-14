@@ -39,7 +39,7 @@ export default styled(Drawer)(({ theme, ownerState }) => {
   // drawer styles when openConfigurator={false}
   const drawerCloseStyles = () => ({
     left: "initial",
-    right: pxToRem(-350),
+    right: pxToRem(-250),
     transition: transitions.create("all", {
       easing: transitions.easing.sharp,
       duration: transitions.duration.short,
