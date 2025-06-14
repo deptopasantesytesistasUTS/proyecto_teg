@@ -6,6 +6,9 @@ import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import Icon from "@mui/material/Icon";
 
+// Assets
+import logo from "../../assets/images/LOGO UNIVERSIDAD_Mesa de trabajo 1.png";
+
 // Custom components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
@@ -14,7 +17,7 @@ import SidenavCollapse from "examples/Sidenav/SidenavCollapse";
 // Context
 import { useMaterialUIController } from "context";
 
-function Sidenav({ brand, brandName, routes }) {
+function Sidenav({ routes }) {
   const location = useLocation();
   const [controller] = useMaterialUIController();
   const { darkMode, sidenavColor, transparentSidenav, whiteSidenav } = controller;
@@ -77,17 +80,25 @@ function Sidenav({ brand, brandName, routes }) {
         color: textColor === "white" ? "white" : "inherit",
       }}
     >
-      <Toolbar sx={{ display: "flex", justifyContent: "space-between", px: 3 }}>
-        <MDBox display="flex" alignItems="center" gap={1}>
-          {brand && <MDBox component="img" src={brand} alt="Brand" width="2rem" />}
-          <MDTypography variant="h6" color={textColor}>
-            {brandName}
-          </MDTypography>
+      <Toolbar sx={{ display: "flex", justifyContent: "space-between", px: 8 }}>
+        <MDBox
+          display="flex"
+          alignItems="center"
+          gap={1}
+          sx={{ marginLeft: { xs: "0px", md: "100px" } }}
+        >
+          <MDBox
+            component="img"
+            src={logo}
+            alt="Brand"
+            sx={{
+              width: "3rem",
+              height: "3rem",
+              borderRadius: "50%",
+            }}
+          />
         </MDBox>
-
-        <MDBox display="flex" alignItems="center">
-          {renderRoutes}
-        </MDBox>
+        <MDBox display="flex">{renderRoutes}</MDBox>
       </Toolbar>
     </AppBar>
   );
