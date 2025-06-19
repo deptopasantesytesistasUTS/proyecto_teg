@@ -46,6 +46,8 @@ import Profile from "layouts/profile";
 import SignIn from "layouts/authentication/sign-in";
 import StudentProfile from "layouts/students/studentProfile";
 import SignUp from "layouts/authentication/sign-up";
+import Teachers from "layouts/teachers";
+import TeacherProfile from "layouts/teachers/teacherProfile";
 
 // @mui icons
 import Icon from "@mui/material/Icon";
@@ -81,7 +83,15 @@ const routes = [
     key: "Docente",
     icon: <Icon fontSize="small">receipt_long</Icon>,
     route: "/docentes",
-    component: <Billing />,
+    component: <Teachers />,
+  },
+  {
+    type: "url",
+    name: "Docentes",
+    key: "docentes",
+    icon: <Icon fontSize="small">table_view</Icon>,
+    route: "/docentes/:id",
+    component: <TeacherProfile />,
   },
   {
     type: "collapse",

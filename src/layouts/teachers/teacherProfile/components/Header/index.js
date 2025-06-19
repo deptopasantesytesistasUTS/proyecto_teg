@@ -100,10 +100,10 @@ function Header({ children }) {
           <Grid item>
             <MDBox height="100%" mt={0.5} lineHeight={1}>
               <MDTypography variant="h5" fontWeight="medium">
-                Luis Alejandro Cárdenas Lozano
+                Pedro Alexandro Perez Mora
               </MDTypography>
               <MDTypography variant="button" color="text" fontWeight="regular">
-                V-30.443.230 / Estudiante de Informática
+                V-20.433.708 / Ingeniero Informático
               </MDTypography>
             </MDBox>
           </Grid>

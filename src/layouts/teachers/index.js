@@ -21,10 +21,10 @@ import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
 
 // Data
-import studentsTableData from "layouts/students/data/studentsTableData";
+import teachersTableData from "./data/teachersTableData";
 
-function Students() {
-  const { columns, rows } = studentsTableData();
+function Teachers() {
+  const { columns, rows } = teachersTableData();
 
   return (
     <DashboardLayout>
@@ -44,7 +44,7 @@ function Students() {
                 coloredShadow="info"
               >
                 <MDTypography variant="h6" color="white">
-                  Listado de Estudiantes
+                  Listado de Docentes
                 </MDTypography>
               </MDBox>
               <br></br>
@@ -70,7 +70,7 @@ function Students() {
                 </Grid>
                 <Grid item size={6} width={200}>
                   <FormControl variant="standard" fullWidth>
-                    <InputLabel id="demo-simple-select-label">Carrera</InputLabel>
+                    <InputLabel id="demo-simple-select-label">Rol</InputLabel>
                     <Select
                       labelId="demo-simple-select-label"
                       id="demo-simple-select"
@@ -78,14 +78,15 @@ function Students() {
                       onChange={() => {}}
                       defaultValue={1}
                     >
-                      <MenuItem value={1}>Diseño</MenuItem>
-                      <MenuItem value={2}>Informática</MenuItem>
+                      <MenuItem value={1}>Docente</MenuItem>
+                      <MenuItem value={2}>Tutor</MenuItem>
+                      <MenuItem value={2}>Jurados</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
                 <Grid item size={6} width={200}>
                   <FormControl variant="standard" fullWidth>
-                    <InputLabel id="demo-simple-select-label">Materia</InputLabel>
+                    <InputLabel id="demo-simple-select-label">Carrera</InputLabel>
                     <Select
                       labelId="demo-simple-select-label"
                       id="demo-simple-select"
@@ -94,8 +95,8 @@ function Students() {
                       defaultValue={1}
                     >
                       <MenuItem value={1}>Ninguna</MenuItem>
-                      <MenuItem value={1}>TEG</MenuItem>
-                      <MenuItem value={2}>Investigación II</MenuItem>
+                      <MenuItem value={1}>Informática</MenuItem>
+                      <MenuItem value={2}>Diseño</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
@@ -103,12 +104,12 @@ function Students() {
                   <MDTypography variant="h6">Buscar al: </MDTypography>
                 </Grid>
                 <Grid item size={6} width={200}>
-                  <TextField id="outlined-basic" label="Estudiante" variant="outlined" />
+                  <TextField id="outlined-basic" label="Docente" variant="outlined" />
                 </Grid>
                 <Grid item></Grid>
                 <Grid item>
                   <Stack spacing={2} direction="row">
-                    <Button variant="text">Agregar Estudiante</Button>
+                    <Button variant="text">Agregar Docente</Button>
                   </Stack>
                 </Grid>
               </Grid>
@@ -131,4 +132,4 @@ function Students() {
   );
 }
 
-export default Students;
+export default Teachers;
