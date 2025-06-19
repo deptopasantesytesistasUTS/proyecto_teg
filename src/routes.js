@@ -94,7 +94,7 @@ const routes = [
     component: <TeacherProfile />,
   },
   {
-    type: "collapse",
+    type: "url",
     name: "Notifications",
     key: "notifications",
     icon: <Icon fontSize="small">notifications</Icon>,
@@ -102,7 +102,7 @@ const routes = [
     component: <Notifications />,
   },
   {
-    type: "collapse",
+    type: "url",
     name: "Profile",
     key: "profile",
     icon: <Icon fontSize="small">person</Icon>,
