@@ -1,4 +1,6 @@
 // @mui material components
+import * as React from "react";
+
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import Box from "@mui/material/Box";
@@ -9,6 +11,7 @@ import Select, { SelectChangeEvent } from "@mui/material/Select";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
+import { Modal } from "@mui/material";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -25,6 +28,21 @@ import teachersTableData from "./data/teachersTableData";
 
 function Teachers() {
   const { columns, rows } = teachersTableData();
+  const [open, setOpen] = React.useState(false);
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+
+  const style = {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: 700,
+    bgcolor: "background.paper",
+    border: "2px solid #000",
+    boxShadow: 24,
+    p: 4,
+  };
 
   return (
     <DashboardLayout>
@@ -109,7 +127,39 @@ function Teachers() {
                 <Grid item></Grid>
                 <Grid item>
                   <Stack spacing={2} direction="row">
-                    <Button variant="text">Agregar Docente</Button>
+                    <Button onClick={handleOpen} variant="text">
+                      Agregar Docente
+                    </Button>
+
+                    <Modal
+                      open={open}
+                      onClose={handleClose}
+                      aria-labelledby="modal-modal-title2"
+                      aria-describedby="modal-modal-description2"
+                    >
+                      <MDBox p={3} sx={style}>
+                        <MDTypography id="modal-modal-title2" variant="h6" component="h2">
+                          Introduzca los Datos de Identificacion del Docente:
+                        </MDTypography>
+                        <TextField id="outlined-basic" label="Primer Nombre" variant="outlined" />
+                        <TextField id="outlined-basic" label="Segundo Nombre" variant="outlined" />
+                        <TextField id="outlined-basic" label="Primer Apellido" variant="outlined" />
+                        <TextField
+                          id="outlined-basic"
+                          label="Segundo Apellido"
+                          variant="outlined"
+                        />
+                        <TextField
+                          id="outlined-basic"
+                          type="number"
+                          label="Cedula"
+                          variant="outlined"
+                        />
+                        <Button color="success" onClick={handleClose}>
+                          Aceptar
+                        </Button>
+                      </MDBox>
+                    </Modal>
                   </Stack>
                 </Grid>
               </Grid>
