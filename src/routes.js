@@ -38,6 +38,7 @@ Coded by www.creative-tim.com
 // Material Dashboard 2 React layouts
 import Dashboard from "layouts/dashboard";
 import Students from "layouts/students";
+import Courses from "layouts/Course";
 import Tables from "layouts/tables";
 import Billing from "layouts/billing";
 import RTL from "layouts/rtl";
@@ -92,6 +93,14 @@ const routes = [
     icon: <Icon fontSize="small">table_view</Icon>,
     route: "/docentes/:id",
     component: <TeacherProfile />,
+  },
+  {
+    type: "collapse",
+    name: "Materias",
+    key: "Materias",
+    icon: <Icon fontSize="small">receipt_long</Icon>,
+    route: "/materias",
+    component: <Courses />,
   },
   {
     type: "collapse",
