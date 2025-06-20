@@ -48,6 +48,7 @@ import StudentProfile from "layouts/students/studentProfile";
 import SignUp from "layouts/authentication/sign-up";
 import Teachers from "layouts/teachers";
 import TeacherProfile from "layouts/teachers/teacherProfile";
+import Courses from "layouts/Course";
 
 // @mui icons
 import Icon from "@mui/material/Icon";
@@ -92,6 +93,14 @@ const routes = [
     icon: <Icon fontSize="small">table_view</Icon>,
     route: "/docentes/:id",
     component: <TeacherProfile />,
+  },
+  {
+    type: "collapse",
+    name: "Materias",
+    key: "Materias",
+    icon: <Icon fontSize="small">receipt_long</Icon>,
+    route: "/materias",
+    component: <Courses />,
   },
   {
     type: "url",
