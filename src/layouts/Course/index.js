@@ -106,9 +106,7 @@ function Course() {
                 <Grid item></Grid>
                 <Grid item>
                   <Stack spacing={2} direction="row">
-                    <Button variant="contained" color="info">
-                      Agregar Materia
-                    </Button>
+                    <Button variant="contained">Agregar Materia</Button>
                   </Stack>
                 </Grid>
               </Grid>

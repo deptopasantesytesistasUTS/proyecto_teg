@@ -42,11 +42,7 @@ function Students() {
                 bgColor="info"
                 borderRadius="lg"
                 coloredShadow="info"
-              >
-                <MDTypography variant="h6" color="white">
-                  Listado de Estudiantes
-                </MDTypography>
-              </MDBox>
+              ></MDBox>
               <br></br>
               <Grid container columns={4} spacing={3} px={2} py={1}>
                 <Grid item size={6} width={200}>
@@ -108,7 +104,7 @@ function Students() {
                 <Grid item></Grid>
                 <Grid item>
                   <Stack spacing={2} direction="row">
-                    <Button variant="text">Agregar Estudiante</Button>
+                    <Button variant="contained">Agregar Estudiante</Button>
                   </Stack>
                 </Grid>
               </Grid>

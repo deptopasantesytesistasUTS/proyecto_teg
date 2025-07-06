@@ -24,7 +24,7 @@ import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
 
 // Data
-import teachersTableData from "./data/teachersTableData";
+import teachersTableData from "../teachers/data/teachersTableDatasTableData";
 
 function Teachers() {
   const { columns, rows } = teachersTableData();

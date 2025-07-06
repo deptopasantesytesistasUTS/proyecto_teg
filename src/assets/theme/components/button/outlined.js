@@ -26,8 +26,8 @@ const { size } = typography;
 const outlined = {
   base: {
     minHeight: pxToRem(40),
-    color: light.main,
-    borderColor: light.main,
+    color: info.main,
+    borderColor: info.main,
     padding: `${pxToRem(10)} ${pxToRem(24)}`,
 
     "&:hover": {

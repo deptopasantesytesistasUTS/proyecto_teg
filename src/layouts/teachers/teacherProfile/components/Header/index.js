@@ -39,9 +39,8 @@ import breakpoints from "assets/theme/base/breakpoints";
 import burceMars from "assets/images/bruce-mars.jpg";
 import backgroundImage from "assets/images/bg-profile.jpeg";
 
-function Header({ children }) {
+function Header({ children, tabValue, onTabChange }) {
   const [tabsOrientation, setTabsOrientation] = useState("horizontal");
-  const [tabValue, setTabValue] = useState(0);
 
   useEffect(() => {
     // A function that sets the orientation state of the tabs.
@@ -62,8 +61,6 @@ function Header({ children }) {
     // Remove event listener on cleanup
     return () => window.removeEventListener("resize", handleTabsOrientation);
   }, [tabsOrientation]);
-
-  const handleSetTabValue = (event, newValue) => setTabValue(newValue);
 
   return (
     <MDBox position="relative" mb={5}>
@@ -110,12 +107,12 @@ function Header({ children }) {
 
           <Grid item xs={12} md={6} lg={4} sx={{ ml: "auto" }}>
             <AppBar position="static">
-              <Tabs orientation={tabsOrientation} value={tabValue} onChange={handleSetTabValue}>
+              <Tabs orientation={tabsOrientation} value={tabValue} onChange={onTabChange}>
                 <Tab
-                  label="Info"
+                  label="Configuraciones"
                   icon={
                     <Icon fontSize="small" sx={{ mt: -0.25 }}>
-                      home
+                      settings
                     </Icon>
                   }
                 />
@@ -124,14 +121,6 @@ function Header({ children }) {
                   icon={
                     <Icon fontSize="small" sx={{ mt: -0.25 }}>
                       email
-                    </Icon>
-                  }
-                />
-                <Tab
-                  label="Configuraciones"
-                  icon={
-                    <Icon fontSize="small" sx={{ mt: -0.25 }}>
-                      settings
                     </Icon>
                   }
                 />
@@ -148,11 +137,15 @@ function Header({ children }) {
 // Setting default props for the Header
 Header.defaultProps = {
   children: "",
+  tabValue: 0,
+  onTabChange: () => {},
 };
 
 // Typechecking props for the Header
 Header.propTypes = {
   children: PropTypes.node,
+  tabValue: PropTypes.number,
+  onTabChange: PropTypes.func,
 };
 
 export default Header;

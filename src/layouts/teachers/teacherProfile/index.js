@@ -1,11 +1,38 @@
 import * as React from "react";
+// prop-types is a library for typechecking of props
+import PropTypes from "prop-types";
+
 // @mui material components
 import Grid from "@mui/material/Grid";
 import Divider from "@mui/material/Divider";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import AppBar from "@mui/material/AppBar";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import Switch from "@mui/material/Switch";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemText from "@mui/material/ListItemText";
+import ListItemAvatar from "@mui/material/ListItemAvatar";
+import Chip from "@mui/material/Chip";
+
+// @mui icons
+import FacebookIcon from "@mui/icons-material/Facebook";
+import TwitterIcon from "@mui/icons-material/Twitter";
+import InstagramIcon from "@mui/icons-material/Instagram";
+import PersonIcon from "@mui/icons-material/Person";
+import DescriptionIcon from "@mui/icons-material/Description";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import SendIcon from "@mui/icons-material/Send";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
+import MDAvatar from "components/MDAvatar";
 
 // Material Dashboard 2 React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -42,6 +69,28 @@ const style = {
   p: 4,
 };
 
+// TabPanel component for tab content
+function TabPanel({ children, value, index, ...other }) {
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`simple-tabpanel-${index}`}
+      aria-labelledby={`simple-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+    </div>
+  );
+}
+
+// PropTypes for TabPanel
+TabPanel.propTypes = {
+  children: PropTypes.node,
+  value: PropTypes.number.isRequired,
+  index: PropTypes.number.isRequired,
+};
+
 function TeacherProfile() {
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
@@ -55,10 +104,70 @@ function TeacherProfile() {
   const [open4, setOpen4] = React.useState(false);
   const handleOpen4 = () => setOpen4(true);
   const handleClose4 = () => setOpen4(false);
+
+  // Communication modal state
+  const [openCommunication, setOpenCommunication] = React.useState(false);
+  const handleOpenCommunication = () => setOpenCommunication(true);
+  const handleCloseCommunication = () => setOpenCommunication(false);
+  const [communicationTitle, setCommunicationTitle] = React.useState("");
+  const [communicationDescription, setCommunicationDescription] = React.useState("");
+
+  // Tab state
+  const [tabValue, setTabValue] = React.useState(0);
+
+  // Configuration state
+  const [accessPage, setAccessPage] = React.useState(true);
+  const [accessResults, setAccessResults] = React.useState(true);
+  const [accessDeliveries, setAccessDeliveries] = React.useState(false);
+
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
+  };
+
+  const handleSendCommunication = () => {
+    if (communicationTitle.trim() && communicationDescription.trim()) {
+      console.log("Enviando comunicado:", {
+        title: communicationTitle,
+        description: communicationDescription,
+        date: new Date().toISOString().split("T")[0],
+      });
+      // Aquí se enviaría el comunicado al backend
+      setCommunicationTitle("");
+      setCommunicationDescription("");
+      handleCloseCommunication();
+    }
+  };
+
+  // Mock data for communications
+  const communications = [
+    {
+      id: 1,
+      title: "Recordatorio: Revisión de Proyectos",
+      content:
+        "Se recuerda que la fecha límite para la revisión de proyectos es el próximo viernes.",
+      date: "2024-01-10",
+      priority: "high",
+    },
+    {
+      id: 2,
+      title: "Reunión de Coordinación",
+      content: "Se programará una reunión para discutir el progreso de los proyectos.",
+      date: "2024-01-08",
+      priority: "medium",
+    },
+    {
+      id: 3,
+      title: "Actualización del Sistema",
+      content: "El sistema ha sido actualizado con nuevas funcionalidades.",
+      date: "2024-01-05",
+      priority: "low",
+    },
+  ];
+
   return (
     <DashboardLayout>
       <MDBox mb={2} />
-      <Header>
+      <Header tabValue={tabValue} onTabChange={handleTabChange}>
         <MDBox mt={5} mb={3}>
           <Grid container spacing={1}>
             <Grid item xs={12} md={6} xl={4}>
@@ -74,12 +183,10 @@ function TeacherProfile() {
                 <MDTypography>Teléfono: 0414-0343286</MDTypography>
               </Card>
             </Grid>
-            <Grid item xs={12} md={6} xl={4} sx={{ display: "flex" }}></Grid>
             <Grid item xs={12} md={6} xl={4} sx={{ display: "flex" }}>
               <Grid item size={4}>
                 <Stack mt={2} px={5} spacing={3}>
                   <Button
-                    color="white"
                     variant="contained"
                     onClick={() => {
                       setOpen2(true), console.log(open2);
@@ -114,7 +221,7 @@ function TeacherProfile() {
                     </Box>
                   </Modal>
 
-                  <Button onClick={handleOpen3} color="white" variant="contained">
+                  <Button onClick={handleOpen3} variant="contained">
                     Cambiar Número de Teléfono
                   </Button>
 
@@ -135,7 +242,7 @@ function TeacherProfile() {
                     </Box>
                   </Modal>
 
-                  <Button color="white" variant="contained" onClick={handleOpen}>
+                  <Button variant="contained" onClick={handleOpen}>
                     Cambiar Correo Electrónico
                   </Button>
 
@@ -161,7 +268,7 @@ function TeacherProfile() {
                     </Box>
                   </Modal>
 
-                  <Button onClick={handleOpen4} color="white" variant="contained">
+                  <Button onClick={handleOpen4} variant="contained">
                     Restaurar Constraseña
                   </Button>
 
@@ -184,6 +291,116 @@ function TeacherProfile() {
                   </Modal>
                 </Stack>
               </Grid>
+            </Grid>
+            <Grid item xs={12} xl={4}>
+              {/* TabPanel Content - Only 2 tabs */}
+              <TabPanel value={tabValue} index={0}>
+                <Card>
+                  <MDBox p={3}>
+                    <MDTypography variant="h5" mb={3}>
+                      Configuraciones de Acceso
+                    </MDTypography>
+                    <Stack spacing={2}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={accessPage}
+                            onChange={(e) => setAccessPage(e.target.checked)}
+                            color="primary"
+                          />
+                        }
+                        label="Acceso a la Página"
+                      />
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={accessResults}
+                            onChange={(e) => setAccessResults(e.target.checked)}
+                            color="primary"
+                          />
+                        }
+                        label="Acceso a Resultados"
+                      />
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={accessDeliveries}
+                            onChange={(e) => setAccessDeliveries(e.target.checked)}
+                            color="primary"
+                          />
+                        }
+                        label="Acceso a Entregas"
+                      />
+                    </Stack>
+                  </MDBox>
+                </Card>
+              </TabPanel>
+
+              <TabPanel value={tabValue} index={1}>
+                <Card>
+                  <MDBox p={3}>
+                    <MDTypography variant="h5" mb={3}>
+                      Comunicados
+                    </MDTypography>
+                    <List>
+                      {communications.map((comm) => (
+                        <ListItem key={comm.id} alignItems="flex-start">
+                          <ListItemAvatar>
+                            <MDAvatar>
+                              <NotificationsIcon />
+                            </MDAvatar>
+                          </ListItemAvatar>
+                          <ListItemText
+                            primary={
+                              <MDBox display="flex" alignItems="center" gap={1}>
+                                <MDTypography variant="h6">{comm.title}</MDTypography>
+                                <Chip
+                                  label={
+                                    comm.priority === "high"
+                                      ? "Alta"
+                                      : comm.priority === "medium"
+                                      ? "Media"
+                                      : "Baja"
+                                  }
+                                  color={
+                                    comm.priority === "high"
+                                      ? "error"
+                                      : comm.priority === "medium"
+                                      ? "warning"
+                                      : "success"
+                                  }
+                                  size="small"
+                                />
+                              </MDBox>
+                            }
+                            secondary={
+                              <MDBox>
+                                <MDTypography variant="body2" color="text">
+                                  {comm.content}
+                                </MDTypography>
+                                <MDTypography variant="caption" color="text">
+                                  {comm.date}
+                                </MDTypography>
+                              </MDBox>
+                            }
+                          />
+                        </ListItem>
+                      ))}
+                    </List>
+                    <MDBox mt={3}>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        startIcon={<SendIcon />}
+                        fullWidth
+                        onClick={handleOpenCommunication}
+                      >
+                        Enviar Comunicado
+                      </Button>
+                    </MDBox>
+                  </MDBox>
+                </Card>
+              </TabPanel>
             </Grid>
           </Grid>
         </MDBox>
@@ -262,6 +479,59 @@ function TeacherProfile() {
           </Grid>
         </MDBox>
       </Header>
+
+      {/* Communication Modal */}
+      <Modal
+        open={openCommunication}
+        onClose={handleCloseCommunication}
+        aria-labelledby="communication-modal-title"
+        aria-describedby="communication-modal-description"
+      >
+        <Box sx={style}>
+          <Typography id="communication-modal-title" variant="h6" component="h2" mb={3}>
+            Enviar Nuevo Comunicado
+          </Typography>
+
+          <MDBox display="flex" flexDirection="column" gap={3}>
+            <TextField
+              id="communication-title"
+              label="Título del Comunicado"
+              variant="outlined"
+              fullWidth
+              value={communicationTitle}
+              onChange={(e) => setCommunicationTitle(e.target.value)}
+              required
+            />
+
+            <TextField
+              id="communication-description"
+              label="Descripción del Comunicado"
+              variant="outlined"
+              fullWidth
+              multiline
+              rows={4}
+              value={communicationDescription}
+              onChange={(e) => setCommunicationDescription(e.target.value)}
+              required
+            />
+
+            <MDBox display="flex" gap={2} justifyContent="flex-end">
+              <Button variant="outlined" onClick={handleCloseCommunication}>
+                Cancelar
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleSendCommunication}
+                disabled={!communicationTitle.trim() || !communicationDescription.trim()}
+                startIcon={<SendIcon />}
+              >
+                Enviar
+              </Button>
+            </MDBox>
+          </MDBox>
+        </Box>
+      </Modal>
       <Footer />
     </DashboardLayout>
   );
