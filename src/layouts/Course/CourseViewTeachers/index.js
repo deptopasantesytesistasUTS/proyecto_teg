@@ -35,6 +35,7 @@ import Paper from "@mui/material/Paper";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import Divider from "@mui/material/Divider";
 import Pagination from "@mui/material/Pagination";
+import Checkbox from "@mui/material/Checkbox";
 
 // @mui icons
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -65,29 +66,12 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
+import ReportsBarChart from "examples/Charts/BarCharts/ReportsBarChart";
 
 // Data
 import coursesTableData from "layouts/Course/data/coursesTableData";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-
-// Chart.js imports
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
-import { Bar } from "react-chartjs-2";
-
-// Material Dashboard 2 React example components
-import ReportsBarChart from "examples/Charts/BarCharts/ReportsBarChart";
-
-// Register Chart.js components
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const style = {
   position: "absolute",
@@ -136,12 +120,6 @@ function CourseView() {
   const [openUploadModal, setOpenUploadModal] = React.useState(false);
   const [currentUploadType, setCurrentUploadType] = React.useState("");
 
-  // Calendar and communications states
-  const [selectedEvent, setSelectedEvent] = React.useState(null);
-  const [isEventModalOpen, setIsEventModalOpen] = React.useState(false);
-  const [currentPage, setCurrentPage] = React.useState(1);
-  const [currentMonth, setCurrentMonth] = React.useState(new Date());
-
   // Form states
   const [titleProposals, setTitleProposals] = React.useState(["", "", ""]);
   const [selectedTitle, setSelectedTitle] = React.useState("");
@@ -149,6 +127,83 @@ function CourseView() {
   const [isTitleApproved, setIsTitleApproved] = React.useState(false);
   const [uploadFile, setUploadFile] = React.useState(null);
   const [uploadFileName, setUploadFileName] = React.useState("");
+
+  // Calendar and communications states
+  const [selectedEvent, setSelectedEvent] = React.useState(null);
+  const [isEventModalOpen, setIsEventModalOpen] = React.useState(false);
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [currentMonth, setCurrentMonth] = React.useState(new Date());
+
+  // Attendance states
+  const [classes, setClasses] = React.useState([]);
+  const [newClassDate, setNewClassDate] = React.useState("");
+  const [newClassTime, setNewClassTime] = React.useState("");
+  const [newClassDescription, setNewClassDescription] = React.useState("");
+  const [attendance, setAttendance] = React.useState({});
+
+  // Edit class modal states
+  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
+  const [editingClass, setEditingClass] = React.useState(null);
+  const [editClassDate, setEditClassDate] = React.useState("");
+  const [editClassTime, setEditClassTime] = React.useState("");
+  const [editClassDescription, setEditClassDescription] = React.useState("");
+
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
+  };
+
+  const handleOpenTitleModal = () => {
+    setOpenTitleModal(true);
+  };
+
+  const handleCloseTitleModal = () => {
+    setOpenTitleModal(false);
+  };
+
+  const handleOpenUploadModal = (type) => {
+    setCurrentUploadType(type);
+    setOpenUploadModal(true);
+  };
+
+  const handleCloseUploadModal = () => {
+    setOpenUploadModal(false);
+    setUploadFile(null);
+    setUploadFileName("");
+  };
+
+  const handleTitleProposalChange = (index, value) => {
+    const newProposals = [...titleProposals];
+    newProposals[index] = value;
+    setTitleProposals(newProposals);
+  };
+
+  const handleSubmitTitleProposals = () => {
+    if (titleProposals.some((proposal) => proposal.trim() !== "")) {
+      console.log("Propuestas de título enviadas:", titleProposals);
+      setSelectedTitle(titleProposals.find((proposal) => proposal.trim() !== "") || "");
+      // Simular aprobación del título (en un caso real esto vendría del backend)
+      setTimeout(() => {
+        setIsTitleApproved(true);
+        setApprovedTitle(titleProposals.find((proposal) => proposal.trim() !== "") || "");
+      }, 2000);
+      handleCloseTitleModal();
+    }
+  };
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setUploadFile(file);
+      setUploadFileName(file.name);
+    }
+  };
+
+  const handleSubmitUpload = () => {
+    if (uploadFile) {
+      console.log(`Archivo enviado para ${currentUploadType}:`, uploadFile.name);
+      handleCloseUploadModal();
+    }
+  };
 
   // Datos de eventos/actividades del calendario
   const appointments = [
@@ -273,63 +328,6 @@ function CourseView() {
     },
   };
 
-  const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
-  };
-
-  const handleOpenTitleModal = () => {
-    setOpenTitleModal(true);
-  };
-
-  const handleCloseTitleModal = () => {
-    setOpenTitleModal(false);
-  };
-
-  const handleOpenUploadModal = (type) => {
-    setCurrentUploadType(type);
-    setOpenUploadModal(true);
-  };
-
-  const handleCloseUploadModal = () => {
-    setOpenUploadModal(false);
-    setUploadFile(null);
-    setUploadFileName("");
-  };
-
-  const handleTitleProposalChange = (index, value) => {
-    const newProposals = [...titleProposals];
-    newProposals[index] = value;
-    setTitleProposals(newProposals);
-  };
-
-  const handleSubmitTitleProposals = () => {
-    if (titleProposals.some((proposal) => proposal.trim() !== "")) {
-      console.log("Propuestas de título enviadas:", titleProposals);
-      setSelectedTitle(titleProposals.find((proposal) => proposal.trim() !== "") || "");
-      // Simular aprobación del título (en un caso real esto vendría del backend)
-      setTimeout(() => {
-        setIsTitleApproved(true);
-        setApprovedTitle(titleProposals.find((proposal) => proposal.trim() !== "") || "");
-      }, 2000);
-      handleCloseTitleModal();
-    }
-  };
-
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setUploadFile(file);
-      setUploadFileName(file.name);
-    }
-  };
-
-  const handleSubmitUpload = () => {
-    if (uploadFile) {
-      console.log(`Archivo enviado para ${currentUploadType}:`, uploadFile.name);
-      handleCloseUploadModal();
-    }
-  };
-
   // Calendar and communications functions
   const handleEventClick = (event) => {
     setSelectedEvent(event);
@@ -429,6 +427,92 @@ function CourseView() {
   const endIndex = startIndex + itemsPerPage;
   const currentComunicados = comunicados.slice(startIndex, endIndex);
 
+  // Attendance functions
+  const handleAddClass = () => {
+    if (newClassDate && newClassTime && newClassDescription) {
+      const newClass = {
+        id: Date.now(),
+        date: newClassDate,
+        time: newClassTime,
+        description: newClassDescription,
+      };
+      setClasses([...classes, newClass]);
+      setNewClassDate("");
+      setNewClassTime("");
+      setNewClassDescription("");
+    }
+  };
+
+  const handleDeleteClass = (classId) => {
+    setClasses(classes.filter((cls) => cls.id !== classId));
+  };
+
+  const getAttendanceStatus = (studentId, classId) => {
+    // Mock attendance data - in a real app this would come from the backend
+    const attendanceData = {
+      "student-1": {
+        "class-1": "present",
+        "class-2": "absent",
+        "class-3": "present",
+      },
+      "student-2": {
+        "class-1": "present",
+        "class-2": "present",
+        "class-3": "late",
+      },
+      "student-3": {
+        "class-1": "absent",
+        "class-2": "present",
+        "class-3": "present",
+      },
+    };
+    return attendanceData[studentId]?.[classId] || "not-marked";
+  };
+
+  const handleAttendanceChange = (studentId, classId, isPresent) => {
+    setAttendance((prev) => ({
+      ...prev,
+      [studentId]: {
+        ...prev[studentId],
+        [classId]: isPresent ? "present" : "absent",
+      },
+    }));
+  };
+
+  const handleEditClass = (classToEdit) => {
+    setEditingClass(classToEdit);
+    setEditClassDate(classToEdit.date);
+    setEditClassTime(classToEdit.time);
+    setEditClassDescription(classToEdit.description);
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setEditingClass(null);
+    setEditClassDate("");
+    setEditClassTime("");
+    setEditClassDescription("");
+  };
+
+  const handleSubmitEditClass = () => {
+    if (editClassDate && editClassTime && editClassDescription) {
+      setClasses((prev) =>
+        prev.map((cls) =>
+          cls.id === editingClass.id
+            ? {
+                ...cls,
+                date: editClassDate,
+                time: editClassTime,
+                description: editClassDescription,
+              }
+            : cls
+        )
+      );
+      handleCloseEditModal();
+    }
+  };
+
   // Mock data for participants
   const teachers = [
     {
@@ -436,14 +520,12 @@ function CourseView() {
       role: "Profesor Principal",
       email: "maria.gonzalez@universidad.edu",
       specialty: "Inteligencia Artificial",
-      phone: "+58 412-123-4567",
     },
     {
       name: "Prof. Carlos Rodríguez",
       role: "Profesor Asistente",
       email: "carlos.rodriguez@universidad.edu",
       specialty: "Desarrollo de Software",
-      phone: "+58 414-987-6543",
     },
   ];
 
@@ -532,6 +614,7 @@ function CourseView() {
                   >
                     <Tab label="Info" icon={<InfoIcon />} iconPosition="start" />
                     <Tab label="Participantes" icon={<PeopleIcon />} iconPosition="start" />
+                    <Tab label="Asistencias" icon={<AssignmentIcon />} iconPosition="start" />
                     <Tab label="Recursos" icon={<FolderIcon />} iconPosition="start" />
                   </Tabs>
                 </AppBar>
@@ -770,16 +853,6 @@ function CourseView() {
                               >
                                 <MDTypography variant="h6">Nombre</MDTypography>
                               </th>
-
-                              <th
-                                style={{
-                                  padding: "12px",
-                                  textAlign: "left",
-                                  borderBottom: "2px solid #ddd",
-                                }}
-                              >
-                                <MDTypography variant="h6">Especialidad</MDTypography>
-                              </th>
                               <th
                                 style={{
                                   padding: "12px",
@@ -788,24 +861,6 @@ function CourseView() {
                                 }}
                               >
                                 <MDTypography variant="h6">Email</MDTypography>
-                              </th>
-                              <th
-                                style={{
-                                  padding: "12px",
-                                  textAlign: "left",
-                                  borderBottom: "2px solid #ddd",
-                                }}
-                              >
-                                <MDTypography variant="h6">Teléfono</MDTypography>
-                              </th>
-                              <th
-                                style={{
-                                  padding: "12px",
-                                  textAlign: "left",
-                                  borderBottom: "2px solid #ddd",
-                                }}
-                              >
-                                <MDTypography variant="h6">Acciones</MDTypography>
                               </th>
                             </tr>
                           </thead>
@@ -822,26 +877,8 @@ function CourseView() {
                                     </MDTypography>
                                   </MDBox>
                                 </td>
-
-                                <td style={{ padding: "12px", textAlign: "left" }}>
-                                  <MDTypography variant="body2">{teacher.specialty}</MDTypography>
-                                </td>
                                 <td style={{ padding: "12px", textAlign: "left" }}>
                                   <MDTypography variant="body2">{teacher.email}</MDTypography>
-                                </td>
-                                <td style={{ padding: "12px", textAlign: "left" }}>
-                                  <MDTypography variant="body2">{teacher.phone}</MDTypography>
-                                </td>
-                                <td style={{ padding: "12px", textAlign: "left" }}>
-                                  <Button
-                                    variant="contained"
-                                    color="primary"
-                                    size="small"
-                                    href="/docentes/30443230"
-                                    sx={{ minWidth: 100 }}
-                                  >
-                                    Ver Perfil
-                                  </Button>
                                 </td>
                               </tr>
                             ))}
@@ -937,8 +974,208 @@ function CourseView() {
                   </MDBox>
                 </TabPanel>
 
-                {/* Tab 3: Recursos */}
+                {/* Tab 3: Asistencias */}
                 <TabPanel value={tabValue} index={2}>
+                  <MDBox>
+                    {/* Programar Clases */}
+                    <Card sx={{ p: 3, mb: 4 }}>
+                      <MDTypography variant="h5" mb={3}>
+                        <AssignmentIcon sx={{ mr: 1, verticalAlign: "middle" }} />
+                        Programar Clases
+                      </MDTypography>
+                      <Grid container spacing={3}>
+                        <Grid item xs={12} md={3}>
+                          <TextField
+                            label="Fecha"
+                            type="date"
+                            value={newClassDate}
+                            onChange={(e) => setNewClassDate(e.target.value)}
+                            fullWidth
+                            InputLabelProps={{
+                              shrink: true,
+                            }}
+                          />
+                        </Grid>
+                        <Grid item xs={12} md={3}>
+                          <TextField
+                            label="Hora"
+                            type="time"
+                            value={newClassTime}
+                            onChange={(e) => setNewClassTime(e.target.value)}
+                            fullWidth
+                            InputLabelProps={{
+                              shrink: true,
+                            }}
+                          />
+                        </Grid>
+                        <Grid item xs={12} md={4}>
+                          <TextField
+                            label="Descripción de la Clase"
+                            value={newClassDescription}
+                            onChange={(e) => setNewClassDescription(e.target.value)}
+                            fullWidth
+                            placeholder="Ej: Introducción a React"
+                          />
+                        </Grid>
+                        <Grid item xs={12} md={2}>
+                          <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handleAddClass}
+                            fullWidth
+                            sx={{ height: "56px" }}
+                            disabled={!newClassDate || !newClassTime || !newClassDescription}
+                          >
+                            Agregar Clase
+                          </Button>
+                        </Grid>
+                      </Grid>
+                    </Card>
+
+                    {/* Clases Programadas */}
+                    {classes.length > 0 && (
+                      <Card sx={{ p: 3, mb: 4 }}>
+                        <MDTypography variant="h5" mb={3}>
+                          Clases Programadas
+                        </MDTypography>
+                        <Grid container spacing={2}>
+                          {classes.map((cls) => (
+                            <Grid item xs={12} md={6} lg={4} key={cls.id}>
+                              <Card sx={{ p: 2, border: "1px solid #e0e0e0" }}>
+                                <MDBox
+                                  display="flex"
+                                  justifyContent="space-between"
+                                  alignItems="flex-start"
+                                >
+                                  <MDBox>
+                                    <MDTypography variant="h6" fontWeight="medium">
+                                      {cls.description}
+                                    </MDTypography>
+                                    <MDTypography variant="body2" color="text.secondary">
+                                      Fecha: {cls.date}
+                                    </MDTypography>
+                                    <MDTypography variant="body2" color="text.secondary">
+                                      Hora: {cls.time}
+                                    </MDTypography>
+                                  </MDBox>
+                                  <MDBox display="flex" gap={1}>
+                                    <Button
+                                      variant="outlined"
+                                      color="primary"
+                                      size="small"
+                                      onClick={() => handleEditClass(cls)}
+                                    >
+                                      Editar
+                                    </Button>
+                                    <Button
+                                      variant="outlined"
+                                      color="error"
+                                      size="small"
+                                      onClick={() => handleDeleteClass(cls.id)}
+                                    >
+                                      Eliminar
+                                    </Button>
+                                  </MDBox>
+                                </MDBox>
+                              </Card>
+                            </Grid>
+                          ))}
+                        </Grid>
+                      </Card>
+                    )}
+
+                    {/* Tabla de Asistencias */}
+                    <Card sx={{ p: 3 }}>
+                      <MDTypography variant="h5" mb={3}>
+                        <PersonIcon sx={{ mr: 1, verticalAlign: "middle" }} />
+                        Control de Asistencias
+                      </MDTypography>
+                      <Box sx={{ overflowX: "auto" }}>
+                        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                          <thead>
+                            <tr style={{ backgroundColor: "#f5f5f5" }}>
+                              <th
+                                style={{
+                                  padding: "12px",
+                                  textAlign: "left",
+                                  borderBottom: "2px solid #ddd",
+                                }}
+                              >
+                                <MDTypography variant="h6">Estudiante</MDTypography>
+                              </th>
+                              {classes.map((cls) => (
+                                <th
+                                  key={cls.id}
+                                  style={{
+                                    padding: "12px",
+                                    textAlign: "center",
+                                    borderBottom: "2px solid #ddd",
+                                  }}
+                                >
+                                  <MDBox>
+                                    <MDTypography variant="body2" fontWeight="bold">
+                                      {cls.description}
+                                    </MDTypography>
+                                    <MDTypography variant="caption" color="text.secondary">
+                                      {cls.date} - {cls.time}
+                                    </MDTypography>
+                                  </MDBox>
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {students.map((student, index) => (
+                              <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
+                                <td style={{ padding: "12px", textAlign: "left" }}>
+                                  <MDBox display="flex" alignItems="center">
+                                    <MDAvatar sx={{ mr: 2, width: 32, height: 32 }}>
+                                      <PersonIcon />
+                                    </MDAvatar>
+                                    <MDTypography variant="body1" fontWeight="medium">
+                                      {student.name}
+                                    </MDTypography>
+                                  </MDBox>
+                                </td>
+                                {classes.map((cls) => {
+                                  const studentId = `student-${index + 1}`;
+                                  const classId = `class-${cls.id}`;
+                                  const currentStatus =
+                                    attendance[studentId]?.[classId] ||
+                                    getAttendanceStatus(studentId, classId);
+                                  const isPresent = currentStatus === "present";
+
+                                  return (
+                                    <td
+                                      key={cls.id}
+                                      style={{ padding: "12px", textAlign: "center" }}
+                                    >
+                                      <Checkbox
+                                        checked={isPresent}
+                                        onChange={(e) =>
+                                          handleAttendanceChange(
+                                            studentId,
+                                            classId,
+                                            e.target.checked
+                                          )
+                                        }
+                                        color="primary"
+                                        size="small"
+                                      />
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </Box>
+                    </Card>
+                  </MDBox>
+                </TabPanel>
+
+                {/* Tab 4: Recursos */}
+                <TabPanel value={tabValue} index={3}>
                   <MDBox>
                     <MDTypography variant="h5" mb={3}>
                       <FolderIcon sx={{ mr: 1, verticalAlign: "middle" }} />
@@ -1127,6 +1364,73 @@ function CourseView() {
               </Box>
             </>
           )}
+        </Box>
+      </Modal>
+
+      {/* Edit Class Modal */}
+      <Modal
+        open={isEditModalOpen}
+        onClose={handleCloseEditModal}
+        aria-labelledby="edit-class-modal-title"
+        aria-describedby="edit-class-modal-description"
+      >
+        <Box sx={style}>
+          <Typography id="edit-class-modal-title" variant="h6" component="h2" mb={3}>
+            Editar Clase Programada
+          </Typography>
+
+          <MDBox display="flex" flexDirection="column" gap={3}>
+            <TextField
+              id="edit-class-date"
+              label="Fecha"
+              type="date"
+              variant="outlined"
+              fullWidth
+              value={editClassDate}
+              onChange={(e) => setEditClassDate(e.target.value)}
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+
+            <TextField
+              id="edit-class-time"
+              label="Hora"
+              type="time"
+              variant="outlined"
+              fullWidth
+              value={editClassTime}
+              onChange={(e) => setEditClassTime(e.target.value)}
+              InputLabelProps={{
+                shrink: true,
+              }}
+            />
+
+            <TextField
+              id="edit-class-description"
+              label="Descripción de la Clase"
+              variant="outlined"
+              fullWidth
+              value={editClassDescription}
+              onChange={(e) => setEditClassDescription(e.target.value)}
+              multiline
+              rows={3}
+            />
+
+            <MDBox display="flex" gap={2} justifyContent="flex-end">
+              <Button variant="outlined" onClick={handleCloseEditModal}>
+                Cancelar
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleSubmitEditClass}
+                disabled={!editClassDate || !editClassTime || !editClassDescription}
+              >
+                Guardar Cambios
+              </Button>
+            </MDBox>
+          </MDBox>
         </Box>
       </Modal>
 

@@ -50,7 +50,10 @@ import Teachers from "layouts/teachers";
 import TeacherProfile from "layouts/teachers/teacherProfile";
 import Courses from "layouts/Course";
 import CourseView from "layouts/Course/CourseView";
-
+import DashboardStudents from "layouts/dashboard-Students";
+import CourseViewStudents from "layouts/Course/CourseViewStudents";
+import DashboardTeachers from "layouts/dashboard-Teachers";
+import CourseViewTeachers from "layouts/Course/CourseViewTeachers";
 // @mui icons
 import Icon from "@mui/material/Icon";
 
@@ -62,6 +65,22 @@ const routes = [
     icon: <Icon fontSize="small">dashboard</Icon>,
     route: "/dashboard",
     component: <Dashboard />,
+  },
+  {
+    type: "collapse",
+    name: "Dashboard Estudiantes",
+    key: "dashboard-students",
+    icon: <Icon fontSize="small">school</Icon>,
+    route: "/dashboard-students",
+    component: <DashboardStudents />,
+  },
+  {
+    type: "collapse",
+    name: "Dashboard Docentes",
+    key: "dashboard-teachers",
+    icon: <Icon fontSize="small">school</Icon>,
+    route: "/dashboard-teachers",
+    component: <DashboardTeachers />,
   },
   {
     type: "collapse",
@@ -110,6 +129,22 @@ const routes = [
     icon: <Icon fontSize="small">receipt_long</Icon>,
     route: "/materias/:id",
     component: <CourseView />,
+  },
+  {
+    type: "url",
+    name: "Unidades",
+    key: "Unidades",
+    icon: <Icon fontSize="small">receipt_long</Icon>,
+    route: "/unidadesEst/:id",
+    component: <CourseViewStudents />,
+  },
+  {
+    type: "url",
+    name: "Unidades",
+    key: "Unidades",
+    icon: <Icon fontSize="small">receipt_long</Icon>,
+    route: "/unidadesDoc/:id",
+    component: <CourseViewTeachers />,
   },
   {
     type: "url",

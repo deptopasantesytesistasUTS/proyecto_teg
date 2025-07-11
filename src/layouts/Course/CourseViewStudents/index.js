@@ -71,24 +71,6 @@ import coursesTableData from "layouts/Course/data/coursesTableData";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
-// Chart.js imports
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
-import { Bar } from "react-chartjs-2";
-
-// Material Dashboard 2 React example components
-import ReportsBarChart from "examples/Charts/BarCharts/ReportsBarChart";
-
-// Register Chart.js components
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
-
 const style = {
   position: "absolute",
   top: "50%",
@@ -136,12 +118,6 @@ function CourseView() {
   const [openUploadModal, setOpenUploadModal] = React.useState(false);
   const [currentUploadType, setCurrentUploadType] = React.useState("");
 
-  // Calendar and communications states
-  const [selectedEvent, setSelectedEvent] = React.useState(null);
-  const [isEventModalOpen, setIsEventModalOpen] = React.useState(false);
-  const [currentPage, setCurrentPage] = React.useState(1);
-  const [currentMonth, setCurrentMonth] = React.useState(new Date());
-
   // Form states
   const [titleProposals, setTitleProposals] = React.useState(["", "", ""]);
   const [selectedTitle, setSelectedTitle] = React.useState("");
@@ -149,6 +125,69 @@ function CourseView() {
   const [isTitleApproved, setIsTitleApproved] = React.useState(false);
   const [uploadFile, setUploadFile] = React.useState(null);
   const [uploadFileName, setUploadFileName] = React.useState("");
+
+  // Calendar and communications states
+  const [selectedEvent, setSelectedEvent] = React.useState(null);
+  const [isEventModalOpen, setIsEventModalOpen] = React.useState(false);
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [currentMonth, setCurrentMonth] = React.useState(new Date());
+
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
+  };
+
+  const handleOpenTitleModal = () => {
+    setOpenTitleModal(true);
+  };
+
+  const handleCloseTitleModal = () => {
+    setOpenTitleModal(false);
+  };
+
+  const handleOpenUploadModal = (type) => {
+    setCurrentUploadType(type);
+    setOpenUploadModal(true);
+  };
+
+  const handleCloseUploadModal = () => {
+    setOpenUploadModal(false);
+    setUploadFile(null);
+    setUploadFileName("");
+  };
+
+  const handleTitleProposalChange = (index, value) => {
+    const newProposals = [...titleProposals];
+    newProposals[index] = value;
+    setTitleProposals(newProposals);
+  };
+
+  const handleSubmitTitleProposals = () => {
+    if (titleProposals.some((proposal) => proposal.trim() !== "")) {
+      console.log("Propuestas de título enviadas:", titleProposals);
+      setSelectedTitle(titleProposals.find((proposal) => proposal.trim() !== "") || "");
+      // Simular aprobación del título (en un caso real esto vendría del backend)
+      setTimeout(() => {
+        setIsTitleApproved(true);
+        setApprovedTitle(titleProposals.find((proposal) => proposal.trim() !== "") || "");
+      }, 2000);
+      handleCloseTitleModal();
+    }
+  };
+
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setUploadFile(file);
+      setUploadFileName(file.name);
+    }
+  };
+
+  const handleSubmitUpload = () => {
+    if (uploadFile) {
+      console.log(`Archivo enviado para ${currentUploadType}:`, uploadFile.name);
+      handleCloseUploadModal();
+    }
+  };
 
   // Datos de eventos/actividades del calendario
   const appointments = [
@@ -258,78 +297,6 @@ function CourseView() {
     },
   ];
 
-  // Datos de estadísticas de entregas para ReportsBarChart
-  const estadisticasEntregasChart = {
-    labels: [
-      "Entrega de Título",
-      "Entrega de Borrador 1",
-      "Entrega de Borrador 2",
-      "Entrega de Borrador 3",
-      "Entrega de Borrador Final",
-    ],
-    datasets: {
-      label: "Porcentaje de Estudiantes",
-      data: [85, 72, 68, 45, 32],
-    },
-  };
-
-  const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
-  };
-
-  const handleOpenTitleModal = () => {
-    setOpenTitleModal(true);
-  };
-
-  const handleCloseTitleModal = () => {
-    setOpenTitleModal(false);
-  };
-
-  const handleOpenUploadModal = (type) => {
-    setCurrentUploadType(type);
-    setOpenUploadModal(true);
-  };
-
-  const handleCloseUploadModal = () => {
-    setOpenUploadModal(false);
-    setUploadFile(null);
-    setUploadFileName("");
-  };
-
-  const handleTitleProposalChange = (index, value) => {
-    const newProposals = [...titleProposals];
-    newProposals[index] = value;
-    setTitleProposals(newProposals);
-  };
-
-  const handleSubmitTitleProposals = () => {
-    if (titleProposals.some((proposal) => proposal.trim() !== "")) {
-      console.log("Propuestas de título enviadas:", titleProposals);
-      setSelectedTitle(titleProposals.find((proposal) => proposal.trim() !== "") || "");
-      // Simular aprobación del título (en un caso real esto vendría del backend)
-      setTimeout(() => {
-        setIsTitleApproved(true);
-        setApprovedTitle(titleProposals.find((proposal) => proposal.trim() !== "") || "");
-      }, 2000);
-      handleCloseTitleModal();
-    }
-  };
-
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setUploadFile(file);
-      setUploadFileName(file.name);
-    }
-  };
-
-  const handleSubmitUpload = () => {
-    if (uploadFile) {
-      console.log(`Archivo enviado para ${currentUploadType}:`, uploadFile.name);
-      handleCloseUploadModal();
-    }
-  };
-
   // Calendar and communications functions
   const handleEventClick = (event) => {
     setSelectedEvent(event);
@@ -435,33 +402,25 @@ function CourseView() {
       name: "Dr. María González",
       role: "Profesor Principal",
       email: "maria.gonzalez@universidad.edu",
-      specialty: "Inteligencia Artificial",
       phone: "+58 412-123-4567",
     },
     {
       name: "Prof. Carlos Rodríguez",
       role: "Profesor Asistente",
       email: "carlos.rodriguez@universidad.edu",
-      specialty: "Desarrollo de Software",
       phone: "+58 414-987-6543",
     },
   ];
 
   const students = [
     {
-      name: "Luis Alejandro Cárdenas Lozano",
-      id: "V-30.443.230",
-      email: "luiscl1804@gmail.com",
+      name: "Dr. María González",
     },
     {
-      name: "Ana Sofía Martínez",
-      id: "V-28.123.456",
-      email: "ana.martinez@estudiante.edu",
+      name: "Prof. Carlos Rodríguez",
     },
     {
-      name: "Carlos Eduardo López",
-      id: "V-29.789.012",
-      email: "carlos.lopez@estudiante.edu",
+      name: "Dr. Ana Martínez",
     },
   ];
 
@@ -531,12 +490,280 @@ function CourseView() {
                     variant="fullWidth"
                   >
                     <Tab label="Info" icon={<InfoIcon />} iconPosition="start" />
+                    <Tab label="Aula" icon={<AssignmentIcon />} iconPosition="start" />
                     <Tab label="Participantes" icon={<PeopleIcon />} iconPosition="start" />
                     <Tab label="Recursos" icon={<FolderIcon />} iconPosition="start" />
                   </Tabs>
                 </AppBar>
 
-                {/* Tab 1: Info */}
+                {/* Tab 1: Aula */}
+                <TabPanel value={tabValue} index={1}>
+                  <MDBox>
+                    {/* Propuesta de Título Section */}
+                    <Accordion defaultExpanded sx={{ mb: 3 }}>
+                      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <MDBox display="flex" alignItems="center">
+                          <DescriptionIcon sx={{ mr: 2 }} />
+                          <MDTypography variant="h6">Propuesta de Título</MDTypography>
+                        </MDBox>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <MDBox>
+                          <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handleOpenTitleModal}
+                            startIcon={<SendIcon />}
+                            sx={{ mb: 2 }}
+                          >
+                            Ingresar Propuestas de Título
+                          </Button>
+
+                          {/* Título Seleccionado y Estado de Aprobación */}
+                          {(selectedTitle || isTitleApproved) && (
+                            <Card sx={{ p: 2, bgcolor: "grey.50" }}>
+                              <MDBox
+                                display="flex"
+                                alignItems="center"
+                                justifyContent="space-between"
+                                mb={2}
+                              >
+                                <MDTypography variant="h6" color="primary">
+                                  Título del Proyecto
+                                </MDTypography>
+                                <Chip
+                                  label={isTitleApproved ? "Aprobado" : "Pendiente"}
+                                  color={isTitleApproved ? "success" : "warning"}
+                                  variant="filled"
+                                  size="small"
+                                />
+                              </MDBox>
+
+                              {selectedTitle && !(isTitleApproved && approvedTitle) && (
+                                <MDBox mb={1}>
+                                  <MDTypography variant="body1">
+                                    <strong>Título Seleccionado:</strong> {selectedTitle}
+                                  </MDTypography>
+                                </MDBox>
+                              )}
+
+                              {isTitleApproved && approvedTitle && (
+                                <MDBox>
+                                  <MDTypography variant="body1" color="success.main">
+                                    <strong>Título Aprobado:</strong> {approvedTitle}
+                                  </MDTypography>
+                                </MDBox>
+                              )}
+                            </Card>
+                          )}
+                        </MDBox>
+                      </AccordionDetails>
+                    </Accordion>
+
+                    {/* Entrega de Borradores Section */}
+                    <Accordion defaultExpanded sx={{ mb: 3 }}>
+                      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <MDBox display="flex" alignItems="center">
+                          <UploadIcon sx={{ mr: 2 }} />
+                          <MDTypography variant="h6">Entrega de Borradores</MDTypography>
+                        </MDBox>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <Stack spacing={2}>
+                          {[
+                            "Primer Borrador",
+                            "Segundo Borrador",
+                            "Tercer Borrador",
+                            "Borrador Final",
+                          ].map((type, index) => (
+                            <Card key={index} sx={{ p: 2 }}>
+                              <MDBox
+                                display="flex"
+                                alignItems="center"
+                                justifyContent="space-between"
+                              >
+                                <MDBox>
+                                  <MDTypography variant="h6">{type}</MDTypography>
+                                  <MDTypography variant="body2" color="text.secondary">
+                                    Fecha límite: {draftDeadlines[index]}
+                                  </MDTypography>
+                                </MDBox>
+                                <Button
+                                  variant="outlined"
+                                  color="primary"
+                                  onClick={() => handleOpenUploadModal(type)}
+                                  startIcon={<UploadIcon />}
+                                >
+                                  Subir Archivo
+                                </Button>
+                              </MDBox>
+                            </Card>
+                          ))}
+                        </Stack>
+                      </AccordionDetails>
+                    </Accordion>
+                  </MDBox>
+                </TabPanel>
+
+                {/* Tab 2: Participantes */}
+                <TabPanel value={tabValue} index={2}>
+                  <MDBox>
+                    {/* Profesores */}
+                    <Card sx={{ p: 3, mb: 4 }}>
+                      <MDTypography variant="h5" mb={3}>
+                        <SchoolIcon sx={{ mr: 1, verticalAlign: "middle" }} />
+                        Profesores
+                      </MDTypography>
+                      <Box sx={{ overflowX: "auto" }}>
+                        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                          <thead>
+                            <tr style={{ backgroundColor: "#f5f5f5" }}>
+                              <th
+                                style={{
+                                  padding: "12px",
+                                  textAlign: "left",
+                                  borderBottom: "2px solid #ddd",
+                                }}
+                              >
+                                <MDTypography variant="h6">Nombre</MDTypography>
+                              </th>
+
+                              <th
+                                style={{
+                                  padding: "12px",
+                                  textAlign: "left",
+                                  borderBottom: "2px solid #ddd",
+                                }}
+                              >
+                                <MDTypography variant="h6">Teléfono</MDTypography>
+                              </th>
+                              <th
+                                style={{
+                                  padding: "12px",
+                                  textAlign: "left",
+                                  borderBottom: "2px solid #ddd",
+                                }}
+                              >
+                                <MDTypography variant="h6">Email</MDTypography>
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {teachers.map((teacher, index) => (
+                              <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
+                                <td style={{ padding: "12px", textAlign: "left" }}>
+                                  <MDBox display="flex" alignItems="center">
+                                    <MDAvatar sx={{ mr: 2, width: 32, height: 32 }}>
+                                      <PersonIcon />
+                                    </MDAvatar>
+                                    <MDTypography variant="body1" fontWeight="medium">
+                                      {teacher.name}
+                                    </MDTypography>
+                                  </MDBox>
+                                </td>
+
+                                <td style={{ padding: "12px", textAlign: "left" }}>
+                                  <MDTypography variant="body2">{teacher.phone}</MDTypography>
+                                </td>
+                                <td style={{ padding: "12px", textAlign: "left" }}>
+                                  <MDTypography variant="body2">{teacher.email}</MDTypography>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </Box>
+                    </Card>
+
+                    {/* Estudiantes */}
+                    <Card sx={{ p: 3 }}>
+                      <MDTypography variant="h5" mb={3}>
+                        <SchoolIcon sx={{ mr: 1, verticalAlign: "middle" }} />
+                        Profesores
+                      </MDTypography>
+                      <Box sx={{ overflowX: "auto" }}>
+                        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                          <thead>
+                            <tr style={{ backgroundColor: "#f5f5f5" }}>
+                              <th
+                                style={{
+                                  padding: "12px",
+                                  textAlign: "left",
+                                  borderBottom: "2px solid #ddd",
+                                }}
+                              >
+                                <MDTypography variant="h6">Nombre</MDTypography>
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {students.map((student, index) => (
+                              <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
+                                <td style={{ padding: "12px", textAlign: "left" }}>
+                                  <MDBox display="flex" alignItems="center">
+                                    <MDAvatar sx={{ mr: 2, width: 32, height: 32 }}>
+                                      <PersonIcon />
+                                    </MDAvatar>
+                                    <MDTypography variant="body1" fontWeight="medium">
+                                      {student.name}
+                                    </MDTypography>
+                                  </MDBox>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </Box>
+                    </Card>
+                  </MDBox>
+                </TabPanel>
+
+                {/* Tab 3: Recursos */}
+                <TabPanel value={tabValue} index={3}>
+                  <MDBox>
+                    <MDTypography variant="h5" mb={3}>
+                      <FolderIcon sx={{ mr: 1, verticalAlign: "middle" }} />
+                      Recursos Disponibles
+                    </MDTypography>
+                    <Grid container spacing={3}>
+                      {resources.map((resource, index) => (
+                        <Grid item xs={12} sm={6} md={4} key={index}>
+                          <Card sx={{ p: 3, height: "100%" }}>
+                            <MDBox display="flex" alignItems="center" mb={2}>
+                              <DescriptionIcon sx={{ mr: 2, color: "primary.main" }} />
+                              <MDBox>
+                                <MDTypography variant="h6" fontWeight="medium">
+                                  {resource.name}
+                                </MDTypography>
+                                <Chip
+                                  label={resource.type}
+                                  size="small"
+                                  color="primary"
+                                  variant="outlined"
+                                />
+                              </MDBox>
+                            </MDBox>
+                            <MDTypography variant="body2" color="text" mb={2}>
+                              {resource.description}
+                            </MDTypography>
+                            <Button
+                              variant="contained"
+                              color="primary"
+                              startIcon={<LinkIcon />}
+                              fullWidth
+                              href={resource.url}
+                              target="_blank"
+                            >
+                              Descargar
+                            </Button>
+                          </Card>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </MDBox>
+                </TabPanel>
+
+                {/* Tab 4: Info */}
                 <TabPanel value={tabValue} index={0}>
                   <MDBox>
                     <Grid container spacing={6}>
@@ -728,256 +955,6 @@ function CourseView() {
                           </CardContent>
                         </Card>
                       </Grid>
-                    </Grid>
-                    <br />
-
-                    {/* Gráfico de Estadísticas */}
-                    <MDBox mt={4}>
-                      <Grid container spacing={3}>
-                        <Grid item xs={12}>
-                          <ReportsBarChart
-                            color="info"
-                            title="PROGRESO DE ENTREGAS POR ETAPA"
-                            description="Porcentaje de estudiantes que han completado cada etapa del proyecto"
-                            date="Actualizado hace 2 horas"
-                            chart={estadisticasEntregasChart}
-                          />
-                        </Grid>
-                      </Grid>
-                    </MDBox>
-                  </MDBox>
-                </TabPanel>
-
-                {/* Tab 2: Participantes */}
-                <TabPanel value={tabValue} index={1}>
-                  <MDBox>
-                    {/* Profesores */}
-                    <Card sx={{ p: 3, mb: 4 }}>
-                      <MDTypography variant="h5" mb={3}>
-                        <SchoolIcon sx={{ mr: 1, verticalAlign: "middle" }} />
-                        Profesores
-                      </MDTypography>
-                      <Box sx={{ overflowX: "auto" }}>
-                        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                          <thead>
-                            <tr style={{ backgroundColor: "#f5f5f5" }}>
-                              <th
-                                style={{
-                                  padding: "12px",
-                                  textAlign: "left",
-                                  borderBottom: "2px solid #ddd",
-                                }}
-                              >
-                                <MDTypography variant="h6">Nombre</MDTypography>
-                              </th>
-
-                              <th
-                                style={{
-                                  padding: "12px",
-                                  textAlign: "left",
-                                  borderBottom: "2px solid #ddd",
-                                }}
-                              >
-                                <MDTypography variant="h6">Especialidad</MDTypography>
-                              </th>
-                              <th
-                                style={{
-                                  padding: "12px",
-                                  textAlign: "left",
-                                  borderBottom: "2px solid #ddd",
-                                }}
-                              >
-                                <MDTypography variant="h6">Email</MDTypography>
-                              </th>
-                              <th
-                                style={{
-                                  padding: "12px",
-                                  textAlign: "left",
-                                  borderBottom: "2px solid #ddd",
-                                }}
-                              >
-                                <MDTypography variant="h6">Teléfono</MDTypography>
-                              </th>
-                              <th
-                                style={{
-                                  padding: "12px",
-                                  textAlign: "left",
-                                  borderBottom: "2px solid #ddd",
-                                }}
-                              >
-                                <MDTypography variant="h6">Acciones</MDTypography>
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {teachers.map((teacher, index) => (
-                              <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
-                                <td style={{ padding: "12px", textAlign: "left" }}>
-                                  <MDBox display="flex" alignItems="center">
-                                    <MDAvatar sx={{ mr: 2, width: 32, height: 32 }}>
-                                      <PersonIcon />
-                                    </MDAvatar>
-                                    <MDTypography variant="body1" fontWeight="medium">
-                                      {teacher.name}
-                                    </MDTypography>
-                                  </MDBox>
-                                </td>
-
-                                <td style={{ padding: "12px", textAlign: "left" }}>
-                                  <MDTypography variant="body2">{teacher.specialty}</MDTypography>
-                                </td>
-                                <td style={{ padding: "12px", textAlign: "left" }}>
-                                  <MDTypography variant="body2">{teacher.email}</MDTypography>
-                                </td>
-                                <td style={{ padding: "12px", textAlign: "left" }}>
-                                  <MDTypography variant="body2">{teacher.phone}</MDTypography>
-                                </td>
-                                <td style={{ padding: "12px", textAlign: "left" }}>
-                                  <Button
-                                    variant="contained"
-                                    color="primary"
-                                    size="small"
-                                    href="/docentes/30443230"
-                                    sx={{ minWidth: 100 }}
-                                  >
-                                    Ver Perfil
-                                  </Button>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </Box>
-                    </Card>
-
-                    {/* Estudiantes */}
-                    <Card sx={{ p: 3 }}>
-                      <MDTypography variant="h5" mb={3}>
-                        <PersonIcon sx={{ mr: 1, verticalAlign: "middle" }} />
-                        Estudiantes
-                      </MDTypography>
-                      <Box sx={{ overflowX: "auto" }}>
-                        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                          <thead>
-                            <tr style={{ backgroundColor: "#f5f5f5" }}>
-                              <th
-                                style={{
-                                  padding: "12px",
-                                  textAlign: "left",
-                                  borderBottom: "2px solid #ddd",
-                                }}
-                              >
-                                <MDTypography variant="h6">Nombre</MDTypography>
-                              </th>
-                              <th
-                                style={{
-                                  padding: "12px",
-                                  textAlign: "left",
-                                  borderBottom: "2px solid #ddd",
-                                }}
-                              >
-                                <MDTypography variant="h6">Cédula</MDTypography>
-                              </th>
-                              <th
-                                style={{
-                                  padding: "12px",
-                                  textAlign: "left",
-                                  borderBottom: "2px solid #ddd",
-                                }}
-                              >
-                                <MDTypography variant="h6">Email</MDTypography>
-                              </th>
-                              <th
-                                style={{
-                                  padding: "12px",
-                                  textAlign: "left",
-                                  borderBottom: "2px solid #ddd",
-                                }}
-                              >
-                                <MDTypography variant="h6">Acciones</MDTypography>
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {students.map((student, index) => (
-                              <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
-                                <td style={{ padding: "12px", textAlign: "left" }}>
-                                  <MDBox display="flex" alignItems="center">
-                                    <MDAvatar sx={{ mr: 2, width: 32, height: 32 }}>
-                                      <PersonIcon />
-                                    </MDAvatar>
-                                    <MDTypography variant="body1" fontWeight="medium">
-                                      {student.name}
-                                    </MDTypography>
-                                  </MDBox>
-                                </td>
-                                <td style={{ padding: "12px", textAlign: "left" }}>
-                                  <MDTypography variant="body2">{student.id}</MDTypography>
-                                </td>
-                                <td style={{ padding: "12px", textAlign: "left" }}>
-                                  <MDTypography variant="body2">{student.email}</MDTypography>
-                                </td>
-                                <td style={{ padding: "12px", textAlign: "left" }}>
-                                  <Button
-                                    variant="contained"
-                                    color="primary"
-                                    size="small"
-                                    href="/estudiantes/30443230"
-                                    sx={{ minWidth: 100 }}
-                                  >
-                                    Ver Perfil
-                                  </Button>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </Box>
-                    </Card>
-                  </MDBox>
-                </TabPanel>
-
-                {/* Tab 3: Recursos */}
-                <TabPanel value={tabValue} index={2}>
-                  <MDBox>
-                    <MDTypography variant="h5" mb={3}>
-                      <FolderIcon sx={{ mr: 1, verticalAlign: "middle" }} />
-                      Recursos Disponibles
-                    </MDTypography>
-                    <Grid container spacing={3}>
-                      {resources.map((resource, index) => (
-                        <Grid item xs={12} sm={6} md={4} key={index}>
-                          <Card sx={{ p: 3, height: "100%" }}>
-                            <MDBox display="flex" alignItems="center" mb={2}>
-                              <DescriptionIcon sx={{ mr: 2, color: "primary.main" }} />
-                              <MDBox>
-                                <MDTypography variant="h6" fontWeight="medium">
-                                  {resource.name}
-                                </MDTypography>
-                                <Chip
-                                  label={resource.type}
-                                  size="small"
-                                  color="primary"
-                                  variant="outlined"
-                                />
-                              </MDBox>
-                            </MDBox>
-                            <MDTypography variant="body2" color="text" mb={2}>
-                              {resource.description}
-                            </MDTypography>
-                            <Button
-                              variant="contained"
-                              color="primary"
-                              startIcon={<LinkIcon />}
-                              fullWidth
-                              href={resource.url}
-                              target="_blank"
-                            >
-                              Descargar
-                            </Button>
-                          </Card>
-                        </Grid>
-                      ))}
                     </Grid>
                   </MDBox>
                 </TabPanel>
