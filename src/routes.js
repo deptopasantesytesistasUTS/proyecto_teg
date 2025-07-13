@@ -36,6 +36,12 @@ Coded by www.creative-tim.com
 */
 
 // Material Dashboard 2 React layouts
+//import rutas protegidas
+import { AuthProvider } from "context/AuthContext";
+import ProtectedRoute from "components/ProtectedRoute/ProtectedRoute";
+
+//paginas
+
 import Dashboard from "layouts/dashboard";
 import Students from "layouts/students";
 import Tables from "layouts/tables";
@@ -65,22 +71,7 @@ const routes = [
     icon: <Icon fontSize="small">dashboard</Icon>,
     route: "/dashboard",
     component: <Dashboard />,
-  },
-  {
-    type: "collapse",
-    name: "Dashboard Estudiantes",
-    key: "dashboard-students",
-    icon: <Icon fontSize="small">school</Icon>,
-    route: "/dashboard-students",
-    component: <DashboardStudents />,
-  },
-  {
-    type: "collapse",
-    name: "Dashboard Docentes",
-    key: "dashboard-teachers",
-    icon: <Icon fontSize="small">school</Icon>,
-    route: "/dashboard-teachers",
-    component: <DashboardTeachers />,
+    allowedRoles: [1],
   },
   {
     type: "collapse",
@@ -89,14 +80,7 @@ const routes = [
     icon: <Icon fontSize="small">table_view</Icon>,
     route: "/estudiantes",
     component: <Students />,
-  },
-  {
-    type: "url",
-    name: "Estudiantes",
-    key: "estudiantes",
-    icon: <Icon fontSize="small">table_view</Icon>,
-    route: "/estudiantes/:id",
-    component: <StudentProfile />,
+    allowedRoles: [1],
   },
   {
     type: "collapse",
@@ -105,14 +89,7 @@ const routes = [
     icon: <Icon fontSize="small">receipt_long</Icon>,
     route: "/docentes",
     component: <Teachers />,
-  },
-  {
-    type: "url",
-    name: "Docentes",
-    key: "docentes",
-    icon: <Icon fontSize="small">table_view</Icon>,
-    route: "/docentes/:id",
-    component: <TeacherProfile />,
+    allowedRoles: [1],
   },
   {
     type: "collapse",
@@ -121,31 +98,32 @@ const routes = [
     icon: <Icon fontSize="small">receipt_long</Icon>,
     route: "/materias",
     component: <Courses />,
+    allowedRoles: [1],
   },
+
+  // rutas profesores
   {
-    type: "url",
-    name: "Unidades",
-    key: "Unidades",
-    icon: <Icon fontSize="small">receipt_long</Icon>,
-    route: "/materias/:id",
-    component: <CourseView />,
+    type: "collapse",
+    name: "Dashboard Docentes",
+    key: "dashboard-teachers",
+    icon: <Icon fontSize="small">school</Icon>,
+    route: "/dashboard-teachers",
+    component: <DashboardTeachers />,
+    allowedRoles: [2],
   },
+
+  //rutas estudiantes
   {
-    type: "url",
-    name: "Unidades",
-    key: "Unidades",
-    icon: <Icon fontSize="small">receipt_long</Icon>,
-    route: "/unidadesEst/:id",
-    component: <CourseViewStudents />,
+    type: "collapse",
+    name: "Dashboard Estudiantes",
+    key: "dashboard-students",
+    icon: <Icon fontSize="small">school</Icon>,
+    route: "/dashboard-students",
+    component: <DashboardStudents />,
+    allowedRoles: [3],
   },
-  {
-    type: "url",
-    name: "Unidades",
-    key: "Unidades",
-    icon: <Icon fontSize="small">receipt_long</Icon>,
-    route: "/unidadesDoc/:id",
-    component: <CourseViewTeachers />,
-  },
+
+  // rutas publicas
   {
     type: "url",
     name: "Notifications",
@@ -153,6 +131,7 @@ const routes = [
     icon: <Icon fontSize="small">notifications</Icon>,
     route: "/notifications",
     component: <Notifications />,
+    allowedRoles: [1, 2, 3],
   },
   {
     type: "url",
@@ -161,14 +140,16 @@ const routes = [
     icon: <Icon fontSize="small">person</Icon>,
     route: "/profile",
     component: <Profile />,
+    allowedRoles: [1, 2, 3],
   },
   {
-    type: "collapse",
+    type: "url",
     name: "Salir",
     key: "sign-in",
     icon: <Icon fontSize="small">login</Icon>,
     route: "/authentication/sign-in",
     component: <SignIn />,
+    allowedRoles: [1, 2, 3],
   },
 ];
 

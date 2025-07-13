@@ -48,6 +48,10 @@ import routes from "routes";
 
 // Material Dashboard 2 React contexts
 import { useMaterialUIController, setMiniSidenav, setOpenConfigurator } from "context";
+import { useAuth } from "context/AuthContext";
+import ProtectedRoute from "components/ProtectedRoute/ProtectedRoute";
+import { logout } from "layouts/authentication/sign-in";
+import SignIn from "layouts/authentication/sign-in";
 
 // Images
 import brandWhite from "assets/images/logo-ct.png";
@@ -68,6 +72,7 @@ export default function App() {
   const [onMouseEnter, setOnMouseEnter] = useState(false);
   const [rtlCache, setRtlCache] = useState(null);
   const { pathname } = useLocation();
+  const { user, setUser } = useAuth();
 
   // Cache for the rtl
   useMemo(() => {
@@ -116,7 +121,16 @@ export default function App() {
       }
 
       if (route.route) {
-        return <Route exact path={route.route} element={route.component} key={route.key} />;
+        return (
+          <Route
+            exact
+            path={route.route}
+            key={route.key}
+            element={
+              <ProtectedRoute allowedRoles={route.allowedRoles}>{route.component}</ProtectedRoute>
+            }
+          />
+        );
       }
 
       return null;
@@ -166,6 +180,10 @@ export default function App() {
         )}
         {layout === "vr" && <Configurator />}
         <Routes>
+          {/* Redirige la raíz al login */}
+          <Route path="/" element={<Navigate to="/authentication/sign-in" />} />
+          {/* Ruta de login sin logout automático */}
+          <Route path="/authentication/sign-in" element={<SignIn />} />
           {getRoutes(routes)}
           <Route path="*" element={<Navigate to="/dashboard" />} />
         </Routes>
@@ -190,6 +208,10 @@ export default function App() {
       )}
       {layout === "vr" && <Configurator />}
       <Routes>
+        {/* Redirige la raíz al login */}
+        <Route path="/" element={<Navigate to="/authentication/sign-in" />} />
+        {/* Ruta de login sin logout automático */}
+        <Route path="/authentication/sign-in" element={<SignIn />} />
         {getRoutes(routes)}
         <Route path="*" element={<Navigate to="/dashboard" />} />
       </Routes>

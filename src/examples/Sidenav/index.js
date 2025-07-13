@@ -16,11 +16,13 @@ import SidenavCollapse from "examples/Sidenav/SidenavCollapse";
 
 // Context
 import { useMaterialUIController } from "context";
+import { useAuth } from "context/AuthContext";
 
 function Sidenav({ routes }) {
   const location = useLocation();
   const [controller] = useMaterialUIController();
   const { darkMode, sidenavColor, transparentSidenav, whiteSidenav } = controller;
+  const { user } = useAuth();
 
   const collapseName = location.pathname.replace("/", "");
 
@@ -31,8 +33,20 @@ function Sidenav({ routes }) {
     textColor = "inherit";
   }
 
-  const renderRoutes = routes.map(({ type, name, icon, noCollapse, key, href, route }) => {
-    if (type !== "collapse") return null;
+  // Filtrar rutas según el rol del usuario
+  const filteredRoutes = routes.filter((route) => {
+    if (!user) return false;
+
+    // Si la ruta no tiene allowedRoles, no se muestra
+    if (!route.allowedRoles) return false;
+
+    // Verificar si el rol del usuario está permitido
+    const userRole = user.role;
+    return route.allowedRoles.includes(userRole) || route.allowedRoles.includes(String(userRole));
+  });
+
+  const renderRoutes = filteredRoutes.map(({ type, name, icon, noCollapse, key, href, route }) => {
+    if (type !== "collapse" && type !== "url") return null;
 
     const isActive = key === collapseName;
 
@@ -46,7 +60,6 @@ function Sidenav({ routes }) {
             noCollapse={noCollapse}
             color={sidenavColor}
             orientation="horizontal"
-            textColor={textColor}
           />
         </a>
       </MDBox>
@@ -59,7 +72,6 @@ function Sidenav({ routes }) {
             active={isActive}
             color={sidenavColor}
             orientation="horizontal"
-            textColor={textColor}
           />
         </NavLink>
       </MDBox>

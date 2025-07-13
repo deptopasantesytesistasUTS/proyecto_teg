@@ -14,9 +14,8 @@ Coded by www.creative-tim.com
 */
 
 import { useState } from "react";
-
-// react-router-dom components
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "context/AuthContext";
 
 // @mui material components
 import Card from "@mui/material/Card";
@@ -41,10 +40,58 @@ import BasicLayout from "layouts/authentication/components/BasicLayout";
 // Images
 import bgImage from "assets/images/bg-sign-in-basic.jpeg";
 
+// Función global de logout
+export function logout(setUser) {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+  setUser(null);
+}
+
 function Basic() {
   const [rememberMe, setRememberMe] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+  const { setUser } = useAuth();
 
   const handleSetRememberMe = () => setRememberMe(!rememberMe);
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    try {
+      const response = await fetch("http://localhost:3003/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ correo: email, password }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        localStorage.setItem("token", data.token);
+        setUser(data.user); // ACTUALIZA EL CONTEXTO
+        console.log("Rol recibido:", data.user.role, typeof data.user.role);
+        // Redirección según el rol numérico o string
+        if (data.user.role === 1 || data.user.role === "1") {
+          console.log("Antes de navigate /dashboard");
+          navigate("/dashboard");
+          console.log("Después de navigate /dashboard");
+        } else if (data.user.role === 2 || data.user.role === "2") {
+          console.log("Antes de navigate /dashboard-teachers");
+          navigate("/dashboard-teachers");
+          console.log("Después de navigate /dashboard-teachers");
+        } else if (data.user.role === 3 || data.user.role === "3") {
+          console.log("Antes de navigate /dashboard-students");
+          navigate("/dashboard-students");
+          console.log("Después de navigate /dashboard-students");
+        } else {
+          alert("Rol desconocido, no se puede redirigir.");
+        }
+      } else {
+        alert(data.error || "Error en login");
+      }
+    } catch (error) {
+      alert("Error de red o servidor");
+    }
+  }
 
   return (
     <BasicLayout image={bgImage}>
@@ -82,12 +129,24 @@ function Basic() {
           </Grid>
         </MDBox>
         <MDBox pt={4} pb={3} px={3}>
-          <MDBox component="form" role="form">
+          <MDBox component="form" role="form" onSubmit={handleLogin}>
             <MDBox mb={2}>
-              <MDInput type="email" label="Email" fullWidth />
+              <MDInput
+                type="email"
+                label="Email"
+                fullWidth
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
             </MDBox>
             <MDBox mb={2}>
-              <MDInput type="password" label="Password" fullWidth />
+              <MDInput
+                type="password"
+                label="Password"
+                fullWidth
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
             </MDBox>
             <MDBox display="flex" alignItems="center" ml={-1}>
               <Switch checked={rememberMe} onChange={handleSetRememberMe} />
@@ -102,7 +161,7 @@ function Basic() {
               </MDTypography>
             </MDBox>
             <MDBox mt={4} mb={1}>
-              <MDButton variant="gradient" color="info" fullWidth>
+              <MDButton variant="gradient" color="info" fullWidth type="submit">
                 sign in
               </MDButton>
             </MDBox>

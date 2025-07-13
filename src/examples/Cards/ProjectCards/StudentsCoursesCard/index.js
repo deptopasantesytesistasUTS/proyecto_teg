@@ -30,7 +30,7 @@ import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 import MDAvatar from "components/MDAvatar";
 
-function DefaultProjectCard({ image, label, title, description, action, authors}) {
+function DefaultProjectCard({ image, label, title, description, action, authors }) {
   const renderAuthors = authors.map(({ image: media, name }) => (
     <Tooltip key={name} title={name} placement="bottom">
       <MDAvatar
