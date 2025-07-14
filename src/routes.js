@@ -60,6 +60,7 @@ import DashboardStudents from "layouts/dashboard-Students";
 import CourseViewStudents from "layouts/Course/CourseViewStudents";
 import DashboardTeachers from "layouts/dashboard-Teachers";
 import CourseViewTeachers from "layouts/Course/CourseViewTeachers";
+import SemesterConfig from "layouts/semester";
 // @mui icons
 import Icon from "@mui/material/Icon";
 
@@ -98,6 +99,15 @@ const routes = [
     icon: <Icon fontSize="small">receipt_long</Icon>,
     route: "/materias",
     component: <Courses />,
+    allowedRoles: [1],
+  },
+  {
+    type: "collapse",
+    name: "Configuración Lapso",
+    key: "semester-config",
+    icon: <Icon fontSize="small">schedule</Icon>,
+    route: "/semester-config",
+    component: <SemesterConfig />,
     allowedRoles: [1],
   },
 
