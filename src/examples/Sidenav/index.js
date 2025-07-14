@@ -1,10 +1,16 @@
 import { useLocation, NavLink } from "react-router-dom";
 import PropTypes from "prop-types";
+import { useState } from "react";
 
 // @mui components
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import Icon from "@mui/material/Icon";
+import IconButton from "@mui/material/IconButton";
+import Drawer from "@mui/material/Drawer";
+import List from "@mui/material/List";
+import Box from "@mui/material/Box";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 // Assets
 import logo from "../../assets/images/LOGO UNIVERSIDAD_Mesa de trabajo 1.png";
@@ -23,6 +29,8 @@ function Sidenav({ routes }) {
   const [controller] = useMaterialUIController();
   const { darkMode, sidenavColor, transparentSidenav, whiteSidenav } = controller;
   const { user } = useAuth();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const isMobile = useMediaQuery("(max-width:960px)");
 
   const collapseName = location.pathname.replace("/", "");
 
@@ -78,41 +86,135 @@ function Sidenav({ routes }) {
     );
   });
 
-  return (
-    <AppBar
-      position="static"
-      sx={{
-        backgroundColor: transparentSidenav
-          ? "transparent"
-          : whiteSidenav
-          ? "white"
-          : (theme) => theme.palette[sidenavColor].main,
-        boxShadow: "none",
-        borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
-        color: textColor === "white" ? "white" : "inherit",
-      }}
-    >
-      <Toolbar sx={{ display: "flex", justifyContent: "space-between", px: 8 }}>
-        <MDBox
-          display="flex"
-          alignItems="center"
-          gap={1}
-          sx={{ marginLeft: { xs: "0px", md: "100px" } }}
-        >
-          <MDBox
-            component="img"
-            src={logo}
-            alt="Brand"
-            sx={{
-              width: "3rem",
-              height: "3rem",
-              borderRadius: "50%",
-            }}
-          />
+  const renderMobileRoutes = filteredRoutes.map(
+    ({ type, name, icon, noCollapse, key, href, route }) => {
+      if (type !== "collapse" && type !== "url") return null;
+
+      const isActive = key === collapseName;
+
+      return href ? (
+        <MDBox key={key} mb={1}>
+          <a href={href} target="_blank" rel="noreferrer" style={{ textDecoration: "none" }}>
+            <SidenavCollapse
+              name={name}
+              icon={icon}
+              active={isActive}
+              noCollapse={noCollapse}
+              color={sidenavColor}
+            />
+          </a>
         </MDBox>
-        <MDBox display="flex">{renderRoutes}</MDBox>
-      </Toolbar>
-    </AppBar>
+      ) : (
+        <MDBox key={key} mb={1}>
+          <NavLink to={route} style={{ textDecoration: "none" }}>
+            <SidenavCollapse name={name} icon={icon} active={isActive} color={sidenavColor} />
+          </NavLink>
+        </MDBox>
+      );
+    }
+  );
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
+
+  const drawer = (
+    <Box>
+      <MDBox pt={3} pb={1} px={4} textAlign="center">
+        <MDBox
+          component="img"
+          src={logo}
+          alt="Brand"
+          sx={{
+            width: "3rem",
+            height: "3rem",
+            borderRadius: "50%",
+          }}
+        />
+      </MDBox>
+      <List sx={{ px: 2 }}>{renderMobileRoutes}</List>
+    </Box>
+  );
+
+  return (
+    <>
+      <AppBar
+        position="static"
+        sx={{
+          backgroundColor: transparentSidenav
+            ? "transparent"
+            : whiteSidenav
+            ? "white"
+            : (theme) => theme.palette[sidenavColor].main,
+          boxShadow: "none",
+          borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+          color: textColor === "white" ? "white" : "inherit",
+        }}
+      >
+        <Toolbar sx={{ display: "flex", justifyContent: "space-between", px: 8 }}>
+          <MDBox
+            display="flex"
+            alignItems="center"
+            gap={1}
+            sx={{ marginLeft: { xs: "0px", md: "100px" } }}
+          >
+            <MDBox
+              component="img"
+              src={logo}
+              alt="Brand"
+              sx={{
+                width: "3rem",
+                height: "3rem",
+                borderRadius: "50%",
+              }}
+            />
+          </MDBox>
+
+          {/* Desktop Menu */}
+          {!isMobile && <MDBox display="flex">{renderRoutes}</MDBox>}
+
+          {/* Mobile Menu Button */}
+          {isMobile && (
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              edge="start"
+              onClick={handleDrawerToggle}
+              sx={{ mr: 2, display: { sm: "none" } }}
+            >
+              <Icon>menu</Icon>
+            </IconButton>
+          )}
+        </Toolbar>
+      </AppBar>
+
+      {/* Mobile Drawer */}
+      {isMobile && (
+        <Drawer
+          variant="temporary"
+          anchor="left"
+          open={mobileOpen}
+          onClose={handleDrawerToggle}
+          ModalProps={{
+            keepMounted: true, // Better open performance on mobile.
+          }}
+          sx={{
+            display: { xs: "block", sm: "none" },
+            "& .MuiDrawer-paper": {
+              boxSizing: "border-box",
+              width: 240,
+              backgroundColor: transparentSidenav
+                ? "transparent"
+                : whiteSidenav
+                ? "white"
+                : (theme) => theme.palette[sidenavColor].main,
+            },
+          }}
+        >
+          {drawer}
+        </Drawer>
+      )}
+    </>
   );
 }
 
