@@ -70,6 +70,13 @@ import DataTable from "examples/Tables/DataTable";
 import coursesTableData from "layouts/Course/data/coursesTableData";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import SubjectSideMenu from "components/SubjectSideMenu";
+import { useParams } from "react-router-dom";
+import Cronograma from './Cronograma';
+import DashboardMateria from './DashboardMateria';
+import Recursos from './Recursos';
+import SubirContenido from './SubirContenido';
+import InicioMateria from './InicioMateria';
 
 const style = {
   position: "absolute",
@@ -108,10 +115,20 @@ TabPanel.propTypes = {
 };
 
 function CourseView() {
-  const { columns, rows } = coursesTableData();
-
-  // Tab state
+  const { id } = useParams();
+  // Elimina menuOptions personalizado y usa el menú por defecto de SubjectSideMenu
+  const estudianteTabMap = {
+    inicio: 0,
+    cronograma: 1,
+    recursos: 2,
+    subir: 3,
+  };
   const [tabValue, setTabValue] = React.useState(0);
+  const [selectedMenuKey, setSelectedMenuKey] = React.useState("inicio");
+  const handleMenuOptionClick = (key) => {
+    setSelectedMenuKey(key);
+    setTabValue(estudianteTabMap[key] ?? 0);
+  };
 
   // Modal states
   const [openTitleModal, setOpenTitleModal] = React.useState(false);
@@ -457,512 +474,96 @@ function CourseView() {
 
   return (
     <DashboardLayout>
-      {/* Header */}
-      <MDBox pt={6} pb={3}>
-        <Grid container spacing={6}>
-          <Grid item xs={12}>
-            <Card>
-              <MDBox
-                mx={2}
-                mt={-3}
-                py={3}
-                px={2}
-                variant="gradient"
-                bgColor="info"
-                borderRadius="lg"
-                coloredShadow="info"
-              >
-                <MDTypography variant="h4" color="white" textAlign="center">
-                  Aula Virtual
-                </MDTypography>
-                <MDTypography variant="h6" color="white" textAlign="center">
-                  Trabajo Especial de Grado - Informática
-                </MDTypography>
-              </MDBox>
-
-              <MDBox pt={3}>
-                <AppBar position="static" color="default">
-                  <Tabs
-                    value={tabValue}
-                    onChange={handleTabChange}
-                    indicatorColor="primary"
-                    textColor="primary"
-                    variant="fullWidth"
+      <Box
+        sx={{
+          display: "flex",
+          minHeight: "100vh",
+          background: "#f5f6fa",
+          alignItems: "flex-start",
+        }}
+      >
+        {/* Menú lateral fijo */}
+        <Box
+          sx={{
+            width: 300,
+            minWidth: 300,
+            background: "#1976d2",
+            boxShadow: 2,
+            borderRadius: 2,
+            m: 2,
+            height: "calc(105vh - 32px)",
+            position: "sticky",
+            top: 16,
+            zIndex: 10,
+            display: { xs: "none", md: "flex" },
+            flexDirection: "column",
+          }}
+        >
+          <SubjectSideMenu
+            open={true}
+            onClose={() => {}}
+            subject={{ nombre: `Materia #${id}`, descripcion: "Descripción de la materia" }}
+            userType="estudiante"
+            onOptionClick={handleMenuOptionClick}
+            selectedKey={selectedMenuKey}
+          />
+        </Box>
+        {/* Contenido principal */}
+        <Box
+          sx={{
+            flex: 1,
+            ml: { xs: 0, md: 2 },
+            mt: 2,
+            mb: 2,
+            mr: 2,
+            background: "#f8fafc",
+            borderRadius: 2,
+            boxShadow: 1,
+            p: 3,
+            minHeight: "calc(100vh - 32px)",
+            overflow: "auto",
+          }}
+        >
+          <MDBox pt={6} pb={3}>
+            <Grid container spacing={6}>
+              <Grid item xs={12}>
+                <Card sx={{ boxShadow: 'none', border: 'none', background: 'transparent' }}>
+                  <MDBox
+                    mx={2}
+                    mt={-3}
+                    py={3}
+                    px={2}
+                    variant="gradient"
+                    bgColor="info"
+                    borderRadius="lg"
+                    coloredShadow="info"
                   >
-                    <Tab label="Info" icon={<InfoIcon />} iconPosition="start" />
-                    <Tab label="Aula" icon={<AssignmentIcon />} iconPosition="start" />
-                    <Tab label="Participantes" icon={<PeopleIcon />} iconPosition="start" />
-                    <Tab label="Recursos" icon={<FolderIcon />} iconPosition="start" />
-                  </Tabs>
-                </AppBar>
-
-                {/* Tab 1: Aula */}
-                <TabPanel value={tabValue} index={1}>
-                  <MDBox>
-                    {/* Propuesta de Título Section */}
-                    <Accordion defaultExpanded sx={{ mb: 3 }}>
-                      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <MDBox display="flex" alignItems="center">
-                          <DescriptionIcon sx={{ mr: 2 }} />
-                          <MDTypography variant="h6">Propuesta de Título</MDTypography>
-                        </MDBox>
-                      </AccordionSummary>
-                      <AccordionDetails>
-                        <MDBox>
-                          <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={handleOpenTitleModal}
-                            startIcon={<SendIcon />}
-                            sx={{ mb: 2 }}
-                          >
-                            Ingresar Propuestas de Título
-                          </Button>
-
-                          {/* Título Seleccionado y Estado de Aprobación */}
-                          {(selectedTitle || isTitleApproved) && (
-                            <Card sx={{ p: 2, bgcolor: "grey.50" }}>
-                              <MDBox
-                                display="flex"
-                                alignItems="center"
-                                justifyContent="space-between"
-                                mb={2}
-                              >
-                                <MDTypography variant="h6" color="primary">
-                                  Título del Proyecto
-                                </MDTypography>
-                                <Chip
-                                  label={isTitleApproved ? "Aprobado" : "Pendiente"}
-                                  color={isTitleApproved ? "success" : "warning"}
-                                  variant="filled"
-                                  size="small"
-                                />
-                              </MDBox>
-
-                              {selectedTitle && !(isTitleApproved && approvedTitle) && (
-                                <MDBox mb={1}>
-                                  <MDTypography variant="body1">
-                                    <strong>Título Seleccionado:</strong> {selectedTitle}
-                                  </MDTypography>
-                                </MDBox>
-                              )}
-
-                              {isTitleApproved && approvedTitle && (
-                                <MDBox>
-                                  <MDTypography variant="body1" color="success.main">
-                                    <strong>Título Aprobado:</strong> {approvedTitle}
-                                  </MDTypography>
-                                </MDBox>
-                              )}
-                            </Card>
-                          )}
-                        </MDBox>
-                      </AccordionDetails>
-                    </Accordion>
-
-                    {/* Entrega de Borradores Section */}
-                    <Accordion defaultExpanded sx={{ mb: 3 }}>
-                      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                        <MDBox display="flex" alignItems="center">
-                          <UploadIcon sx={{ mr: 2 }} />
-                          <MDTypography variant="h6">Entrega de Borradores</MDTypography>
-                        </MDBox>
-                      </AccordionSummary>
-                      <AccordionDetails>
-                        <Stack spacing={2}>
-                          {[
-                            "Primer Borrador",
-                            "Segundo Borrador",
-                            "Tercer Borrador",
-                            "Borrador Final",
-                          ].map((type, index) => (
-                            <Card key={index} sx={{ p: 2 }}>
-                              <MDBox
-                                display="flex"
-                                alignItems="center"
-                                justifyContent="space-between"
-                              >
-                                <MDBox>
-                                  <MDTypography variant="h6">{type}</MDTypography>
-                                  <MDTypography variant="body2" color="text.secondary">
-                                    Fecha límite: {draftDeadlines[index]}
-                                  </MDTypography>
-                                </MDBox>
-                                <Button
-                                  variant="outlined"
-                                  color="primary"
-                                  onClick={() => handleOpenUploadModal(type)}
-                                  startIcon={<UploadIcon />}
-                                >
-                                  Subir Archivo
-                                </Button>
-                              </MDBox>
-                            </Card>
-                          ))}
-                        </Stack>
-                      </AccordionDetails>
-                    </Accordion>
-                  </MDBox>
-                </TabPanel>
-
-                {/* Tab 2: Participantes */}
-                <TabPanel value={tabValue} index={2}>
-                  <MDBox>
-                    {/* Profesores */}
-                    <Card sx={{ p: 3, mb: 4 }}>
-                      <MDTypography variant="h5" mb={3}>
-                        <SchoolIcon sx={{ mr: 1, verticalAlign: "middle" }} />
-                        Profesores
-                      </MDTypography>
-                      <Box sx={{ overflowX: "auto" }}>
-                        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                          <thead>
-                            <tr style={{ backgroundColor: "#f5f5f5" }}>
-                              <th
-                                style={{
-                                  padding: "12px",
-                                  textAlign: "left",
-                                  borderBottom: "2px solid #ddd",
-                                }}
-                              >
-                                <MDTypography variant="h6">Nombre</MDTypography>
-                              </th>
-
-                              <th
-                                style={{
-                                  padding: "12px",
-                                  textAlign: "left",
-                                  borderBottom: "2px solid #ddd",
-                                }}
-                              >
-                                <MDTypography variant="h6">Teléfono</MDTypography>
-                              </th>
-                              <th
-                                style={{
-                                  padding: "12px",
-                                  textAlign: "left",
-                                  borderBottom: "2px solid #ddd",
-                                }}
-                              >
-                                <MDTypography variant="h6">Email</MDTypography>
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {teachers.map((teacher, index) => (
-                              <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
-                                <td style={{ padding: "12px", textAlign: "left" }}>
-                                  <MDBox display="flex" alignItems="center">
-                                    <MDAvatar sx={{ mr: 2, width: 32, height: 32 }}>
-                                      <PersonIcon />
-                                    </MDAvatar>
-                                    <MDTypography variant="body1" fontWeight="medium">
-                                      {teacher.name}
-                                    </MDTypography>
-                                  </MDBox>
-                                </td>
-
-                                <td style={{ padding: "12px", textAlign: "left" }}>
-                                  <MDTypography variant="body2">{teacher.phone}</MDTypography>
-                                </td>
-                                <td style={{ padding: "12px", textAlign: "left" }}>
-                                  <MDTypography variant="body2">{teacher.email}</MDTypography>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </Box>
-                    </Card>
-
-                    {/* Estudiantes */}
-                    <Card sx={{ p: 3 }}>
-                      <MDTypography variant="h5" mb={3}>
-                        <SchoolIcon sx={{ mr: 1, verticalAlign: "middle" }} />
-                        Profesores
-                      </MDTypography>
-                      <Box sx={{ overflowX: "auto" }}>
-                        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                          <thead>
-                            <tr style={{ backgroundColor: "#f5f5f5" }}>
-                              <th
-                                style={{
-                                  padding: "12px",
-                                  textAlign: "left",
-                                  borderBottom: "2px solid #ddd",
-                                }}
-                              >
-                                <MDTypography variant="h6">Nombre</MDTypography>
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {students.map((student, index) => (
-                              <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
-                                <td style={{ padding: "12px", textAlign: "left" }}>
-                                  <MDBox display="flex" alignItems="center">
-                                    <MDAvatar sx={{ mr: 2, width: 32, height: 32 }}>
-                                      <PersonIcon />
-                                    </MDAvatar>
-                                    <MDTypography variant="body1" fontWeight="medium">
-                                      {student.name}
-                                    </MDTypography>
-                                  </MDBox>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </Box>
-                    </Card>
-                  </MDBox>
-                </TabPanel>
-
-                {/* Tab 3: Recursos */}
-                <TabPanel value={tabValue} index={3}>
-                  <MDBox>
-                    <MDTypography variant="h5" mb={3}>
-                      <FolderIcon sx={{ mr: 1, verticalAlign: "middle" }} />
-                      Recursos Disponibles
+                    <MDTypography variant="h4" color="white" textAlign="center">
+                      Aula Virtual
                     </MDTypography>
-                    <Grid container spacing={3}>
-                      {resources.map((resource, index) => (
-                        <Grid item xs={12} sm={6} md={4} key={index}>
-                          <Card sx={{ p: 3, height: "100%" }}>
-                            <MDBox display="flex" alignItems="center" mb={2}>
-                              <DescriptionIcon sx={{ mr: 2, color: "primary.main" }} />
-                              <MDBox>
-                                <MDTypography variant="h6" fontWeight="medium">
-                                  {resource.name}
-                                </MDTypography>
-                                <Chip
-                                  label={resource.type}
-                                  size="small"
-                                  color="primary"
-                                  variant="outlined"
-                                />
-                              </MDBox>
-                            </MDBox>
-                            <MDTypography variant="body2" color="text" mb={2}>
-                              {resource.description}
-                            </MDTypography>
-                            <Button
-                              variant="contained"
-                              color="primary"
-                              startIcon={<LinkIcon />}
-                              fullWidth
-                              href={resource.url}
-                              target="_blank"
-                            >
-                              Descargar
-                            </Button>
-                          </Card>
-                        </Grid>
-                      ))}
-                    </Grid>
+                    <MDTypography variant="h6" color="white" textAlign="center">
+                      Trabajo Especial de Grado - Informática
+                    </MDTypography>
                   </MDBox>
-                </TabPanel>
-
-                {/* Tab 4: Info */}
-                <TabPanel value={tabValue} index={0}>
-                  <MDBox>
-                    <Grid container spacing={6}>
-                      <Grid item xs={12} lg={8}>
-                        <MDBox mb={3}>
-                          <MDTypography variant="h6" fontWeight="medium">
-                            Calendario de Actividades
-                          </MDTypography>
-                        </MDBox>
-                        <Card>
-                          <CardContent>
-                            <Box
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "space-between",
-                                mb: 2,
-                              }}
-                            >
-                              <Box sx={{ display: "flex", alignItems: "center" }}>
-                                <CalendarTodayIcon sx={{ mr: 1, color: "primary.main" }} />
-                                <Typography variant="h6">
-                                  {format(currentMonth, "MMMM yyyy", { locale: es })}
-                                </Typography>
-                              </Box>
-                              <Box sx={{ display: "flex", alignItems: "center" }}>
-                                <Button
-                                  onClick={handlePreviousMonth}
-                                  sx={{ minWidth: "auto", p: 1 }}
-                                >
-                                  <ChevronLeftIcon />
-                                </Button>
-                                <Button onClick={handleNextMonth} sx={{ minWidth: "auto", p: 1 }}>
-                                  <ChevronRightIcon />
-                                </Button>
-                              </Box>
-                            </Box>
-                            <Paper
-                              elevation={1}
-                              sx={{
-                                maxHeight: 400,
-                                overflowY: "auto",
-                                "&::-webkit-scrollbar": {
-                                  width: "8px",
-                                },
-                                "&::-webkit-scrollbar-track": {
-                                  backgroundColor: "#f1f1f1",
-                                  borderRadius: "4px",
-                                },
-                                "&::-webkit-scrollbar-thumb": {
-                                  backgroundColor: "#c1c1c1",
-                                  borderRadius: "4px",
-                                  "&:hover": {
-                                    backgroundColor: "#a8a8a8",
-                                  },
-                                },
-                                "&::-webkit-scrollbar-thumb:hover": {
-                                  backgroundColor: "#a8a8a8",
-                                },
-                              }}
-                            >
-                              <List>
-                                {getCurrentMonthEvents().map((event, index) => (
-                                  <Box key={event.id}>
-                                    <ListItem
-                                      button
-                                      onClick={() => handleEventClick(event)}
-                                      sx={{
-                                        cursor: "pointer",
-                                        "&:hover": {
-                                          backgroundColor: "rgba(0, 0, 0, 0.04)",
-                                        },
-                                      }}
-                                    >
-                                      <ListItemIcon sx={{ color: getEventColor(event.type) }}>
-                                        {getEventIcon(event.type)}
-                                      </ListItemIcon>
-                                      <ListItemText
-                                        primary={event.title}
-                                        secondary={
-                                          <Box>
-                                            <Typography variant="body2" color="text.secondary">
-                                              {format(event.startDate, "dd/MM/yyyy HH:mm", {
-                                                locale: es,
-                                              })}{" "}
-                                              - {format(event.endDate, "HH:mm", { locale: es })}
-                                            </Typography>
-                                            <Typography
-                                              variant="body2"
-                                              color="text.secondary"
-                                              sx={{ mt: 0.5 }}
-                                            >
-                                              {event.description.substring(0, 80)}...
-                                            </Typography>
-                                          </Box>
-                                        }
-                                      />
-                                      <Chip
-                                        label={event.type}
-                                        size="small"
-                                        sx={{
-                                          backgroundColor: getEventColor(event.type),
-                                          color: "white",
-                                          fontWeight: "bold",
-                                        }}
-                                      />
-                                    </ListItem>
-                                    {index < getCurrentMonthEvents().length - 1 && <Divider />}
-                                  </Box>
-                                ))}
-                              </List>
-                            </Paper>
-                          </CardContent>
-                        </Card>
-                      </Grid>
-
-                      <Grid item xs={12} lg={4}>
-                        <MDBox mb={3}>
-                          <MDTypography variant="h6" fontWeight="medium">
-                            Comunicados
-                          </MDTypography>
-                        </MDBox>
-                        <Card>
-                          <CardContent>
-                            <Box
-                              sx={{
-                                maxHeight: 400,
-                                overflowY: "auto",
-                                "&::-webkit-scrollbar": {
-                                  width: "8px",
-                                },
-                                "&::-webkit-scrollbar-track": {
-                                  backgroundColor: "#f1f1f1",
-                                  borderRadius: "4px",
-                                },
-                                "&::-webkit-scrollbar-thumb": {
-                                  backgroundColor: "#c1c1c1",
-                                  borderRadius: "4px",
-                                  "&:hover": {
-                                    backgroundColor: "#a8a8a8",
-                                  },
-                                },
-                                "&::-webkit-scrollbar-thumb:hover": {
-                                  backgroundColor: "#a8a8a8",
-                                },
-                              }}
-                            >
-                              {currentComunicados.map((comunicado) => (
-                                <Box
-                                  key={comunicado.id}
-                                  sx={{ mb: 2, p: 2, border: "1px solid #e0e0e0", borderRadius: 1 }}
-                                >
-                                  <Box
-                                    sx={{
-                                      display: "flex",
-                                      justifyContent: "space-between",
-                                      alignItems: "flex-start",
-                                      mb: 1,
-                                    }}
-                                  >
-                                    <Typography variant="subtitle2" fontWeight="bold">
-                                      {comunicado.titulo}
-                                    </Typography>
-                                    <Chip
-                                      label={comunicado.tipo}
-                                      size="small"
-                                      color={getTipoColor(comunicado.tipo)}
-                                    />
-                                  </Box>
-                                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                    {comunicado.descripcion}
-                                  </Typography>
-                                  <Typography variant="caption" color="text.secondary">
-                                    {format(new Date(comunicado.fecha), "dd/MM/yyyy HH:mm", {
-                                      locale: es,
-                                    })}
-                                  </Typography>
-                                </Box>
-                              ))}
-                            </Box>
-                            <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-                              <Pagination
-                                count={totalPages}
-                                page={currentPage}
-                                onChange={(event, value) => setCurrentPage(value)}
-                                size="small"
-                              />
-                            </Box>
-                          </CardContent>
-                        </Card>
-                      </Grid>
-                    </Grid>
-                  </MDBox>
-                </TabPanel>
-              </MDBox>
-            </Card>
-          </Grid>
-        </Grid>
-      </MDBox>
+                  {/* Renderizado condicional */}
+                  {selectedMenuKey === "inicio" && (
+                    <TabPanel value={tabValue} index={0}><InicioMateria /></TabPanel>
+                  )}
+                  {selectedMenuKey === "cronograma" && (
+                    <TabPanel value={tabValue} index={1}><Cronograma /></TabPanel>
+                  )}
+                  {selectedMenuKey === "recursos" && (
+                    <TabPanel value={tabValue} index={2}><Recursos /></TabPanel>
+                  )}
+                  {selectedMenuKey === "subir" && (
+                    <TabPanel value={tabValue} index={3}><SubirContenido /> </TabPanel>
+                  )}
+                </Card>
+              </Grid>
+            </Grid>
+          </MDBox>
+        </Box>
+      </Box>
 
       {/* Title Proposal Modal */}
       <Modal

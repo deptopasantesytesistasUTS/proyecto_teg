@@ -35,24 +35,24 @@ const docenteOptions = [
 
 const estudianteOptions = [
   {
+    text: "Inicio de materia",
+    icon: <DashboardIcon />,
+    key: "inicio",
+  },
+  {
     text: "Cronograma",
     icon: <EventNoteIcon />,
     key: "cronograma",
   },
   {
-    text: "Dashboard de la materia (anuncios y foros)",
-    icon: <DashboardIcon />,
-    key: "dashboard",
+    text: "Página para subir contenido",
+    icon: <CloudUploadIcon />,
+    key: "subir",
   },
   {
     text: "Recursos",
     icon: <FolderIcon />,
     key: "recursos",
-  },
-  {
-    text: "Página para subir contenido",
-    icon: <CloudUploadIcon />,
-    key: "subir",
   },
 ];
 

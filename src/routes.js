@@ -129,7 +129,17 @@ const routes = [
     key: "dashboard-students",
     icon: <Icon fontSize="small">school</Icon>,
     route: "/dashboard-students",
-    component: <DashboardStudents />,
+    component: <DashboardStudents />, 
+    allowedRoles: [3],
+  },
+  // Nueva ruta dinámica para ver sección de estudiantes
+  {
+    type: "url",
+    name: "Aula Virtual",
+    key: "courseviewstudents",
+    icon: <Icon fontSize="small">assignment</Icon>,
+    route: "/unidadesEst/:id",
+    component: <CourseViewStudents />, 
     allowedRoles: [3],
   },
 
