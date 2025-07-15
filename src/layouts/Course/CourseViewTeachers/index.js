@@ -55,6 +55,8 @@ import SlideshowIcon from "@mui/icons-material/Slideshow";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import AnnouncementIcon from "@mui/icons-material/Announcement";
+import EventNoteIcon from "@mui/icons-material/EventNote";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -67,11 +69,21 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
 import ReportsBarChart from "examples/Charts/BarCharts/ReportsBarChart";
+import SubjectSideMenu from "components/SubjectSideMenu";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 // Data
 import coursesTableData from "layouts/Course/data/coursesTableData";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import CourseViewAnuncios from "./CourseViewAnuncios";
+import CourseViewCronogramas from "./CourseViewCronogramas";
+import CourseViewEntregas from "./CourseViewEntregas";
+import CourseViewInfo from "./CourseViewInfo";
+import ParticipantesList from "./ParticipantesList";
+import RecursosList from "./RecursosList";
+import EstadisticasEntregas from "./EstadisticasEntregas";
 
 const style = {
   position: "absolute",
@@ -110,324 +122,90 @@ TabPanel.propTypes = {
 };
 
 function CourseView() {
-  const { columns, rows } = coursesTableData();
-
-  // Tab state
-  const [tabValue, setTabValue] = React.useState(0);
-
-  // Modal states
-  const [openTitleModal, setOpenTitleModal] = React.useState(false);
-  const [openUploadModal, setOpenUploadModal] = React.useState(false);
-  const [currentUploadType, setCurrentUploadType] = React.useState("");
-
-  // Form states
-  const [titleProposals, setTitleProposals] = React.useState(["", "", ""]);
-  const [selectedTitle, setSelectedTitle] = React.useState("");
-  const [approvedTitle, setApprovedTitle] = React.useState("");
-  const [isTitleApproved, setIsTitleApproved] = React.useState(false);
-  const [uploadFile, setUploadFile] = React.useState(null);
-  const [uploadFileName, setUploadFileName] = React.useState("");
-
-  // Calendar and communications states
-  const [selectedEvent, setSelectedEvent] = React.useState(null);
-  const [isEventModalOpen, setIsEventModalOpen] = React.useState(false);
-  const [currentPage, setCurrentPage] = React.useState(1);
-  const [currentMonth, setCurrentMonth] = React.useState(new Date());
-
-  // Attendance states
-  const [classes, setClasses] = React.useState([]);
-  const [newClassDate, setNewClassDate] = React.useState("");
-  const [newClassTime, setNewClassTime] = React.useState("");
-  const [newClassDescription, setNewClassDescription] = React.useState("");
-  const [attendance, setAttendance] = React.useState({});
-
-  // Edit class modal states
-  const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
-  const [editingClass, setEditingClass] = React.useState(null);
-  const [editClassDate, setEditClassDate] = React.useState("");
-  const [editClassTime, setEditClassTime] = React.useState("");
-  const [editClassDescription, setEditClassDescription] = React.useState("");
-
-  const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
+  const { id } = useParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [tabValue, setTabValue] = useState(0);
+  const menuOptions = [
+    {
+      key: "info",
+      text: "Información ",
+      icon: <InfoIcon />,
+      tab: 0,
+    },
+    {
+      key: "anuncios",
+      text: "Crear anuncios",
+      icon: <AnnouncementIcon />,
+      tab: 1,
+    },
+    {
+      key: "cronogramas",
+      text: "Cronogramas",
+      icon: <EventNoteIcon />,
+      tab: 2,
+    },
+    // Eliminar la opción de entregas
+    // {
+    //   key: "entregas",
+    //   text: "Subir y ver cronograma de entregas",
+    //   icon: <AssignmentIcon />,
+    //   tab: 3,
+    // },
+    {
+      key: "participantes",
+      text: "Participantes",
+      icon: <PeopleIcon />,
+      tab: 3,
+    },
+    {
+      key: "recursos",
+      text: "Recursos",
+      icon: <FolderIcon />,
+      tab: 4,
+    },
+    {
+      key: "estadisticas",
+      text: "Control Entregas",
+      icon: <EventIcon />,
+      tab: 5,
+    },
+  ];
+  const handleMenuOptionClick = (key) => {
+    const found = menuOptions.find((opt) => opt.key === key);
+    if (found) setTabValue(found.tab);
   };
+  const selectedMenuKey = menuOptions.find((opt) => opt.tab === tabValue)?.key;
 
-  const handleOpenTitleModal = () => {
-    setOpenTitleModal(true);
-  };
+  // Redirección automática al Aula Virtual si la ruta es exactamente /materia/:id
+  React.useEffect(() => {
+    if (location.pathname === `/materia/${id}`) {
+      navigate(`/materia/${id}/info`, { replace: true });
+    }
+  }, [location.pathname, id, navigate]);
 
-  const handleCloseTitleModal = () => {
-    setOpenTitleModal(false);
-  };
-
-  const handleOpenUploadModal = (type) => {
-    setCurrentUploadType(type);
-    setOpenUploadModal(true);
-  };
-
-  const handleCloseUploadModal = () => {
-    setOpenUploadModal(false);
-    setUploadFile(null);
-    setUploadFileName("");
-  };
-
+  // Estados y funciones para los subcomponentes
+  // Anuncios
+  const [openTitleModal, setOpenTitleModal] = useState(false);
+  const [titleProposals, setTitleProposals] = useState(["", "", ""]);
   const handleTitleProposalChange = (index, value) => {
     const newProposals = [...titleProposals];
     newProposals[index] = value;
     setTitleProposals(newProposals);
   };
-
+  const handleOpenTitleModal = () => setOpenTitleModal(true);
+  const handleCloseTitleModal = () => setOpenTitleModal(false);
   const handleSubmitTitleProposals = () => {
     if (titleProposals.some((proposal) => proposal.trim() !== "")) {
-      console.log("Propuestas de título enviadas:", titleProposals);
-      setSelectedTitle(titleProposals.find((proposal) => proposal.trim() !== "") || "");
-      // Simular aprobación del título (en un caso real esto vendría del backend)
-      setTimeout(() => {
-        setIsTitleApproved(true);
-        setApprovedTitle(titleProposals.find((proposal) => proposal.trim() !== "") || "");
-      }, 2000);
-      handleCloseTitleModal();
+      setOpenTitleModal(false);
     }
   };
 
-  const handleFileUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setUploadFile(file);
-      setUploadFileName(file.name);
-    }
-  };
-
-  const handleSubmitUpload = () => {
-    if (uploadFile) {
-      console.log(`Archivo enviado para ${currentUploadType}:`, uploadFile.name);
-      handleCloseUploadModal();
-    }
-  };
-
-  // Datos de eventos/actividades del calendario
-  const appointments = [
-    // Diciembre 2024
-    {
-      id: 1,
-      title: "Entrega de Proyecto TEG",
-      startDate: new Date(2024, 11, 15, 10, 0),
-      endDate: new Date(2024, 11, 15, 12, 0),
-      description:
-        "Entrega final del Trabajo Especial de Grado. Debe incluir documentación completa y presentación.",
-      type: "assignment",
-    },
-    {
-      id: 2,
-      title: "Examen de Investigación II",
-      startDate: new Date(2024, 11, 18, 14, 0),
-      endDate: new Date(2024, 11, 18, 16, 0),
-      description:
-        "Examen parcial de la materia Investigación II. Temas: Metodología de investigación y análisis de datos.",
-      type: "exam",
-    },
-    {
-      id: 3,
-      title: "Reunión de Tutoria",
-      startDate: new Date(2024, 11, 20, 9, 0),
-      endDate: new Date(2024, 11, 20, 10, 0),
-      description: "Reunión con el tutor para revisar avances del proyecto de investigación.",
-      type: "meeting",
-    },
-    {
-      id: 4,
-      title: "Presentación de Avances",
-      startDate: new Date(2024, 11, 22, 15, 0),
-      endDate: new Date(2024, 11, 22, 17, 0),
-      description: "Presentación de avances del proyecto ante el comité evaluador.",
-      type: "presentation",
-    },
-    // Enero 2025
-    {
-      id: 5,
-      title: "Inicio de Clases",
-      startDate: new Date(2025, 0, 6, 8, 0),
-      endDate: new Date(2025, 0, 6, 12, 0),
-      description: "Inicio del nuevo semestre académico. Presentación de horarios y materias.",
-      type: "event",
-    },
-    {
-      id: 6,
-      title: "Entrega de Anteproyecto",
-      startDate: new Date(2025, 0, 15, 14, 0),
-      endDate: new Date(2025, 0, 15, 16, 0),
-      description: "Entrega del anteproyecto de investigación para evaluación inicial.",
-      type: "assignment",
-    },
-  ];
-
-  // Datos de comunicados
-  const comunicados = [
-    {
-      id: 1,
-      titulo: "Suspensión de Clases",
-      descripcion:
-        "Se informa que las clases del día 20 de diciembre serán suspendidas por mantenimiento de la infraestructura.",
-      fecha: "2024-12-10 08:30",
-      tipo: "urgente",
-    },
-    {
-      id: 2,
-      titulo: "Cambio de Horario",
-      descripcion:
-        "El horario de la materia Investigación II cambiará a los martes de 14:00 a 16:00 a partir del próximo mes.",
-      fecha: "2024-12-09 10:15",
-      tipo: "informacion",
-    },
-    {
-      id: 3,
-      titulo: "Convocatoria a Evento",
-      descripcion:
-        "Se invita a todos los estudiantes a participar en el evento de presentación de proyectos tecnológicos.",
-      fecha: "2024-12-08 16:45",
-      tipo: "evento",
-    },
-    {
-      id: 4,
-      titulo: "Recordatorio de Entrega",
-      descripcion:
-        "Recordatorio: La entrega del proyecto final debe realizarse antes del 15 de diciembre.",
-      fecha: "2024-12-07 12:20",
-      tipo: "recordatorio",
-    },
-    {
-      id: 5,
-      titulo: "Nuevo Laboratorio",
-      descripcion:
-        "Se ha inaugurado el nuevo laboratorio de computación con equipos de última generación.",
-      fecha: "2024-12-06 09:30",
-      tipo: "informacion",
-    },
-    {
-      id: 6,
-      titulo: "Horario de Consulta",
-      descripcion:
-        "Los profesores estarán disponibles para consultas los viernes de 10:00 a 12:00.",
-      fecha: "2024-12-05 14:00",
-      tipo: "informacion",
-    },
-  ];
-
-  // Datos de estadísticas de entregas para ReportsBarChart
-  const estadisticasEntregasChart = {
-    labels: [
-      "Entrega de Título",
-      "Entrega de Borrador 1",
-      "Entrega de Borrador 2",
-      "Entrega de Borrador 3",
-      "Entrega de Borrador Final",
-    ],
-    datasets: {
-      label: "Porcentaje de Estudiantes",
-      data: [85, 72, 68, 45, 32],
-    },
-  };
-
-  // Calendar and communications functions
-  const handleEventClick = (event) => {
-    setSelectedEvent(event);
-    setIsEventModalOpen(true);
-  };
-
-  const handleCloseEventModal = () => {
-    setIsEventModalOpen(false);
-    setSelectedEvent(null);
-  };
-
-  const handlePreviousMonth = () => {
-    setCurrentMonth((prev) => {
-      const newDate = new Date(prev);
-      newDate.setMonth(prev.getMonth() - 1);
-      return newDate;
-    });
-  };
-
-  const handleNextMonth = () => {
-    setCurrentMonth((prev) => {
-      const newDate = new Date(prev);
-      newDate.setMonth(prev.getMonth() + 1);
-      return newDate;
-    });
-  };
-
-  // Filtrar eventos del mes actual
-  const getCurrentMonthEvents = () => {
-    return appointments.filter((event) => {
-      const eventMonth = event.startDate.getMonth();
-      const eventYear = event.startDate.getFullYear();
-      const currentMonthNum = currentMonth.getMonth();
-      const currentYear = currentMonth.getFullYear();
-
-      return eventMonth === currentMonthNum && eventYear === currentYear;
-    });
-  };
-
-  const getTipoColor = (tipo) => {
-    switch (tipo) {
-      case "urgente":
-        return "error";
-      case "informacion":
-        return "info";
-      case "evento":
-        return "success";
-      case "recordatorio":
-        return "warning";
-      case "mantenimiento":
-        return "secondary";
-      case "resultados":
-        return "primary";
-      default:
-        return "default";
-    }
-  };
-
-  const getEventIcon = (type) => {
-    switch (type) {
-      case "assignment":
-        return <AssignmentIcon />;
-      case "exam":
-        return <SchoolIcon />;
-      case "meeting":
-        return <GroupsIcon />;
-      case "presentation":
-        return <SlideshowIcon />;
-      case "event":
-        return <EventIcon />;
-      default:
-        return <EventIcon />;
-    }
-  };
-
-  const getEventColor = (type) => {
-    switch (type) {
-      case "assignment":
-        return "#ff9800";
-      case "exam":
-        return "#f44336";
-      case "meeting":
-        return "#2196f3";
-      case "presentation":
-        return "#4caf50";
-      case "event":
-        return "#9c27b0";
-      default:
-        return "#9c27b0";
-    }
-  };
-
-  // Calcular comunicados para la página actual
-  const itemsPerPage = 4;
-  const totalPages = Math.ceil(comunicados.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentComunicados = comunicados.slice(startIndex, endIndex);
-
-  // Attendance functions
+  // Cronogramas
+  const [classes, setClasses] = useState([]);
+  const [newClassDate, setNewClassDate] = useState("");
+  const [newClassTime, setNewClassTime] = useState("");
+  const [newClassDescription, setNewClassDescription] = useState("");
   const handleAddClass = () => {
     if (newClassDate && newClassTime && newClassDescription) {
       const newClass = {
@@ -442,78 +220,39 @@ function CourseView() {
       setNewClassDescription("");
     }
   };
-
+  const handleEditClass = (classToEdit) => {};
   const handleDeleteClass = (classId) => {
     setClasses(classes.filter((cls) => cls.id !== classId));
   };
 
-  const getAttendanceStatus = (studentId, classId) => {
-    // Mock attendance data - in a real app this would come from the backend
-    const attendanceData = {
-      "student-1": {
-        "class-1": "present",
-        "class-2": "absent",
-        "class-3": "present",
-      },
-      "student-2": {
-        "class-1": "present",
-        "class-2": "present",
-        "class-3": "late",
-      },
-      "student-3": {
-        "class-1": "absent",
-        "class-2": "present",
-        "class-3": "present",
-      },
-    };
-    return attendanceData[studentId]?.[classId] || "not-marked";
+  // Entregas
+  const [openUploadModal, setOpenUploadModal] = useState(false);
+  const [currentUploadType, setCurrentUploadType] = useState("");
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploadFileName, setUploadFileName] = useState("");
+  const handleOpenUploadModal = (type) => {
+    setCurrentUploadType(type);
+    setOpenUploadModal(true);
   };
-
-  const handleAttendanceChange = (studentId, classId, isPresent) => {
-    setAttendance((prev) => ({
-      ...prev,
-      [studentId]: {
-        ...prev[studentId],
-        [classId]: isPresent ? "present" : "absent",
-      },
-    }));
+  const handleCloseUploadModal = () => {
+    setOpenUploadModal(false);
+    setUploadFile(null);
+    setUploadFileName("");
   };
-
-  const handleEditClass = (classToEdit) => {
-    setEditingClass(classToEdit);
-    setEditClassDate(classToEdit.date);
-    setEditClassTime(classToEdit.time);
-    setEditClassDescription(classToEdit.description);
-    setIsEditModalOpen(true);
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setUploadFile(file);
+      setUploadFileName(file.name);
+    }
   };
-
-  const handleCloseEditModal = () => {
-    setIsEditModalOpen(false);
-    setEditingClass(null);
-    setEditClassDate("");
-    setEditClassTime("");
-    setEditClassDescription("");
-  };
-
-  const handleSubmitEditClass = () => {
-    if (editClassDate && editClassTime && editClassDescription) {
-      setClasses((prev) =>
-        prev.map((cls) =>
-          cls.id === editingClass.id
-            ? {
-                ...cls,
-                date: editClassDate,
-                time: editClassTime,
-                description: editClassDescription,
-              }
-            : cls
-        )
-      );
-      handleCloseEditModal();
+  const handleSubmitUpload = () => {
+    if (uploadFile) {
+      setOpenUploadModal(false);
     }
   };
 
-  // Mock data for participants
+  // Datos de ejemplo para los nuevos componentes (idénticos a CourseViewInfo)
   const teachers = [
     {
       name: "Dr. María González",
@@ -528,7 +267,6 @@ function CourseView() {
       specialty: "Desarrollo de Software",
     },
   ];
-
   const students = [
     {
       name: "Luis Alejandro Cárdenas Lozano",
@@ -546,9 +284,7 @@ function CourseView() {
       email: "carlos.lopez@estudiante.edu",
     },
   ];
-
-  // Mock data for resources
-  const resources = [
+  const [resources, setResources] = useState([
     {
       name: "Calendario Académico 2024",
       type: "PDF",
@@ -573,868 +309,153 @@ function CourseView() {
       url: "#",
       description: "Planilla de evaluación utilizada por los jueces del tribunal",
     },
+  ]);
+  const handleAddResource = () => {
+    setResources((prev) => [
+      ...prev,
+      {
+        name: `Recurso Nuevo ${prev.length + 1}`,
+        type: "PDF",
+        url: "#",
+        description: "Recurso agregado por el usuario.",
+      },
+    ]);
+  };
+  const estadisticasEntregas = [
+    { label: "Entrega de Título", value: 85 },
+    { label: "Entrega de Borrador 1", value: 72 },
+    { label: "Entrega de Borrador 2", value: 68 },
+    { label: "Entrega de Borrador 3", value: 45 },
+    { label: "Entrega de Borrador Final", value: 32 },
   ];
-
-  // Mock data for draft deadlines
-  const draftDeadlines = ["15/01/2024", "20/02/2024", "10/03/2024", "15/04/2024"];
 
   return (
     <DashboardLayout>
-      {/* Header */}
-      <MDBox pt={6} pb={3}>
-        <Grid container spacing={6}>
-          <Grid item xs={12}>
-            <Card>
-              <MDBox
-                mx={2}
-                mt={-3}
-                py={3}
-                px={2}
-                variant="gradient"
-                bgColor="info"
-                borderRadius="lg"
-                coloredShadow="info"
-              >
-                <MDTypography variant="h4" color="white" textAlign="center">
-                  Aula Virtual
-                </MDTypography>
-                <MDTypography variant="h6" color="white" textAlign="center">
-                  Trabajo Especial de Grado - Informática
-                </MDTypography>
-              </MDBox>
-
-              <MDBox pt={3}>
-                <AppBar position="static" color="default">
-                  <Tabs
-                    value={tabValue}
-                    onChange={handleTabChange}
-                    indicatorColor="primary"
-                    textColor="primary"
-                    variant="fullWidth"
-                  >
-                    <Tab label="Info" icon={<InfoIcon />} iconPosition="start" />
-                    <Tab label="Participantes" icon={<PeopleIcon />} iconPosition="start" />
-                    <Tab label="Asistencias" icon={<AssignmentIcon />} iconPosition="start" />
-                    <Tab label="Recursos" icon={<FolderIcon />} iconPosition="start" />
-                  </Tabs>
-                </AppBar>
-
-                {/* Tab 1: Info */}
-                <TabPanel value={tabValue} index={0}>
-                  <MDBox>
-                    <Grid container spacing={6}>
-                      <Grid item xs={12} lg={8}>
-                        <MDBox mb={3}>
-                          <MDTypography variant="h6" fontWeight="medium">
-                            Calendario de Actividades
-                          </MDTypography>
-                        </MDBox>
-                        <Card>
-                          <CardContent>
-                            <Box
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "space-between",
-                                mb: 2,
-                              }}
-                            >
-                              <Box sx={{ display: "flex", alignItems: "center" }}>
-                                <CalendarTodayIcon sx={{ mr: 1, color: "primary.main" }} />
-                                <Typography variant="h6">
-                                  {format(currentMonth, "MMMM yyyy", { locale: es })}
-                                </Typography>
-                              </Box>
-                              <Box sx={{ display: "flex", alignItems: "center" }}>
-                                <Button
-                                  onClick={handlePreviousMonth}
-                                  sx={{ minWidth: "auto", p: 1 }}
-                                >
-                                  <ChevronLeftIcon />
-                                </Button>
-                                <Button onClick={handleNextMonth} sx={{ minWidth: "auto", p: 1 }}>
-                                  <ChevronRightIcon />
-                                </Button>
-                              </Box>
-                            </Box>
-                            <Paper
-                              elevation={1}
-                              sx={{
-                                maxHeight: 400,
-                                overflowY: "auto",
-                                "&::-webkit-scrollbar": {
-                                  width: "8px",
-                                },
-                                "&::-webkit-scrollbar-track": {
-                                  backgroundColor: "#f1f1f1",
-                                  borderRadius: "4px",
-                                },
-                                "&::-webkit-scrollbar-thumb": {
-                                  backgroundColor: "#c1c1c1",
-                                  borderRadius: "4px",
-                                  "&:hover": {
-                                    backgroundColor: "#a8a8a8",
-                                  },
-                                },
-                                "&::-webkit-scrollbar-thumb:hover": {
-                                  backgroundColor: "#a8a8a8",
-                                },
-                              }}
-                            >
-                              <List>
-                                {getCurrentMonthEvents().map((event, index) => (
-                                  <Box key={event.id}>
-                                    <ListItem
-                                      button
-                                      onClick={() => handleEventClick(event)}
-                                      sx={{
-                                        cursor: "pointer",
-                                        "&:hover": {
-                                          backgroundColor: "rgba(0, 0, 0, 0.04)",
-                                        },
-                                      }}
-                                    >
-                                      <ListItemIcon sx={{ color: getEventColor(event.type) }}>
-                                        {getEventIcon(event.type)}
-                                      </ListItemIcon>
-                                      <ListItemText
-                                        primary={event.title}
-                                        secondary={
-                                          <Box>
-                                            <Typography variant="body2" color="text.secondary">
-                                              {format(event.startDate, "dd/MM/yyyy HH:mm", {
-                                                locale: es,
-                                              })}{" "}
-                                              - {format(event.endDate, "HH:mm", { locale: es })}
-                                            </Typography>
-                                            <Typography
-                                              variant="body2"
-                                              color="text.secondary"
-                                              sx={{ mt: 0.5 }}
-                                            >
-                                              {event.description.substring(0, 80)}...
-                                            </Typography>
-                                          </Box>
-                                        }
-                                      />
-                                      <Chip
-                                        label={event.type}
-                                        size="small"
-                                        sx={{
-                                          backgroundColor: getEventColor(event.type),
-                                          color: "white",
-                                          fontWeight: "bold",
-                                        }}
-                                      />
-                                    </ListItem>
-                                    {index < getCurrentMonthEvents().length - 1 && <Divider />}
-                                  </Box>
-                                ))}
-                              </List>
-                            </Paper>
-                          </CardContent>
-                        </Card>
-                      </Grid>
-
-                      <Grid item xs={12} lg={4}>
-                        <MDBox mb={3}>
-                          <MDTypography variant="h6" fontWeight="medium">
-                            Comunicados
-                          </MDTypography>
-                        </MDBox>
-                        <Card>
-                          <CardContent>
-                            <Box
-                              sx={{
-                                maxHeight: 400,
-                                overflowY: "auto",
-                                "&::-webkit-scrollbar": {
-                                  width: "8px",
-                                },
-                                "&::-webkit-scrollbar-track": {
-                                  backgroundColor: "#f1f1f1",
-                                  borderRadius: "4px",
-                                },
-                                "&::-webkit-scrollbar-thumb": {
-                                  backgroundColor: "#c1c1c1",
-                                  borderRadius: "4px",
-                                  "&:hover": {
-                                    backgroundColor: "#a8a8a8",
-                                  },
-                                },
-                                "&::-webkit-scrollbar-thumb:hover": {
-                                  backgroundColor: "#a8a8a8",
-                                },
-                              }}
-                            >
-                              {currentComunicados.map((comunicado) => (
-                                <Box
-                                  key={comunicado.id}
-                                  sx={{ mb: 2, p: 2, border: "1px solid #e0e0e0", borderRadius: 1 }}
-                                >
-                                  <Box
-                                    sx={{
-                                      display: "flex",
-                                      justifyContent: "space-between",
-                                      alignItems: "flex-start",
-                                      mb: 1,
-                                    }}
-                                  >
-                                    <Typography variant="subtitle2" fontWeight="bold">
-                                      {comunicado.titulo}
-                                    </Typography>
-                                    <Chip
-                                      label={comunicado.tipo}
-                                      size="small"
-                                      color={getTipoColor(comunicado.tipo)}
-                                    />
-                                  </Box>
-                                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                    {comunicado.descripcion}
-                                  </Typography>
-                                  <Typography variant="caption" color="text.secondary">
-                                    {format(new Date(comunicado.fecha), "dd/MM/yyyy HH:mm", {
-                                      locale: es,
-                                    })}
-                                  </Typography>
-                                </Box>
-                              ))}
-                            </Box>
-                            <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-                              <Pagination
-                                count={totalPages}
-                                page={currentPage}
-                                onChange={(event, value) => setCurrentPage(value)}
-                                size="small"
-                              />
-                            </Box>
-                          </CardContent>
-                        </Card>
-                      </Grid>
-                    </Grid>
-                    <br />
-
-                    {/* Gráfico de Estadísticas */}
-                    <MDBox mt={4}>
-                      <Grid container spacing={3}>
-                        <Grid item xs={12}>
-                          <ReportsBarChart
-                            color="info"
-                            title="PROGRESO DE ENTREGAS POR ETAPA"
-                            description="Porcentaje de estudiantes que han completado cada etapa del proyecto"
-                            date="Actualizado hace 2 horas"
-                            chart={estadisticasEntregasChart}
-                          />
-                        </Grid>
-                      </Grid>
-                    </MDBox>
-                  </MDBox>
-                </TabPanel>
-
-                {/* Tab 2: Participantes */}
-                <TabPanel value={tabValue} index={1}>
-                  <MDBox>
-                    {/* Profesores */}
-                    <Card sx={{ p: 3, mb: 4 }}>
-                      <MDTypography variant="h5" mb={3}>
-                        <SchoolIcon sx={{ mr: 1, verticalAlign: "middle" }} />
-                        Profesores
-                      </MDTypography>
-                      <Box sx={{ overflowX: "auto" }}>
-                        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                          <thead>
-                            <tr style={{ backgroundColor: "#f5f5f5" }}>
-                              <th
-                                style={{
-                                  padding: "12px",
-                                  textAlign: "left",
-                                  borderBottom: "2px solid #ddd",
-                                }}
-                              >
-                                <MDTypography variant="h6">Nombre</MDTypography>
-                              </th>
-                              <th
-                                style={{
-                                  padding: "12px",
-                                  textAlign: "left",
-                                  borderBottom: "2px solid #ddd",
-                                }}
-                              >
-                                <MDTypography variant="h6">Email</MDTypography>
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {teachers.map((teacher, index) => (
-                              <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
-                                <td style={{ padding: "12px", textAlign: "left" }}>
-                                  <MDBox display="flex" alignItems="center">
-                                    <MDAvatar sx={{ mr: 2, width: 32, height: 32 }}>
-                                      <PersonIcon />
-                                    </MDAvatar>
-                                    <MDTypography variant="body1" fontWeight="medium">
-                                      {teacher.name}
-                                    </MDTypography>
-                                  </MDBox>
-                                </td>
-                                <td style={{ padding: "12px", textAlign: "left" }}>
-                                  <MDTypography variant="body2">{teacher.email}</MDTypography>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </Box>
-                    </Card>
-
-                    {/* Estudiantes */}
-                    <Card sx={{ p: 3 }}>
-                      <MDTypography variant="h5" mb={3}>
-                        <PersonIcon sx={{ mr: 1, verticalAlign: "middle" }} />
-                        Estudiantes
-                      </MDTypography>
-                      <Box sx={{ overflowX: "auto" }}>
-                        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                          <thead>
-                            <tr style={{ backgroundColor: "#f5f5f5" }}>
-                              <th
-                                style={{
-                                  padding: "12px",
-                                  textAlign: "left",
-                                  borderBottom: "2px solid #ddd",
-                                }}
-                              >
-                                <MDTypography variant="h6">Nombre</MDTypography>
-                              </th>
-                              <th
-                                style={{
-                                  padding: "12px",
-                                  textAlign: "left",
-                                  borderBottom: "2px solid #ddd",
-                                }}
-                              >
-                                <MDTypography variant="h6">Cédula</MDTypography>
-                              </th>
-                              <th
-                                style={{
-                                  padding: "12px",
-                                  textAlign: "left",
-                                  borderBottom: "2px solid #ddd",
-                                }}
-                              >
-                                <MDTypography variant="h6">Email</MDTypography>
-                              </th>
-                              <th
-                                style={{
-                                  padding: "12px",
-                                  textAlign: "left",
-                                  borderBottom: "2px solid #ddd",
-                                }}
-                              >
-                                <MDTypography variant="h6">Acciones</MDTypography>
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {students.map((student, index) => (
-                              <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
-                                <td style={{ padding: "12px", textAlign: "left" }}>
-                                  <MDBox display="flex" alignItems="center">
-                                    <MDAvatar sx={{ mr: 2, width: 32, height: 32 }}>
-                                      <PersonIcon />
-                                    </MDAvatar>
-                                    <MDTypography variant="body1" fontWeight="medium">
-                                      {student.name}
-                                    </MDTypography>
-                                  </MDBox>
-                                </td>
-                                <td style={{ padding: "12px", textAlign: "left" }}>
-                                  <MDTypography variant="body2">{student.id}</MDTypography>
-                                </td>
-                                <td style={{ padding: "12px", textAlign: "left" }}>
-                                  <MDTypography variant="body2">{student.email}</MDTypography>
-                                </td>
-                                <td style={{ padding: "12px", textAlign: "left" }}>
-                                  <Button
-                                    variant="contained"
-                                    color="primary"
-                                    size="small"
-                                    href="/estudiantes/30443230"
-                                    sx={{ minWidth: 100 }}
-                                  >
-                                    Ver Perfil
-                                  </Button>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </Box>
-                    </Card>
-                  </MDBox>
-                </TabPanel>
-
-                {/* Tab 3: Asistencias */}
-                <TabPanel value={tabValue} index={2}>
-                  <MDBox>
-                    {/* Programar Clases */}
-                    <Card sx={{ p: 3, mb: 4 }}>
-                      <MDTypography variant="h5" mb={3}>
-                        <AssignmentIcon sx={{ mr: 1, verticalAlign: "middle" }} />
-                        Programar Clases
-                      </MDTypography>
-                      <Grid container spacing={3}>
-                        <Grid item xs={12} md={3}>
-                          <TextField
-                            label="Fecha"
-                            type="date"
-                            value={newClassDate}
-                            onChange={(e) => setNewClassDate(e.target.value)}
-                            fullWidth
-                            InputLabelProps={{
-                              shrink: true,
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={12} md={3}>
-                          <TextField
-                            label="Hora"
-                            type="time"
-                            value={newClassTime}
-                            onChange={(e) => setNewClassTime(e.target.value)}
-                            fullWidth
-                            InputLabelProps={{
-                              shrink: true,
-                            }}
-                          />
-                        </Grid>
-                        <Grid item xs={12} md={4}>
-                          <TextField
-                            label="Descripción de la Clase"
-                            value={newClassDescription}
-                            onChange={(e) => setNewClassDescription(e.target.value)}
-                            fullWidth
-                            placeholder="Ej: Introducción a React"
-                          />
-                        </Grid>
-                        <Grid item xs={12} md={2}>
-                          <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={handleAddClass}
-                            fullWidth
-                            sx={{ height: "56px" }}
-                            disabled={!newClassDate || !newClassTime || !newClassDescription}
-                          >
-                            Agregar Clase
-                          </Button>
-                        </Grid>
-                      </Grid>
-                    </Card>
-
-                    {/* Clases Programadas */}
-                    {classes.length > 0 && (
-                      <Card sx={{ p: 3, mb: 4 }}>
-                        <MDTypography variant="h5" mb={3}>
-                          Clases Programadas
-                        </MDTypography>
-                        <Grid container spacing={2}>
-                          {classes.map((cls) => (
-                            <Grid item xs={12} md={6} lg={4} key={cls.id}>
-                              <Card sx={{ p: 2, border: "1px solid #e0e0e0" }}>
-                                <MDBox
-                                  display="flex"
-                                  justifyContent="space-between"
-                                  alignItems="flex-start"
-                                >
-                                  <MDBox>
-                                    <MDTypography variant="h6" fontWeight="medium">
-                                      {cls.description}
-                                    </MDTypography>
-                                    <MDTypography variant="body2" color="text.secondary">
-                                      Fecha: {cls.date}
-                                    </MDTypography>
-                                    <MDTypography variant="body2" color="text.secondary">
-                                      Hora: {cls.time}
-                                    </MDTypography>
-                                  </MDBox>
-                                  <MDBox display="flex" gap={1}>
-                                    <Button
-                                      variant="outlined"
-                                      color="primary"
-                                      size="small"
-                                      onClick={() => handleEditClass(cls)}
-                                    >
-                                      Editar
-                                    </Button>
-                                    <Button
-                                      variant="outlined"
-                                      color="error"
-                                      size="small"
-                                      onClick={() => handleDeleteClass(cls.id)}
-                                    >
-                                      Eliminar
-                                    </Button>
-                                  </MDBox>
-                                </MDBox>
-                              </Card>
-                            </Grid>
-                          ))}
-                        </Grid>
-                      </Card>
-                    )}
-
-                    {/* Tabla de Asistencias */}
-                    <Card sx={{ p: 3 }}>
-                      <MDTypography variant="h5" mb={3}>
-                        <PersonIcon sx={{ mr: 1, verticalAlign: "middle" }} />
-                        Control de Asistencias
-                      </MDTypography>
-                      <Box sx={{ overflowX: "auto" }}>
-                        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                          <thead>
-                            <tr style={{ backgroundColor: "#f5f5f5" }}>
-                              <th
-                                style={{
-                                  padding: "12px",
-                                  textAlign: "left",
-                                  borderBottom: "2px solid #ddd",
-                                }}
-                              >
-                                <MDTypography variant="h6">Estudiante</MDTypography>
-                              </th>
-                              {classes.map((cls) => (
-                                <th
-                                  key={cls.id}
-                                  style={{
-                                    padding: "12px",
-                                    textAlign: "center",
-                                    borderBottom: "2px solid #ddd",
-                                  }}
-                                >
-                                  <MDBox>
-                                    <MDTypography variant="body2" fontWeight="bold">
-                                      {cls.description}
-                                    </MDTypography>
-                                    <MDTypography variant="caption" color="text.secondary">
-                                      {cls.date} - {cls.time}
-                                    </MDTypography>
-                                  </MDBox>
-                                </th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {students.map((student, index) => (
-                              <tr key={index} style={{ borderBottom: "1px solid #eee" }}>
-                                <td style={{ padding: "12px", textAlign: "left" }}>
-                                  <MDBox display="flex" alignItems="center">
-                                    <MDAvatar sx={{ mr: 2, width: 32, height: 32 }}>
-                                      <PersonIcon />
-                                    </MDAvatar>
-                                    <MDTypography variant="body1" fontWeight="medium">
-                                      {student.name}
-                                    </MDTypography>
-                                  </MDBox>
-                                </td>
-                                {classes.map((cls) => {
-                                  const studentId = `student-${index + 1}`;
-                                  const classId = `class-${cls.id}`;
-                                  const currentStatus =
-                                    attendance[studentId]?.[classId] ||
-                                    getAttendanceStatus(studentId, classId);
-                                  const isPresent = currentStatus === "present";
-
-                                  return (
-                                    <td
-                                      key={cls.id}
-                                      style={{ padding: "12px", textAlign: "center" }}
-                                    >
-                                      <Checkbox
-                                        checked={isPresent}
-                                        onChange={(e) =>
-                                          handleAttendanceChange(
-                                            studentId,
-                                            classId,
-                                            e.target.checked
-                                          )
-                                        }
-                                        color="primary"
-                                        size="small"
-                                      />
-                                    </td>
-                                  );
-                                })}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </Box>
-                    </Card>
-                  </MDBox>
-                </TabPanel>
-
-                {/* Tab 4: Recursos */}
-                <TabPanel value={tabValue} index={3}>
-                  <MDBox>
-                    <MDTypography variant="h5" mb={3}>
-                      <FolderIcon sx={{ mr: 1, verticalAlign: "middle" }} />
-                      Recursos Disponibles
-                    </MDTypography>
-                    <Grid container spacing={3}>
-                      {resources.map((resource, index) => (
-                        <Grid item xs={12} sm={6} md={4} key={index}>
-                          <Card sx={{ p: 3, height: "100%" }}>
-                            <MDBox display="flex" alignItems="center" mb={2}>
-                              <DescriptionIcon sx={{ mr: 2, color: "primary.main" }} />
-                              <MDBox>
-                                <MDTypography variant="h6" fontWeight="medium">
-                                  {resource.name}
-                                </MDTypography>
-                                <Chip
-                                  label={resource.type}
-                                  size="small"
-                                  color="primary"
-                                  variant="outlined"
-                                />
-                              </MDBox>
-                            </MDBox>
-                            <MDTypography variant="body2" color="text" mb={2}>
-                              {resource.description}
-                            </MDTypography>
-                            <Button
-                              variant="contained"
-                              color="primary"
-                              startIcon={<LinkIcon />}
-                              fullWidth
-                              href={resource.url}
-                              target="_blank"
-                            >
-                              Descargar
-                            </Button>
-                          </Card>
-                        </Grid>
-                      ))}
-                    </Grid>
-                  </MDBox>
-                </TabPanel>
-              </MDBox>
-            </Card>
-          </Grid>
-        </Grid>
-      </MDBox>
-
-      {/* Title Proposal Modal */}
-      <Modal
-        open={openTitleModal}
-        onClose={handleCloseTitleModal}
-        aria-labelledby="title-modal-title"
-        aria-describedby="title-modal-description"
+      <Box
+        sx={{
+          display: "flex",
+          minHeight: "100vh",
+          background: "#f5f6fa",
+          alignItems: "flex-start",
+        }}
       >
-        <Box sx={style}>
-          <Typography id="title-modal-title" variant="h6" component="h2" mb={3}>
-            Ingresar Propuestas de Título
-          </Typography>
-
-          <MDBox display="flex" flexDirection="column" gap={3}>
-            {titleProposals.map((proposal, index) => (
-              <TextField
-                key={index}
-                id={`title-proposal-${index + 1}`}
-                label={`Propuesta de Título ${index + 1}`}
-                variant="outlined"
-                fullWidth
-                value={proposal}
-                onChange={(e) => handleTitleProposalChange(index, e.target.value)}
-                multiline
-                rows={2}
-              />
-            ))}
-
-            <MDBox display="flex" gap={2} justifyContent="flex-end">
-              <Button variant="outlined" onClick={handleCloseTitleModal}>
-                Cancelar
-              </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleSubmitTitleProposals}
-                disabled={!titleProposals.some((proposal) => proposal.trim() !== "")}
-                startIcon={<SendIcon />}
-              >
-                Enviar Propuestas
-              </Button>
-            </MDBox>
-          </MDBox>
-        </Box>
-      </Modal>
-
-      {/* File Upload Modal */}
-      <Modal
-        open={openUploadModal}
-        onClose={handleCloseUploadModal}
-        aria-labelledby="upload-modal-title"
-        aria-describedby="upload-modal-description"
-      >
-        <Box sx={style}>
-          <Typography id="upload-modal-title" variant="h6" component="h2" mb={3}>
-            Subir {currentUploadType}
-          </Typography>
-
-          <MDBox display="flex" flexDirection="column" gap={3}>
-            <Input
-              id="file-upload"
-              type="file"
-              onChange={handleFileUpload}
-              startAdornment={
-                <InputAdornment position="start">
-                  <UploadIcon />
-                </InputAdornment>
-              }
-            />
-
-            {uploadFileName && (
-              <MDBox>
-                <MDTypography variant="body2" color="success.main">
-                  Archivo seleccionado: {uploadFileName}
-                </MDTypography>
-              </MDBox>
-            )}
-
-            <MDBox display="flex" gap={2} justifyContent="flex-end">
-              <Button variant="outlined" onClick={handleCloseUploadModal}>
-                Cancelar
-              </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleSubmitUpload}
-                disabled={!uploadFile}
-                startIcon={<SendIcon />}
-              >
-                Enviar Archivo
-              </Button>
-            </MDBox>
-          </MDBox>
-        </Box>
-      </Modal>
-
-      {/* Modal para mostrar detalles del evento */}
-      <Modal
-        open={isEventModalOpen}
-        onClose={handleCloseEventModal}
-        aria-labelledby="event-modal-title"
-        aria-describedby="event-modal-description"
-      >
+        {/* Menú lateral fijo */}
         <Box
           sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 400,
-            bgcolor: "background.paper",
+            width: 300,
+            minWidth: 300,
+            background: "#1976d2",
+            boxShadow: 2,
             borderRadius: 2,
-            boxShadow: 24,
-            p: 4,
+            m: 2,
+            height: "calc(105vh - 32px)",
+            position: "sticky",
+            top: 16,
+            zIndex: 10,
+            display: { xs: "none", md: "flex" },
+            flexDirection: "column",
           }}
         >
-          {selectedEvent && (
-            <>
-              <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                <Box sx={{ color: getEventColor(selectedEvent.type), mr: 1 }}>
-                  {getEventIcon(selectedEvent.type)}
-                </Box>
-                <Typography id="event-modal-title" variant="h6" component="h2">
-                  {selectedEvent.title}
-                </Typography>
-              </Box>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                <strong>Fecha:</strong>{" "}
-                {format(selectedEvent.startDate, "dd/MM/yyyy HH:mm", { locale: es })} -{" "}
-                {format(selectedEvent.endDate, "HH:mm", { locale: es })}
-              </Typography>
-              <Typography variant="body2" sx={{ mb: 3 }}>
-                {selectedEvent.description}
-              </Typography>
-              <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-                <Button onClick={handleCloseEventModal} variant="contained">
-                  Cerrar
-                </Button>
-              </Box>
-            </>
-          )}
+          <SubjectSideMenu
+            open={true}
+            onClose={() => {}}
+            subject={{ nombre: `Materia #${id}`, descripcion: "Descripción de la materia" }}
+            userType="docente"
+            onOptionClick={handleMenuOptionClick}
+            selectedKey={selectedMenuKey}
+            options={menuOptions}
+          />
         </Box>
-      </Modal>
-
-      {/* Edit Class Modal */}
-      <Modal
-        open={isEditModalOpen}
-        onClose={handleCloseEditModal}
-        aria-labelledby="edit-class-modal-title"
-        aria-describedby="edit-class-modal-description"
-      >
-        <Box sx={style}>
-          <Typography id="edit-class-modal-title" variant="h6" component="h2" mb={3}>
-            Editar Clase Programada
-          </Typography>
-
-          <MDBox display="flex" flexDirection="column" gap={3}>
-            <TextField
-              id="edit-class-date"
-              label="Fecha"
-              type="date"
-              variant="outlined"
-              fullWidth
-              value={editClassDate}
-              onChange={(e) => setEditClassDate(e.target.value)}
-              InputLabelProps={{
-                shrink: true,
-              }}
-            />
-
-            <TextField
-              id="edit-class-time"
-              label="Hora"
-              type="time"
-              variant="outlined"
-              fullWidth
-              value={editClassTime}
-              onChange={(e) => setEditClassTime(e.target.value)}
-              InputLabelProps={{
-                shrink: true,
-              }}
-            />
-
-            <TextField
-              id="edit-class-description"
-              label="Descripción de la Clase"
-              variant="outlined"
-              fullWidth
-              value={editClassDescription}
-              onChange={(e) => setEditClassDescription(e.target.value)}
-              multiline
-              rows={3}
-            />
-
-            <MDBox display="flex" gap={2} justifyContent="flex-end">
-              <Button variant="outlined" onClick={handleCloseEditModal}>
-                Cancelar
-              </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={handleSubmitEditClass}
-                disabled={!editClassDate || !editClassTime || !editClassDescription}
-              >
-                Guardar Cambios
-              </Button>
-            </MDBox>
+        {/* Contenido principal */}
+        <Box
+          sx={{
+            flex: 1,
+            ml: { xs: 0, md: 2 },
+            mt: 2,
+            mb: 2,
+            mr: 2,
+            background: "#f8fafc",
+            borderRadius: 2,
+            boxShadow: 1,
+            p: 3,
+            minHeight: "calc(100vh - 32px)",
+            overflow: "auto",
+          }}
+        >
+          <MDBox pt={6} pb={3}>
+            <Grid container spacing={6}>
+              <Grid item xs={12}>
+                <Card
+                  sx={{ boxShadow: 'none', border: 'none', background: 'transparent' }}
+                >
+                  <MDBox
+                    mx={2}
+                    mt={-3}
+                    py={3}
+                    px={2}
+                    variant="gradient"
+                    bgColor="info"
+                    borderRadius="lg"
+                    coloredShadow="info"
+                  >
+                    <MDTypography variant="h4" color="white" textAlign="center">
+                      Aula Virtual
+                    </MDTypography>
+                    <MDTypography variant="h6" color="white" textAlign="center">
+                      BIENVENIDOS
+                    </MDTypography>
+                  </MDBox>
+                  {selectedMenuKey === "info" && <CourseViewInfo />}
+                  {selectedMenuKey === "anuncios" && (
+                    <CourseViewAnuncios
+                      titleProposals={titleProposals}
+                      handleTitleProposalChange={handleTitleProposalChange}
+                      handleOpenTitleModal={handleOpenTitleModal}
+                      openTitleModal={openTitleModal}
+                      handleCloseTitleModal={handleCloseTitleModal}
+                      handleSubmitTitleProposals={handleSubmitTitleProposals}
+                    />
+                  )}
+                  {selectedMenuKey === "cronogramas" && (
+                    <CourseViewCronogramas
+                      newClassDate={newClassDate}
+                      setNewClassDate={setNewClassDate}
+                      newClassTime={newClassTime}
+                      setNewClassTime={setNewClassTime}
+                      newClassDescription={newClassDescription}
+                      setNewClassDescription={setNewClassDescription}
+                      handleAddClass={handleAddClass}
+                      classes={classes}
+                      handleEditClass={handleEditClass}
+                      handleDeleteClass={handleDeleteClass}
+                      // Props para entregas
+                      currentUploadType={currentUploadType}
+                      handleOpenUploadModal={handleOpenUploadModal}
+                      uploadFileName={uploadFileName}
+                      setUploadFileName={setUploadFileName}
+                      handleOpenUploadModalButton={() => handleOpenUploadModal(currentUploadType)}
+                      openUploadModal={openUploadModal}
+                      handleCloseUploadModal={handleCloseUploadModal}
+                      handleFileUpload={handleFileUpload}
+                      handleSubmitUpload={handleSubmitUpload}
+                      uploadFile={uploadFile}
+                    />
+                  )}
+                  {selectedMenuKey === "participantes" && (
+                    <ParticipantesList teachers={teachers} students={students} />
+                  )}
+                  {selectedMenuKey === "recursos" && (
+                    <RecursosList resources={resources} onAddResource={handleAddResource} />
+                  )}
+                  {selectedMenuKey === "estadisticas" && (
+                    <EstadisticasEntregas estadisticas={estadisticasEntregas} />
+                  )}
+                </Card>
+              </Grid>
+            </Grid>
           </MDBox>
         </Box>
-      </Modal>
-
-      <Footer />
+      </Box>
     </DashboardLayout>
   );
 }

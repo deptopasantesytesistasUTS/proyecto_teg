@@ -24,6 +24,9 @@
     "chroma-js": "2.4.2",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
+    "dayjs": "^1.11.13",
+    "file-saver": "^2.0.5",
+    "ipaddr.js": "^2.2.0",
     "prop-types": "15.8.1",
     "react": "18.2.0",
     "react-chartjs-2": "5.2.0",
@@ -34,6 +37,7 @@
     "react-table": "7.8.0",
     "stylis": "4.1.4",
     "stylis-plugin-rtl": "2.1.1",
+    "xlsx": "^0.18.5",
     "yup": "1.1.1"
   },
   "scripts": {

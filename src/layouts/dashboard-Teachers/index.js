@@ -28,12 +28,14 @@ import {
 } from "@mui/icons-material";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { useNavigate } from "react-router-dom";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 import DefaultProjectCard from "examples/Cards/ProjectCards/DefaultProjectCard";
+import SubjectSideMenu from "components/SubjectSideMenu";
 
 // Material Dashboard 2 React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -47,10 +49,13 @@ import team3 from "assets/images/team-3.jpg";
 import team4 from "assets/images/team-4.jpg";
 
 function DashboardStudents() {
+  const navigate = useNavigate();
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [sideMenuOpen, setSideMenuOpen] = useState(false);
+  const [selectedSubject, setSelectedSubject] = useState(null);
 
   // Datos de eventos/actividades del calendario
   const appointments = [
@@ -262,13 +267,14 @@ function DashboardStudents() {
   // Datos de las clases del estudiante
   const misClases = [
     {
+      id: 1,
       image: informatica,
       label: "Informática",
       title: "Trabajo Especial de Grado (TEG)",
       description: "Cargo: ESTUDIANTE",
       action: {
         type: "internal",
-        route: "/unidadesDoc/1",
+        route: "/materia/1",
         color: "info",
         label: "Ver Sección",
       },
@@ -278,13 +284,14 @@ function DashboardStudents() {
       ],
     },
     {
+      id: 2,
       image: informatica,
       label: "Informática",
       title: "Investigación II",
       description: "Cargo: ESTUDIANTE",
       action: {
         type: "internal",
-        route: "/unidadesDoc/2",
+        route: "/materia/2",
         color: "info",
         label: "Ver Sección",
       },
@@ -294,13 +301,14 @@ function DashboardStudents() {
       ],
     },
     {
+      id: 3,
       image: informatica,
       label: "Informática",
       title: "Tutoria de Investigación II",
       description: "Cargo: ESTUDIANTE",
       action: {
         type: "internal",
-        route: "/unidadesDoc/3",
+        route: "/materia/3",
         color: "info",
         label: "Ver Sección",
       },
@@ -609,14 +617,22 @@ function DashboardStudents() {
             <Grid container spacing={6}>
               {misClases.map((clase, index) => (
                 <Grid item xs={12} md={6} xl={4} key={index}>
-                  <DefaultProjectCard
-                    image={clase.image}
-                    label={clase.label}
-                    title={clase.title}
-                    description={clase.description}
-                    action={clase.action}
-                    authors={clase.authors}
-                  />
+                  <div
+                    style={{ cursor: "pointer" }}
+                    onClick={() => {
+                      // Navegar a Aula Virtual de la materia
+                      navigate(`/materia/${clase.id}/info`);
+                    }}
+                  >
+                    <DefaultProjectCard
+                      image={clase.image}
+                      label={clase.label}
+                      title={clase.title}
+                      description={clase.description}
+                      action={clase.action}
+                      authors={clase.authors}
+                    />
+                  </div>
                 </Grid>
               ))}
             </Grid>
@@ -671,6 +687,17 @@ function DashboardStudents() {
           )}
         </Box>
       </Modal>
+      <SubjectSideMenu
+        open={sideMenuOpen}
+        onClose={() => setSideMenuOpen(false)}
+        subject={selectedSubject}
+        userType="docente"
+        onOptionClick={(optionKey) => {
+          // Aquí puedes manejar la navegación o acciones según la opción seleccionada
+          // Por ejemplo: navegar a una ruta, abrir un modal, etc.
+          console.log("Opción seleccionada:", optionKey);
+        }}
+      />
     </DashboardLayout>
   );
 }

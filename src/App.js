@@ -52,6 +52,7 @@ import { useAuth } from "context/AuthContext";
 import ProtectedRoute from "components/ProtectedRoute/ProtectedRoute";
 import { logout } from "layouts/authentication/sign-in";
 import SignIn from "layouts/authentication/sign-in";
+import CourseViewTeachers from "layouts/Course/CourseViewTeachers";
 
 // Images
 import brandWhite from "assets/images/logo-ct.png";
@@ -184,6 +185,15 @@ export default function App() {
           <Route path="/" element={<Navigate to="/authentication/sign-in" />} />
           {/* Ruta de login sin logout automático */}
           <Route path="/authentication/sign-in" element={<SignIn />} />
+          {/* Ruta protegida manual para Aula Virtual (no aparece en sidebar) */}
+          <Route
+            path="/materia/:id/info"
+            element={
+              <ProtectedRoute allowedRoles={[2]}>
+                <CourseViewTeachers />
+              </ProtectedRoute>
+            }
+          />
           {getRoutes(routes)}
           <Route path="*" element={<Navigate to="/dashboard" />} />
         </Routes>
@@ -212,6 +222,15 @@ export default function App() {
         <Route path="/" element={<Navigate to="/authentication/sign-in" />} />
         {/* Ruta de login sin logout automático */}
         <Route path="/authentication/sign-in" element={<SignIn />} />
+        {/* Ruta protegida manual para Aula Virtual (no aparece en sidebar) */}
+        <Route
+          path="/materia/:id/info"
+          element={
+            <ProtectedRoute allowedRoles={[2]}>
+              <CourseViewTeachers />
+            </ProtectedRoute>
+          }
+        />
         {getRoutes(routes)}
         <Route path="*" element={<Navigate to="/dashboard" />} />
       </Routes>

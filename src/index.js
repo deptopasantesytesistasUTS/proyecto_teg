@@ -19,6 +19,8 @@ import { BrowserRouter } from "react-router-dom";
 import { MaterialUIControllerProvider } from "context";
 import { AuthProvider } from "context/AuthContext";
 import App from "App";
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 // Material Dashboard 2 React Context Provider
 
@@ -29,7 +31,9 @@ root.render(
   <BrowserRouter>
     <MaterialUIControllerProvider>
       <AuthProvider>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
         <App />
+        </LocalizationProvider>
       </AuthProvider>
     </MaterialUIControllerProvider>
   </BrowserRouter>
