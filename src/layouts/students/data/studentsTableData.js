@@ -35,6 +35,10 @@ export default function data(students) {
     </MDBox>
   );
 
+  console.log("hola2");
+
+    console.log(students);
+
   return {
     columns: [
       { Header: "Estudiante", accessor: "estudiante", width: "45%", align: "left" },
@@ -43,6 +47,7 @@ export default function data(students) {
       { Header: "Acciones", accessor: "action", align: "center" },
     ],
 
+
     rows: students.map((student) => ({
       estudiante: (
         <Estudiante name={student.nombre} id={student.cedula} image={team2} email={student.email} />
@@ -50,7 +55,7 @@ export default function data(students) {
       carrera: <Job title={student.carrera} description={student.materia} />,
       estatus: (
         <MDBox ml={-1}>
-          <MDBadge badgeContent={student.estatus} color="success" variant="gradient" size="sm" />
+          <MDBadge badgeContent={student.status} color="success" variant="gradient" size="sm" />
         </MDBox>
       ),
       action: (

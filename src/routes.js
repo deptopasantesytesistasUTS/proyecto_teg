@@ -84,6 +84,14 @@ const routes = [
     allowedRoles: [1],
   },
   {
+    name: "Perfil-Estudiante",
+    key: "estudiantes",
+    icon: <Icon fontSize="small">table_view</Icon>,
+    route: "/estudiantes/:id",
+    component: <StudentProfile />,
+    allowedRoles: [1],
+  },
+  {
     type: "collapse",
     name: "Docentes",
     key: "Docente",
@@ -144,24 +152,7 @@ const routes = [
   },
 
   // rutas publicas
-  {
-    type: "url",
-    name: "Notifications",
-    key: "notifications",
-    icon: <Icon fontSize="small">notifications</Icon>,
-    route: "/notifications",
-    component: <Notifications />,
-    allowedRoles: [1, 2, 3],
-  },
-  {
-    type: "url",
-    name: "Profile",
-    key: "profile",
-    icon: <Icon fontSize="small">person</Icon>,
-    route: "/profile",
-    component: <Profile />,
-    allowedRoles: [1, 2, 3],
-  },
+
   {
     type: "url",
     name: "Salir",

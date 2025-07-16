@@ -14,6 +14,8 @@ import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
+import Alert from "@mui/material/Alert";
+import Snackbar from "@mui/material/Snackbar";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -30,28 +32,21 @@ import studentsTableData from "layouts/students/data/studentsTableData";
 import { backendUrl } from "config";
 
 function Students() {
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const [careers, setCareers] = useState([]);
   const [sections, setSections] = useState([]);
-  const [students, setStudents] = useState([
-    {
-      nombre: "Juan Perez",
-      cedula: "1234567890",
-      carrera: "Diseño",
-      materia: "TEG",
-      estatus: "Activo",
-      correo: "juan.perez@gmail.com",
-      telf: "1234567890",
-    },
-    {
-      nombre: "Luis Perez",
-      cedula: "453534890",
-      carrera: "Informatica",
-      materia: "TEG",
-      estatus: "Activo",
-      correo: "juan.perez@gmail.com",
-      telf: "1234567890",
-    },
-  ]);
+  const [sectionsTutor, setSectionsTutor] = useState([]);
+  const [section, setSection] = useState(false);
+  const [sectionTutor, setSectionTutor] = useState(false);
+  const [students, setStudents] = useState([]);
+  const [columns, setColumns] = useState(studentsTableData(students).columns);
+  const [rows, setRows] = useState(studentsTableData(students).rows);
+  const [openNewDialog, setOpenNewDialog] = useState(false);
+
+   // Close snackbar
+   const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
 
   const [openAdd, setOpenAdd] = useState(false);
 
@@ -64,6 +59,7 @@ function Students() {
     telf: "",
     carrera: "",
     seccion: "",
+    seccion_tutor: "",
     cedula: "",
   });
 
@@ -76,12 +72,28 @@ function Students() {
   };
 
   const handleGetStudents = async () => {
-    const response = await fetch(`${backendUrl}/students`, {
+    const response = await fetch(`${backendUrl}/estudiantesA`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
     const data = await response.json();
-    setStudents(data);
+
+    console.log(response.ok);
+    if (response.ok) {
+      // Si la respuesta es un array directamente
+      if (Array.isArray(data)) {
+        setStudents(data);
+        console.log("caso 1");
+      }
+      // Si la respuesta tiene la propiedad 'estudiantes'
+      else if (Array.isArray(data.estudiantes)) {
+        setStudents(data.estudiantes);
+        console.log("caso 2");
+      } else {
+        setStudents([]); // O maneja el error como prefieras
+        console.error("La respuesta no contiene estudiantes válidos");
+      }
+    }
   };
   const handleGetCareers = async () => {
     const response = await fetch(`${backendUrl}/carreras`, {
@@ -92,11 +104,17 @@ function Students() {
     if (response.ok) {
       const data = await response.json();
       setCareers(data);
+      setSections([]);
+      setNewStudent({
+        ...newStudent,
+        seccion: "",
+      });
     } else {
     }
   };
 
   const handleGetSections = async (carrera) => {
+    setSection(false);
     const response = await fetch(`${backendUrl}/secciones/${carrera}`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
@@ -105,49 +123,83 @@ function Students() {
     if (response.ok) {
       const data = await response.json();
       setSections(data);
+      setSection(true);
+    } else {
+      console.error("Failed to fetch sections");
+    }
+  };
+
+  const handleGetSectionsTutor = async (carrera) => {
+    setSectionTutor(false);
+    const response = await fetch(`${backendUrl}/seccionesTutor/${carrera}`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+    
+    if (response.ok && newStudent.seccion == "investigación_II") {
+      const data = await response.json();
+      setSectionsTutor(data);
+      setSectionTutor(true);
     } else {
       console.error("Failed to fetch sections");
     }
   };
 
   useEffect(() => {
+    
+    handleGetSectionsTutor(newStudent.carrera);
+  }, [newStudent.seccion]);
+
+  useEffect(() => {
     handleGetCareers();
+    handleGetStudents();
   }, []);
 
-  const handleAddStudent = () => {
-    // Unir los nombres y apellidos para el campo 'nombre'
-    const nombre =
-      `${newStudent.nombre1} ${newStudent.nombre2} ${newStudent.apellido1} ${newStudent.apellido2}`
-        .replace(/  +/g, " ")
-        .trim();
-    setStudents((prev) => [
-      ...prev,
-      {
-        nombre,
-        cedula: newStudent.cedula,
-        carrera: newStudent.carrera,
-        materia: "", // Puedes ajustar esto si tienes materia
-        estatus: "Activo",
-        correo: newStudent.correo,
-        telf: newStudent.telf,
-        seccion: newStudent.seccion,
-      },
-    ]);
-    setNewStudent({
-      nombre1: "",
-      nombre2: "",
-      apellido1: "",
-      apellido2: "",
-      correo: "",
-      telf: "",
-      carrera: "",
-      seccion: "",
-      cedula: "",
-    });
+  useEffect(() => {
+    handleGetSections(newStudent.carrera);
+  }, [newStudent.carrera]);
+
+  useEffect(() => {
+    setRows(studentsTableData(students).rows);
+  }, [students]);
+
+  const handleAddStudent = async () => {
+      const response = await fetch(`${backendUrl}/estudiante`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newStudent }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setOpenNewDialog(false);
+        setNewStudent({
+          nombre1: "",
+          nombre2: "",
+          apellido1: "",
+          apellido2: "",
+          correo: "",
+          telf: "",
+          carrera: "",
+          seccion: "",
+          cedula: "",
+        });
+        handleGetStudents();
+        setSnackbar({
+          open: true,
+          message: "Lapso académico creado exitosamente",
+          severity: "success",
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          message: "Fallo en la creacion del semestre",
+          severity: "error",
+        });
+      }
     handleCloseAdd();
   };
-
-  const { columns, rows } = studentsTableData(students);
 
   // Estados para filtros y búsqueda
   const [orderBy, setOrderBy] = useState("Nombre");
@@ -181,6 +233,8 @@ function Students() {
       filtered = filtered.filter((row) => row && row.carrera);
       filtered.sort((a, b) => a.carrera.localeCompare(b.carrera));
     }
+    console.log("hola3");
+    console.log(filtered);
     return studentsTableData(filtered).rows;
   };
 
@@ -233,8 +287,11 @@ function Students() {
                       onChange={(e) => setFilterCarrera(e.target.value)}
                     >
                       <MenuItem value="">Todas</MenuItem>
-                      <MenuItem value="Diseño">Diseño</MenuItem>
-                      <MenuItem value="Informática">Informática</MenuItem>
+                      {careers.map((career, index) => (
+                          <MenuItem key={index} value={career.nombre}>
+                            {career.nombre}
+                          </MenuItem>
+                        ))}
                     </Select>
                   </FormControl>
                 </Grid>
@@ -249,8 +306,9 @@ function Students() {
                       onChange={(e) => setFilterMateria(e.target.value)}
                     >
                       <MenuItem value="">Todas</MenuItem>
-                      <MenuItem value="TEG">TEG</MenuItem>
-                      <MenuItem value="Investigación II">Investigación II</MenuItem>
+                      <MenuItem value="Trabajo_Especial_de_Grado">Trabajo Especial de Grado</MenuItem>
+                      <MenuItem value="investigación_II">Investigación II</MenuItem>
+                      <MenuItem value="Tutorias">Tutorias</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
@@ -292,7 +350,8 @@ function Students() {
       <Dialog open={openAdd} onClose={handleCloseAdd}>
         <DialogTitle>Agregar Estudiante</DialogTitle>
         <DialogContent>
-          <Stack spacing={2} sx={{ mt: 1 }}>
+           <Grid container spacing={2}>
+            <Grid item xs={12} md={6}>
             <TextField
               label="Primer Nombre"
               name="nombre1"
@@ -300,6 +359,8 @@ function Students() {
               onChange={handleNewStudentChange}
               fullWidth
             />
+            </Grid>
+            <Grid item xs={12} md={6}>
             <TextField
               label="Segundo Nombre"
               name="nombre2"
@@ -307,6 +368,8 @@ function Students() {
               onChange={handleNewStudentChange}
               fullWidth
             />
+            </Grid>
+            <Grid item xs={12} md={6}>
             <TextField
               label="Primer Apellido"
               name="apellido1"
@@ -314,6 +377,8 @@ function Students() {
               onChange={handleNewStudentChange}
               fullWidth
             />
+            </Grid>
+            <Grid item xs={12} md={6}>
             <TextField
               label="Segundo Apellido"
               name="apellido2"
@@ -321,6 +386,8 @@ function Students() {
               onChange={handleNewStudentChange}
               fullWidth
             />
+            </Grid>
+            <Grid item xs={12} md={6}>
             <TextField
               label="Correo"
               name="correo"
@@ -328,6 +395,8 @@ function Students() {
               onChange={handleNewStudentChange}
               fullWidth
             />
+            </Grid>
+            <Grid item xs={12} md={6}>
             <TextField
               label="Teléfono"
               name="telf"
@@ -335,7 +404,9 @@ function Students() {
               onChange={handleNewStudentChange}
               fullWidth
             />
-            <FormControl fullWidth>
+            </Grid>
+            <Grid item xs={12} md={6}>
+            <FormControl variant="standard" fullWidth>
               <InputLabel id="carrera-add-label">Carrera</InputLabel>
               <Select
                 labelId="carrera-add-label"
@@ -345,11 +416,16 @@ function Students() {
                 onChange={handleNewStudentChange}
               >
                 <MenuItem value="">Seleccione una carrera</MenuItem>
-                <MenuItem value="Diseño">Diseño</MenuItem>
-                <MenuItem value="Informática">Informática</MenuItem>
+                {careers.map((career, index) => (
+                          <MenuItem key={index} value={career.idCarrera}>
+                            {career.nombre}
+                          </MenuItem>
+                        ))}
               </Select>
             </FormControl>
-            <FormControl fullWidth>
+            </Grid>
+            <Grid item xs={12} md={6}>
+            <FormControl variant="standard" fullWidth>
               <InputLabel id="seccion-add-label">Sección</InputLabel>
               <Select
                 labelId="seccion-add-label"
@@ -357,13 +433,38 @@ function Students() {
                 value={newStudent.seccion}
                 label="Sección"
                 onChange={handleNewStudentChange}
+                disabled={!section}
               >
                 <MenuItem value="">Seleccione una sección</MenuItem>
-                <MenuItem value="A">A</MenuItem>
-                <MenuItem value="B">B</MenuItem>
-                <MenuItem value="C">C</MenuItem>
+                {sections.map((section, index) => (
+                          <MenuItem key={index} value={section.idSeccion}>
+                            {section.letra + " " + section.Materias.categoria}
+                          </MenuItem>
+                        ))}
               </Select>
             </FormControl>
+            </Grid>
+            <Grid item xs={12} md={6}>
+            <FormControl variant="standard" fullWidth>
+              <InputLabel id="seccion-add-label">Sección Tutorias</InputLabel>
+              <Select
+                labelId="seccion-add-label"
+                name="seccion"
+                value={newStudent.seccion}
+                label="Sección"
+                onChange={handleNewStudentChange}
+                disabled={!sectionTutor}
+              >
+                <MenuItem value="">Seleccione una sección de tutor</MenuItem>
+                {sectionsTutor.map((section, index) => (
+                          <MenuItem key={index} value={section.idSeccion}>
+                            {section.letra + ") " + section.Materias.categoria}
+                          </MenuItem>
+                        ))}
+              </Select>
+            </FormControl>
+            </Grid>
+            <Grid item xs={12} md={6}>
             <TextField
               label="Cédula"
               name="cedula"
@@ -371,7 +472,8 @@ function Students() {
               onChange={handleNewStudentChange}
               fullWidth
             />
-          </Stack>
+            </Grid>
+            </Grid>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseAdd}>Cancelar</Button>
@@ -380,6 +482,19 @@ function Students() {
           </Button>
         </DialogActions>
       </Dialog>
+
+ {/* Snackbar for notifications */}
+ <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: "100%" }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
       <Footer />
     </DashboardLayout>
   );
