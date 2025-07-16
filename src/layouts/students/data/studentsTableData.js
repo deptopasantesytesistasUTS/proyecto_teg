@@ -11,7 +11,7 @@ import team2 from "assets/images/team-2.jpg";
 import team3 from "assets/images/team-3.jpg";
 import team4 from "assets/images/team-4.jpg";
 
-export default function data() {
+export default function data(students) {
   const Estudiante = ({ image, name, id, email }) => (
     <MDBox display="flex" alignItems="center" lineHeight={1}>
       <MDAvatar src={image} name={name} size="sm" />
@@ -43,76 +43,27 @@ export default function data() {
       { Header: "Acciones", accessor: "action", align: "center" },
     ],
 
-    rows: [
-      {
-        estudiante: (
-          <Estudiante
-            name="Luis Alejandro Cárdenas Lozano"
-            id="30443230"
-            image={team2}
-            email="luiscl1804@gmail.com"
-          />
-        ),
-        carrera: <Job title="Informática" description="Trabajo Especial de Grado (TEG)" />,
-        estatus: (
-          <MDBox ml={-1}>
-            <MDBadge badgeContent="activo" color="success" variant="gradient" size="sm" />
-          </MDBox>
-        ),
-        action: (
-          <MDTypography
-            component="a"
-            href="/estudiantes/30443230"
-            variant="caption"
-            color="text"
-            fontWeight="medium"
-          >
-            Ver Estudiante
-          </MDTypography>
-        ),
-      },
-      {
-        estudiante: (
-          <Estudiante
-            name="Oriana Margarita Duran Zambrano"
-            image={team2}
-            email="orianadaran1@gmail.com"
-            id="28457689"
-          />
-        ),
-        carrera: <Job title="Diseño" description="Investigación 2" />,
-        estatus: (
-          <MDBox ml={-1}>
-            <MDBadge badgeContent="activo" color="success" variant="gradient" size="sm" />
-          </MDBox>
-        ),
-        action: (
-          <MDTypography component="a" href="#" variant="caption" color="text" fontWeight="medium">
-            Ver Estudiante
-          </MDTypography>
-        ),
-      },
-      {
-        estudiante: (
-          <Estudiante
-            name="Kevin Alejandro Sanabria Ramirez"
-            image={team2}
-            email="kevin@gmail.com"
-            id="30163499"
-          />
-        ),
-        carrera: <Job title="Diseño" description="Pasantias" />,
-        estatus: (
-          <MDBox ml={-1}>
-            <MDBadge badgeContent="activo" color="success" variant="gradient" size="sm" />
-          </MDBox>
-        ),
-        action: (
-          <MDTypography component="a" href="#" variant="caption" color="text" fontWeight="medium">
-            Ver Estudiante
-          </MDTypography>
-        ),
-      },
-    ],
+    rows: students.map((student) => ({
+      estudiante: (
+        <Estudiante name={student.nombre} id={student.cedula} image={team2} email={student.email} />
+      ),
+      carrera: <Job title={student.carrera} description={student.materia} />,
+      estatus: (
+        <MDBox ml={-1}>
+          <MDBadge badgeContent={student.estatus} color="success" variant="gradient" size="sm" />
+        </MDBox>
+      ),
+      action: (
+        <MDTypography
+          component="a"
+          href={"/estudiantes/" + student.cedula}
+          variant="caption"
+          color="text"
+          fontWeight="medium"
+        >
+          Ver Estudiante
+        </MDTypography>
+      ),
+    })),
   };
 }

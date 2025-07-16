@@ -1,0 +1,1 @@
+export const backendUrl = "https://proyecto-teg-bakend.onrender.com/api"

@@ -41,6 +41,8 @@ import Footer from "examples/Footer";
 // @mui icons
 import Icon from "@mui/material/Icon";
 
+import { backendUrl } from "config";
+
 function SemesterConfig() {
   const [currentSemester, setCurrentSemester] = useState(null);
   const [openNewDialog, setOpenNewDialog] = useState(false);
@@ -146,7 +148,7 @@ function SemesterConfig() {
   const handleGetCurrentSemester = async () => {
     const today = new Date();
     const currentDate = today.toISOString().split("T")[0];
-    const response = await fetch(`http://localhost:3003/api/actLapso/${currentDate}`, {
+    const response = await fetch(`${backendUrl}/actLapso/${currentDate}`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
@@ -177,7 +179,7 @@ function SemesterConfig() {
   // Create new semester
   const handleCreateSemester = async () => {
     if (validateDates(newSemester)) {
-      const response = await fetch("http://localhost:3003/api/newLapse", {
+      const response = await fetch(`${backendUrl}/newLapse`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ newSemester }),
@@ -215,7 +217,7 @@ function SemesterConfig() {
   // Update semester
   const handleUpdateSemester = async () => {
     if (validateDates(editSemester)) {
-      const response = await fetch("http://localhost:3003/api/editLapse", {
+      const response = await fetch(`${backendUrl}/editLapse`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ editSemester }),
