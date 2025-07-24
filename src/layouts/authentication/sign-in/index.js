@@ -67,18 +67,24 @@ function Basic() {
       const data = await response.json();
       if (response.ok) {
         localStorage.setItem("token", data.token);
-        setUser(data.user); // ACTUALIZA EL CONTEXTO
-        console.log("Rol recibido:", data.user.role, typeof data.user.role);
+        // Normaliza el campo de rol para que siempre sea 'role'
+        const userData = {
+          ...data.user,
+          userId: data.user.userId || data.user.cedula || data.user.id,
+          role: data.user.role_id || data.user.role, // Normaliza a 'role'
+        };
+        setUser(userData);
+        console.log("Rol recibido:", userData.role, typeof userData.role);
         // Redirección según el rol numérico o string
-        if (data.user.role === 1 || data.user.role === "1") {
+        if (userData.role === 1 || userData.role === "1") {
           console.log("Antes de navigate /dashboard");
           navigate("/dashboard");
           console.log("Después de navigate /dashboard");
-        } else if (data.user.role === 2 || data.user.role === "2") {
+        } else if (userData.role === 2 || userData.role === "2") {
           console.log("Antes de navigate /dashboard-teachers");
           navigate("/dashboard-teachers");
           console.log("Después de navigate /dashboard-teachers");
-        } else if (data.user.role === 3 || data.user.role === "3") {
+        } else if (userData.role === 3 || userData.role === "3") {
           console.log("Antes de navigate /dashboard-students");
           navigate("/dashboard-students");
           console.log("Después de navigate /dashboard-students");

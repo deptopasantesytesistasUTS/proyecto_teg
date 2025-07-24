@@ -225,3 +225,15 @@ Dribbble: <https://dribbble.com/creativetim>
 Google+: <https://plus.google.com/+CreativetimPage>
 
 Instagram: <https://instagram.com/creativetimofficial>
+
+# Configuración de la URL del Backend para Aula Virtual
+
+Crea un archivo `.env` en la raíz del proyecto frontend con el siguiente contenido:
+
+```
+REACT_APP_API_URL=http://localhost:3003/api
+```
+
+Si usas un backend desplegado, reemplaza la URL por la de tu servidor.
+
+---

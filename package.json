@@ -19,6 +19,7 @@
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^5.18.0",
     "@mui/material": "^5.18.0",
+    "@mui/x-data-grid": "^5.17.26",
     "@mui/x-date-pickers": "^6.20.2",
     "chart.js": "4.3.0",
     "chroma-js": "2.4.2",
@@ -27,6 +28,8 @@
     "dayjs": "^1.11.13",
     "file-saver": "^2.0.5",
     "ipaddr.js": "^2.2.0",
+    "jspdf": "^3.0.1",
+    "jspdf-autotable": "^5.0.2",
     "prop-types": "15.8.1",
     "react": "18.2.0",
     "react-chartjs-2": "5.2.0",
@@ -78,5 +81,6 @@
   },
   "overrides": {
     "svgo": "3.0.2"
-  }
+  },
+  "proxy": "http://localhost:3003"
 }

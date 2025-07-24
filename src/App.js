@@ -53,6 +53,7 @@ import ProtectedRoute from "components/ProtectedRoute/ProtectedRoute";
 import { logout } from "layouts/authentication/sign-in";
 import SignIn from "layouts/authentication/sign-in";
 import CourseViewTeachers from "layouts/Course/CourseViewTeachers";
+import CourseViewStudents from "layouts/Course/CourseViewStudents";
 
 // Images
 import brandWhite from "assets/images/logo-ct.png";
@@ -194,6 +195,23 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          {/* NUEVA RUTA protegida para Aula Virtual (no aparece en sidebar) */}
+          <Route
+            path="/aula-virtual/:idMateria"
+            element={
+              <ProtectedRoute allowedRoles={[2]}>
+                <CourseViewTeachers />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/unidadesEst/:idMateria"
+            element={
+              <ProtectedRoute allowedRoles={[3]}>
+                <CourseViewStudents />
+              </ProtectedRoute>
+            }
+          />
           {getRoutes(routes)}
           <Route path="*" element={<Navigate to="/dashboard" />} />
         </Routes>
@@ -228,6 +246,23 @@ export default function App() {
           element={
             <ProtectedRoute allowedRoles={[2]}>
               <CourseViewTeachers />
+            </ProtectedRoute>
+          }
+        />
+        {/* NUEVA RUTA protegida para Aula Virtual (no aparece en sidebar) */}
+        <Route
+          path="/aula-virtual/:idMateria"
+          element={
+            <ProtectedRoute allowedRoles={[2]}>
+              <CourseViewTeachers />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/unidadesEst/:idMateria"
+          element={
+            <ProtectedRoute allowedRoles={[3]}>
+              <CourseViewStudents />
             </ProtectedRoute>
           }
         />

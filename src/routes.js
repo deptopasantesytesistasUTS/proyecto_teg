@@ -137,22 +137,20 @@ const routes = [
     key: "dashboard-students",
     icon: <Icon fontSize="small">school</Icon>,
     route: "/dashboard-students",
-    component: <DashboardStudents />, 
+    component: <DashboardStudents />,
     allowedRoles: [3],
   },
-  // Nueva ruta dinámica para ver sección de estudiantes
+  // rutas publicas
   {
     type: "url",
-    name: "Aula Virtual",
-    key: "courseviewstudents",
-    icon: <Icon fontSize="small">assignment</Icon>,
-    route: "/unidadesEst/:id",
-    component: <CourseViewStudents />, 
-    allowedRoles: [3],
+    name: "Profile",
+    key: "profile",
+    icon: <Icon fontSize="small">person</Icon>,
+    route: "/profile",
+    component: <Profile />,
+    allowedRoles: [1, 2, 3],
   },
-
-  // rutas publicas
-
+  
   {
     type: "url",
     name: "Salir",
@@ -162,6 +160,7 @@ const routes = [
     component: <SignIn />,
     allowedRoles: [1, 2, 3],
   },
+  
 ];
 
 export default routes;

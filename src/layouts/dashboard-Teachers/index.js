@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Grid,
   Card,
@@ -36,6 +36,7 @@ import MDTypography from "components/MDTypography";
 import MDButton from "components/MDButton";
 import DefaultProjectCard from "examples/Cards/ProjectCards/DefaultProjectCard";
 import SubjectSideMenu from "components/SubjectSideMenu";
+import { useAuth } from "../../context/AuthContext";
 
 // Material Dashboard 2 React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -50,12 +51,80 @@ import team4 from "assets/images/team-4.jpg";
 
 function DashboardStudents() {
   const navigate = useNavigate();
+  const { user: usuario } = useAuth();
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [sideMenuOpen, setSideMenuOpen] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState(null);
+  const [misClases, setMisClases] = useState([]);
+  const [materiasAulaVirtual, setMateriasAulaVirtual] = useState([]);
+  const [cedula, setCedula] = useState(null);
+
+  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3003/api";
+
+  useEffect(() => {
+    console.log("Valor de usuario en dashboard maestros:", usuario);
+    if (usuario && usuario.userId && usuario.role) {
+      console.log("Dashboard fetch materias: userId=", usuario.userId, "role=", usuario.role, "cedula=", usuario.cedula);
+      fetch(`${API_URL}/materias-dashboard?userId=${usuario.userId}&role=${usuario.role}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setMisClases(data);
+        })
+        .catch((err) => {
+          setMisClases([]);
+        });
+      // Petición para obtener la cédula si es docente
+      if (usuario.role === 2 || usuario.role === "2") {
+        fetch(`${API_URL}/cedula-personal?userId=${usuario.userId}`)
+          .then(res => res.json())
+          .then(data => {
+            console.log("Cédula del docente:", data.cedula);
+            setCedula(data.cedula);
+          });
+      }
+    }
+  }, [usuario]);
+
+  useEffect(() => {
+    // Obtener la cédula del docente
+    let docenteCedula = null;
+    if (usuario && (usuario.role === 2 || usuario.role === "2")) {
+      fetch(`${API_URL}/cedula-personal?userId=${usuario.userId}`)
+        .then(res => res.json())
+        .then(data => {
+          docenteCedula = data.cedula;
+          // Ahora sí, obtener materias aula virtual filtradas por docente
+          fetch(`${API_URL}/materias-aulavirtual`)
+            .then((res) => res.json())
+            .then((data) => {
+              // Filtrar solo las materias donde alguna sección tiene idDocente igual a la cédula
+              const materiasDocente = data.filter(m => m.secciones.some(s => s.idDocente === docenteCedula));
+              setMisClases(materiasDocente.map(m => ({
+                idMateria: m.idMateria,
+                categoria: m.categoria,
+                carrera: m.carrera
+              })));
+            })
+            .catch(() => setMisClases([]));
+        });
+    }
+  }, [usuario]);
+
+  useEffect(() => {
+    fetch(`${API_URL}/materias-aulavirtual`)
+      .then((res) => res.json())
+      .then((data) => setMateriasAulaVirtual(data))
+      .catch(() => setMateriasAulaVirtual([]));
+  }, []);
+
+  useEffect(() => {
+    if (cedula !== null) {
+      console.log("Cédula del docente (efecto):", cedula);
+    }
+  }, [cedula]);
 
   // Datos de eventos/actividades del calendario
   const appointments = [
@@ -261,61 +330,6 @@ function DashboardStudents() {
         "Los resultados de la evaluación parcial ya están disponibles en el portal estudiantil.",
       fecha: "2024-12-03 13:45",
       tipo: "resultados",
-    },
-  ];
-
-  // Datos de las clases del estudiante
-  const misClases = [
-    {
-      id: 1,
-      image: informatica,
-      label: "Informática",
-      title: "Trabajo Especial de Grado (TEG)",
-      description: "Cargo: ESTUDIANTE",
-      action: {
-        type: "internal",
-        route: "/materia/1",
-        color: "info",
-        label: "Ver Sección",
-      },
-      authors: [
-        { image: team1, name: "Dr. Elena Morison" },
-        { image: team2, name: "Prof. Ryan Milly" },
-      ],
-    },
-    {
-      id: 2,
-      image: informatica,
-      label: "Informática",
-      title: "Investigación II",
-      description: "Cargo: ESTUDIANTE",
-      action: {
-        type: "internal",
-        route: "/materia/2",
-        color: "info",
-        label: "Ver Sección",
-      },
-      authors: [
-        { image: team3, name: "Prof. Nick Daniel" },
-        { image: team4, name: "Prof. Peterson" },
-      ],
-    },
-    {
-      id: 3,
-      image: informatica,
-      label: "Informática",
-      title: "Tutoria de Investigación II",
-      description: "Cargo: ESTUDIANTE",
-      action: {
-        type: "internal",
-        route: "/materia/3",
-        color: "info",
-        label: "Ver Sección",
-      },
-      authors: [
-        { image: team4, name: "Tutor Peterson" },
-        { image: team3, name: "Prof. Nick Daniel" },
-      ],
     },
   ];
 
@@ -614,31 +628,47 @@ function DashboardStudents() {
             </MDBox>
           </MDBox>
           <MDBox p={2}>
-            <Grid container spacing={6}>
-              {misClases.map((clase, index) => (
-                <Grid item xs={12} md={6} xl={4} key={index}>
-                  <div
-                    style={{ cursor: "pointer" }}
-                    onClick={() => {
-                      // Navegar a Aula Virtual de la materia
-                      navigate(`/materia/${clase.id}/info`);
-                    }}
-                  >
-                    <DefaultProjectCard
-                      image={clase.image}
-                      label={clase.label}
-                      title={clase.title}
-                      description={clase.description}
-                      action={clase.action}
-                      authors={clase.authors}
-                    />
-                  </div>
+            <Grid container spacing={3}>
+              {misClases.length === 0 ? (
+                <Grid item xs={12}>
+                  <MDTypography variant="body2" color="text.secondary">
+                    No tienes materias asignadas.
+                  </MDTypography>
                 </Grid>
-              ))}
+              ) : (
+                // Filtrar clases duplicadas por id
+                Array.from(new Map(misClases.map(clase => [clase.idMateria, clase])).values()).map((clase, index) => (
+                  <Grid item xs={12} sm={6} md={4} key={clase.idMateria}>
+                    <div
+                      style={{ cursor: "pointer", height: "100%" }}
+                      onClick={() => {
+                        setSelectedSubject(clase);
+                        setSideMenuOpen(true);
+                        navigate(`/aula-virtual/${clase.idMateria}`);
+                      }}
+                    >
+                      <DefaultProjectCard
+                        image={informatica}
+                        label={clase.categoria || "Materia"}
+                        title={clase.carrera || "Sin carrera"}
+                        description={`Cargo: DOCENTE`}
+                        action={{
+                          type: "internal",
+                          route: `/aula-virtual/${clase.idMateria}`,
+                          color: "info",
+                          label: "Ver Sección",
+                        }}
+                        authors={[]}
+                        style={{ height: "100%" }}
+                      />
+                    </div>
+                  </Grid>
+                ))
+              )}
             </Grid>
           </MDBox>
         </MDBox>
-      </MDBox>
+      </MDBox> {/* <- Este es el cierre correcto del bloque principal */}
 
       {/* Modal para mostrar detalles del evento */}
       <Modal

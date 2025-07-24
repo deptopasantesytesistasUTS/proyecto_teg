@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Grid,
   Card,
@@ -28,6 +28,7 @@ import {
 } from "@mui/icons-material";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { useNavigate } from "react-router-dom";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -45,12 +46,18 @@ import team1 from "assets/images/team-1.jpg";
 import team2 from "assets/images/team-2.jpg";
 import team3 from "assets/images/team-3.jpg";
 import team4 from "assets/images/team-4.jpg";
+import { useAuth } from "../../context/AuthContext";
 
 function DashboardStudents() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const { user: usuario } = useAuth();
+  const [misClases, setMisClases] = useState([]);
+  const [materiasAulaVirtual, setMateriasAulaVirtual] = useState([]);
+  const [cedula, setCedula] = useState(null);
+  const navigate = useNavigate();
 
   // Datos de eventos/actividades del calendario
   const appointments = [
@@ -259,57 +266,42 @@ function DashboardStudents() {
     },
   ];
 
-  // Datos de las clases del estudiante
-  const misClases = [
-    {
-      image: informatica,
-      label: "Informática",
-      title: "Trabajo Especial de Grado (TEG)",
-      description: "Cargo: ESTUDIANTE",
-      action: {
-        type: "internal",
-        route: "/unidadesEst/1",
-        color: "info",
-        label: "Ver Sección",
-      },
-      authors: [
-        { image: team1, name: "Dr. Elena Morison" },
-        { image: team2, name: "Prof. Ryan Milly" },
-      ],
-    },
-    {
-      image: informatica,
-      label: "Informática",
-      title: "Investigación II",
-      description: "Cargo: ESTUDIANTE",
-      action: {
-        type: "internal",
-        route: "/unidadesEst/2",
-        color: "info",
-        label: "Ver Sección",
-      },
-      authors: [
-        { image: team3, name: "Prof. Nick Daniel" },
-        { image: team4, name: "Prof. Peterson" },
-      ],
-    },
-    {
-      image: informatica,
-      label: "Informática",
-      title: "Tutoria de Investigación II",
-      description: "Cargo: ESTUDIANTE",
-      action: {
-        type: "internal",
-        route: "/unidadesEst/3",
-        color: "info",
-        label: "Ver Sección",
-      },
-      authors: [
-        { image: team4, name: "Tutor Peterson" },
-        { image: team3, name: "Prof. Nick Daniel" },
-      ],
-    },
-  ];
+  useEffect(() => {
+    console.log("Valor de usuario en dashboard estudiantes:", usuario);
+    if (usuario && usuario.userId && usuario.role) {
+      console.log("Dashboard fetch materias: userId=", usuario.userId, "role=", usuario.role, "cedula=", usuario.cedula);
+      fetch(`/api/materias-dashboard?userId=${usuario.userId}&role=${usuario.role}`)
+        .then((res) => res.json())
+        .then((data) => {
+          setMisClases(data);
+        })
+        .catch((err) => {
+          setMisClases([]);
+        });
+      // Petición para obtener la cédula si es estudiante
+      if (usuario.role === 3 || usuario.role === "3") {
+        fetch(`/api/cedula-estudiante?userId=${usuario.userId}`)
+          .then(res => res.json())
+          .then(data => {
+            console.log("Cédula del estudiante:", data.cedula);
+            setCedula(data.cedula);
+          });
+      }
+    }
+  }, [usuario]);
+
+  useEffect(() => {
+    fetch("/api/materias-aulavirtual")
+      .then((res) => res.json())
+      .then((data) => setMateriasAulaVirtual(data))
+      .catch(() => setMateriasAulaVirtual([]));
+  }, []);
+
+  useEffect(() => {
+    if (cedula !== null) {
+      console.log("Cédula del estudiante (efecto):", cedula);
+    }
+  }, [cedula]);
 
   // Calcular comunicados para la página actual
   const itemsPerPage = 4;
@@ -607,18 +599,36 @@ function DashboardStudents() {
           </MDBox>
           <MDBox p={2}>
             <Grid container spacing={6}>
-              {misClases.map((clase, index) => (
-                <Grid item xs={12} md={6} xl={4} key={index}>
-                  <DefaultProjectCard
-                    image={clase.image}
-                    label={clase.label}
-                    title={clase.title}
-                    description={clase.description}
-                    action={clase.action}
-                    authors={clase.authors}
-                  />
+              {misClases.length === 0 ? (
+                <Grid item xs={12}>
+                  <MDTypography variant="body2" color="text.secondary">
+                    No tienes materias asignadas.
+                  </MDTypography>
                 </Grid>
-              ))}
+              ) : (
+                misClases.map((clase, index) => (
+                  <Grid item xs={12} md={6} xl={4} key={index}>
+                    <div
+                      style={{ cursor: "pointer", height: "100%" }}
+                      onClick={() => navigate(`/unidadesEst/${clase.idMateria}`)}
+                    >
+                    <DefaultProjectCard
+                      image={informatica}
+                      label={clase.categoria || "Materia"}
+                      title={clase.carrera || "Sin carrera"}
+                      description={`Cargo: ESTUDIANTE`}
+                      action={{
+                        type: "internal",
+                        route: `/unidadesEst/${clase.idMateria}`,
+                        color: "info",
+                        label: "Ver Sección",
+                      }}
+                      authors={[]}
+                    />
+                    </div>
+                  </Grid>
+                ))
+              )}
             </Grid>
           </MDBox>
         </MDBox>

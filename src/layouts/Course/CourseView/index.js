@@ -70,6 +70,7 @@ import DataTable from "examples/Tables/DataTable";
 import coursesTableData from "layouts/Course/data/coursesTableData";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { useParams } from "react-router-dom";
 
 // Chart.js imports
 import {
@@ -126,6 +127,29 @@ TabPanel.propTypes = {
 };
 
 function CourseView() {
+  const { id } = useParams();
+  const [materia, setMateria] = React.useState(null);
+  const [loadingMateria, setLoadingMateria] = React.useState(true);
+  const [errorMateria, setErrorMateria] = React.useState(null);
+
+  React.useEffect(() => {
+    async function fetchMateria() {
+      setLoadingMateria(true);
+      setErrorMateria(null);
+      try {
+        const res = await fetch(`${process.env.REACT_APP_API_URL || "http://localhost:3001/api"}/materias-aulavirtual/${id}`);
+        if (!res.ok) throw new Error("No se pudo obtener la materia");
+        const data = await res.json();
+        setMateria(data);
+      } catch (err) {
+        setErrorMateria(err.message);
+      } finally {
+        setLoadingMateria(false);
+      }
+    }
+    if (id) fetchMateria();
+  }, [id]);
+
   const { columns, rows } = coursesTableData();
 
   // Tab state
@@ -514,10 +538,10 @@ function CourseView() {
                 coloredShadow="info"
               >
                 <MDTypography variant="h4" color="white" textAlign="center">
-                  Aula Virtual
+                  {loadingMateria ? "Cargando..." : errorMateria ? "Error al cargar materia" : materia?.categoria ? `${materia.categoria} - ${materia.idMateria}` : "Aula Virtual"}
                 </MDTypography>
                 <MDTypography variant="h6" color="white" textAlign="center">
-                  Trabajo Especial de Grado - Informática
+                  {loadingMateria ? "" : errorMateria ? errorMateria : materia?.Carreras?.nombre || ""}
                 </MDTypography>
               </MDBox>
 

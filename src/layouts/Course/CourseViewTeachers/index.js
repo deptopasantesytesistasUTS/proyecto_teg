@@ -57,6 +57,7 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import AnnouncementIcon from "@mui/icons-material/Announcement";
 import EventNoteIcon from "@mui/icons-material/EventNote";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -72,6 +73,7 @@ import ReportsBarChart from "examples/Charts/BarCharts/ReportsBarChart";
 import SubjectSideMenu from "components/SubjectSideMenu";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useAuth } from "context/AuthContext";
 
 // Data
 import coursesTableData from "layouts/Course/data/coursesTableData";
@@ -84,6 +86,7 @@ import CourseViewInfo from "./CourseViewInfo";
 import ParticipantesList from "./ParticipantesList";
 import RecursosList from "./RecursosList";
 import EstadisticasEntregas from "./EstadisticasEntregas";
+import CourseViewAsistencias from "./CourseViewAsistencias";
 
 const style = {
   position: "absolute",
@@ -122,55 +125,22 @@ TabPanel.propTypes = {
 };
 
 function CourseView() {
-  const { id } = useParams();
+  const { id, idMateria } = useParams();
+  const materiaId = id || idMateria;
   const location = useLocation();
   const navigate = useNavigate();
-  const [tabValue, setTabValue] = useState(0);
   const menuOptions = [
-    {
-      key: "info",
-      text: "Información ",
-      icon: <InfoIcon />,
-      tab: 0,
-    },
-    {
-      key: "anuncios",
-      text: "Crear anuncios",
-      icon: <AnnouncementIcon />,
-      tab: 1,
-    },
-    {
-      key: "cronogramas",
-      text: "Cronogramas",
-      icon: <EventNoteIcon />,
-      tab: 2,
-    },
-    // Eliminar la opción de entregas
-    // {
-    //   key: "entregas",
-    //   text: "Subir y ver cronograma de entregas",
-    //   icon: <AssignmentIcon />,
-    //   tab: 3,
-    // },
-    {
-      key: "participantes",
-      text: "Participantes",
-      icon: <PeopleIcon />,
-      tab: 3,
-    },
-    {
-      key: "recursos",
-      text: "Recursos",
-      icon: <FolderIcon />,
-      tab: 4,
-    },
-    {
-      key: "estadisticas",
-      text: "Control Entregas",
-      icon: <EventIcon />,
-      tab: 5,
-    },
+    { key: "info", text: "Información", tab: 0 },
+    { key: "anuncios", text: "Crear anuncios", tab: 1 },
+    { key: "cronogramas", text: "Cronogramas", tab: 2 },
+    { key: "participantes", text: "Participantes", tab: 3 },
+    { key: "recursos", text: "Recursos", tab: 4 },
+    { key: "estadisticas", text: "Control Entregas", tab: 5 },
+    { key: "asistencias", text: "Asistencias", tab: 6 },
   ];
+  const [tabValue, setTabValue] = useState(0);
+  
+     
   const handleMenuOptionClick = (key) => {
     const found = menuOptions.find((opt) => opt.key === key);
     if (found) setTabValue(found.tab);
@@ -179,10 +149,10 @@ function CourseView() {
 
   // Redirección automática al Aula Virtual si la ruta es exactamente /materia/:id
   React.useEffect(() => {
-    if (location.pathname === `/materia/${id}`) {
-      navigate(`/materia/${id}/info`, { replace: true });
+    if (location.pathname === `/materia/${materiaId}`) {
+      navigate(`/materia/${materiaId}/info`, { replace: true });
     }
-  }, [location.pathname, id, navigate]);
+  }, [location.pathname, materiaId, navigate]);
 
   // Estados y funciones para los subcomponentes
   // Anuncios
@@ -329,6 +299,75 @@ function CourseView() {
     { label: "Entrega de Borrador Final", value: 32 },
   ];
 
+  const [materia, setMateria] = React.useState(null);
+  const [loadingMateria, setLoadingMateria] = React.useState(true);
+  const [errorMateria, setErrorMateria] = React.useState(null);
+  const [selectedSeccion, setSelectedSeccion] = useState(null);
+  const [participantes, setParticipantes] = useState({ docente: null, estudiantes: [] });
+  const [loadingParticipantes, setLoadingParticipantes] = useState(false);
+  const [errorParticipantes, setErrorParticipantes] = useState(null);
+  const { user } = useAuth();
+  const [estudiantesPorDocente, setEstudiantesPorDocente] = useState([]);
+  const [loadingEstudiantesDocente, setLoadingEstudiantesDocente] = useState(false);
+  const [errorEstudiantesDocente, setErrorEstudiantesDocente] = useState(null);
+
+  React.useEffect(() => {
+    async function fetchMateria() {
+      setLoadingMateria(true);
+      setErrorMateria(null);
+      try {
+        const res = await fetch(`${process.env.REACT_APP_API_URL || "http://localhost:3003/api"}/materias-aulavirtual/${materiaId}`);
+        if (!res.ok) throw new Error("No se pudo obtener la materia. Verifica la conexión con el backend.");
+        const data = await res.json();
+        setMateria(data);
+      } catch (err) {
+        setErrorMateria(err.message + ' (¿Está el backend corriendo y la URL es correcta?)');
+      } finally {
+        setLoadingMateria(false);
+      }
+    }
+    if (materiaId) fetchMateria();
+  }, [materiaId]);
+
+  // Cuando cambia la materia o la sección seleccionada, actualizar la sección seleccionada por defecto
+  React.useEffect(() => {
+    if (materia && materia.Secciones && materia.Secciones.length > 0) {
+      setSelectedSeccion(materia.Secciones[0].idSeccion);
+    }
+  }, [materia]);
+
+  // Fetch participantes cuando cambia la sección seleccionada o la pestaña de participantes
+  React.useEffect(() => {
+    if (selectedMenuKey === "participantes" && selectedSeccion) {
+      setLoadingParticipantes(true);
+      setErrorParticipantes(null);
+      fetch(`${process.env.REACT_APP_API_URL || "http://localhost:3003/api"}/secciones/${selectedSeccion}/participantes`)
+        .then(res => {
+          if (!res.ok) throw new Error("No se pudo obtener los participantes. Verifica la conexión con el backend.");
+          return res.json();
+        })
+        .then(data => setParticipantes(data))
+        .catch(err => setErrorParticipantes(err.message + ' (¿Está el backend corriendo y la URL es correcta?)'))
+        .finally(() => setLoadingParticipantes(false));
+    }
+  }, [selectedMenuKey, selectedSeccion]);
+
+  // Fetch estudiantes por docente cuando se selecciona la pestaña de participantes
+  React.useEffect(() => {
+    if (selectedMenuKey === "participantes" && user && user.cedula) {
+      setLoadingEstudiantesDocente(true);
+      setErrorEstudiantesDocente(null);
+      fetch(`${process.env.REACT_APP_API_URL || "http://localhost:3003/api"}/estudiantes-por-docente/${user.cedula}`)
+        .then(res => {
+          if (!res.ok) throw new Error("No se pudo obtener los estudiantes por docente.");
+          return res.json();
+        })
+        .then(data => setEstudiantesPorDocente(data))
+        .catch(err => setErrorEstudiantesDocente(err.message))
+        .finally(() => setLoadingEstudiantesDocente(false));
+    }
+  }, [selectedMenuKey, user]);
+
   return (
     <DashboardLayout>
       <Box
@@ -359,7 +398,14 @@ function CourseView() {
           <SubjectSideMenu
             open={true}
             onClose={() => {}}
-            subject={{ nombre: `Materia #${id}`, descripcion: "Descripción de la materia" }}
+            subject={
+              materia
+                ? {
+                    nombre: materia.categoria,
+                    descripcion: materia.carrera ? materia.carrera : `ID: ${materia.idMateria}`,
+                  }
+                : { nombre: `Materia #${materiaId}`, descripcion: "" }
+            }
             userType="docente"
             onOptionClick={handleMenuOptionClick}
             selectedKey={selectedMenuKey}
@@ -441,14 +487,61 @@ function CourseView() {
                       uploadFile={uploadFile}
                     />
                   )}
+                  {selectedMenuKey === "participantes" && materia && materia.Secciones && materia.Secciones.length > 1 && (
+                    <Box mb={2}>
+                      <FormControl fullWidth size="small">
+                        <InputLabel id="seccion-label">Sección</InputLabel>
+                        <Select
+                          labelId="seccion-label"
+                          value={selectedSeccion || ''}
+                          label="Sección"
+                          onChange={e => setSelectedSeccion(e.target.value)}
+                        >
+                          {materia.Secciones.map(sec => (
+                            <MenuItem key={sec.idSeccion} value={sec.idSeccion}>
+                              {sec.seccion_letra ? `Sección ${sec.seccion_letra}` : `Sección ${sec.idSeccion}`}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Box>
+                  )}
                   {selectedMenuKey === "participantes" && (
-                    <ParticipantesList teachers={teachers} students={students} />
+                    loadingParticipantes ? <MDTypography>Cargando participantes...</MDTypography> :
+                    errorParticipantes ? <MDTypography color="error">{errorParticipantes}</MDTypography> :
+                    <>
+                      <ParticipantesList
+                        teachers={participantes.docente ? [participantes.docente] : []}
+                        students={participantes.estudiantes || []}
+                      />
+                      {/* Mostrar estudiantes por docente debajo de la lista por sección */}
+                      {user && user.cedula && (
+                        loadingEstudiantesDocente ? <MDTypography>Cargando estudiantes por docente...</MDTypography> :
+                        errorEstudiantesDocente ? <MDTypography color="error">{errorEstudiantesDocente}</MDTypography> :
+                        estudiantesPorDocente.length > 0 && (
+                          <Box mt={4}>
+                            <MDTypography variant="h6" color="primary" mb={2}>Todos los estudiantes inscritos en tus clases</MDTypography>
+                            <ParticipantesList
+                              teachers={[]}
+                              students={estudiantesPorDocente.map(e => ({
+                                name: e.estudiante.nombre,
+                                id: e.estudiante.cedula,
+                                email: e.estudiante.email
+                              }))}
+                            />
+                          </Box>
+                        )
+                      )}
+                    </>
                   )}
                   {selectedMenuKey === "recursos" && (
                     <RecursosList resources={resources} onAddResource={handleAddResource} />
                   )}
                   {selectedMenuKey === "estadisticas" && (
                     <EstadisticasEntregas estadisticas={estadisticasEntregas} />
+                  )}
+                  {selectedMenuKey === "asistencias" && (
+                    <CourseViewAsistencias students={students} />
                   )}
                 </Card>
               </Grid>
