@@ -21,6 +21,7 @@
     "@mui/material": "^5.18.0",
     "@mui/x-data-grid": "^5.17.26",
     "@mui/x-date-pickers": "^6.20.2",
+    "@react-pdf/renderer": "^4.3.0",
     "chart.js": "4.3.0",
     "chroma-js": "2.4.2",
     "cors": "^2.8.5",

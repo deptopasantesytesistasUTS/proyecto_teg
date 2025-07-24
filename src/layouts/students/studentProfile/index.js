@@ -64,6 +64,8 @@ import team1 from "assets/images/team-1.jpg";
 import team2 from "assets/images/team-2.jpg";
 import team3 from "assets/images/team-3.jpg";
 import team4 from "assets/images/team-4.jpg";
+import ProtocoloGenerator from "../data/generateTitlesPDF";
+import ControlTutoriasGenerator from "../data/generateTutoriasPDF";
 
 const style = {
   position: "absolute",
@@ -319,6 +321,9 @@ function Overview() {
                       </Button>
                     </Box>
                   </Modal>
+
+                  <ProtocoloGenerator></ProtocoloGenerator>
+                  <ControlTutoriasGenerator></ControlTutoriasGenerator>
 
                   <Button variant="contained" onClick={handleOpen}>
                     Cambiar Correo Electrónico
