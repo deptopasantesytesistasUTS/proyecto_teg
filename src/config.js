@@ -1,1 +1,1 @@
-export const backendUrl = "http://localhost:3003/api"
+export const backendUrl = "https://proyecto-teg-bakend.onrender.com/api"

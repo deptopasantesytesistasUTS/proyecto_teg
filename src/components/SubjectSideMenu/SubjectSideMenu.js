@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
 import Drawer from "@mui/material/Drawer";
 import List from "@mui/material/List";
@@ -13,23 +13,174 @@ import DashboardIcon from "@mui/icons-material/Dashboard";
 import ForumIcon from "@mui/icons-material/Forum";
 import FolderIcon from "@mui/icons-material/Folder";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import InfoIcon from "@mui/icons-material/Info";
+import PeopleIcon from "@mui/icons-material/People";
+import ScheduleIcon from "@mui/icons-material/Schedule";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { blue } from "@mui/material/colors";
 
-const docenteOptions = [
+// Opciones para Trabajo Especial de Grado - DOCENTE
+const trabajoEspecialDocenteOptions = [
   {
-    text: "Crear anuncios",
+    text: "Información",
+    icon: <InfoIcon />,
+    key: "informacion",
+  },
+  {
+    text: "Anuncios",
     icon: <AnnouncementIcon />,
     key: "anuncios",
   },
   {
-    text: "Cronogramas",
-    icon: <EventNoteIcon />,
-    key: "cronogramas",
+    text: "Participantes",
+    icon: <PeopleIcon />,
+    key: "participantes",
   },
   {
-    text: "Subir y ver cronograma de entregas",
+    text: "Recursos",
+    icon: <FolderIcon />,
+    key: "recursos",
+  },
+  {
+    text: "Control de Entrega",
+    icon: <CheckCircleIcon />,
+    key: "control_entrega",
+  },
+];
+
+// Opciones para Tutorías - DOCENTE
+const tutoriasDocenteOptions = [
+  {
+    text: "Información",
+    icon: <InfoIcon />,
+    key: "informacion",
+  },
+  {
+    text: "Anuncios",
+    icon: <AnnouncementIcon />,
+    key: "anuncios",
+  },
+  {
+    text: "Cronograma",
+    icon: <ScheduleIcon />,
+    key: "cronograma",
+  },
+  {
+    text: "Participantes",
+    icon: <PeopleIcon />,
+    key: "participantes",
+  },
+  {
+    text: "Recursos",
+    icon: <FolderIcon />,
+    key: "recursos",
+  },
+  {
+    text: "Asistencia",
+    icon: <CheckCircleIcon />,
+    key: "asistencia",
+  },
+  {
+    text: "Control de Entrega",
     icon: <AssignmentIcon />,
-    key: "entregas",
+    key: "control_entrega",
+  },
+];
+
+// Opciones para Trabajo Especial de Grado - ESTUDIANTE
+const trabajoEspecialEstudianteOptions = [
+  {
+    text: "Información",
+    icon: <InfoIcon />,
+    key: "informacion",
+  },
+  {
+    text: "Anuncios",
+    icon: <AnnouncementIcon />,
+    key: "anuncios",
+  },
+  {
+    text: "Participantes",
+    icon: <PeopleIcon />,
+    key: "participantes",
+  },
+  {
+    text: "Recursos",
+    icon: <FolderIcon />,
+    key: "recursos",
+  },
+  {
+    text: "Control de Entrega",
+    icon: <CheckCircleIcon />,
+    key: "control_entrega",
+  },
+];
+
+// Opciones para Tutorías - ESTUDIANTE
+const tutoriasEstudianteOptions = [
+  {
+    text: "Información",
+    icon: <InfoIcon />,
+    key: "informacion",
+  },
+  {
+    text: "Anuncios",
+    icon: <AnnouncementIcon />,
+    key: "anuncios",
+  },
+  {
+    text: "Cronograma",
+    icon: <ScheduleIcon />,
+    key: "cronograma",
+  },
+  {
+    text: "Participantes",
+    icon: <PeopleIcon />,
+    key: "participantes",
+  },
+  {
+    text: "Recursos",
+    icon: <FolderIcon />,
+    key: "recursos",
+  },
+  {
+    text: "Asistencia",
+    icon: <CheckCircleIcon />,
+    key: "asistencia",
+  },
+  {
+    text: "Control de Entrega",
+    icon: <AssignmentIcon />,
+    key: "control_entrega",
+  },
+];
+
+// Opciones por defecto (para materias regulares)
+const docenteOptions = [
+  {
+    text: "Información",
+    icon: <InfoIcon />,
+    key: "informacion",
+  },
+  {
+    text: "Anuncios",
+    icon: <AnnouncementIcon />,
+    key: "anuncios",
+  },
+  {
+    text: "Participantes",
+    icon: <PeopleIcon />,
+    key: "participantes",
+  },
+  {
+    text: "Recursos",
+    icon: <FolderIcon />,
+    key: "recursos",
+  },
+  {
+    text: "Control de Entrega",
+    icon: <CheckCircleIcon />,
+    key: "control_entrega",
   },
 ];
 
@@ -65,7 +216,93 @@ function SubjectSideMenu({
   selectedKey,
   options,
 }) {
-  const menuOptions = options || (userType === "docente" ? docenteOptions : estudianteOptions);
+  // useEffect para depurar cuando cambia la materia
+  useEffect(() => {
+    console.log("SubjectSideMenu - useEffect - subject cambió:", subject);
+    console.log("SubjectSideMenu - useEffect - subject completo:", JSON.stringify(subject, null, 2));
+  }, [subject]);
+
+  // Log de las opciones disponibles para verificar que están correctas
+  useEffect(() => {
+    console.log("SubjectSideMenu - Opciones disponibles:", {
+      trabajoEspecialDocenteOptions,
+      tutoriasDocenteOptions,
+      docenteOptions
+    });
+  }, []);
+
+  // Función para determinar las opciones según el tipo de materia y rol
+  const menuOptions = useMemo(() => {
+    console.log("🚨 SubjectSideMenu - useMemo INICIADO");
+    console.log("🚨 SubjectSideMenu - subject:", subject);
+    console.log("🚨 SubjectSideMenu - userType:", userType);
+    console.log("🚨 SubjectSideMenu - options:", options);
+    console.log("🚨 SubjectSideMenu - options type:", typeof options);
+    console.log("🚨 SubjectSideMenu - options truthy:", !!options);
+    
+    if (options) {
+      console.log("🚨 SubjectSideMenu - Retornando options personalizadas");
+      return options;
+    }
+    
+    // Determinar el tipo de materia basado en la categoría o nombre
+    const materiaCategoria = subject?.categoria || "";
+    const materiaNombre = subject?.nombre || subject?.carrera || "";
+    
+    console.log("🚨 SubjectSideMenu - Valores extraídos:", {
+      materiaCategoria,
+      materiaNombre
+    });
+    
+    // Detección simplificada y directa - buscar tanto en categoria como en nombre
+    const categoriaLower = materiaCategoria.toLowerCase();
+    const nombreLower = materiaNombre.toLowerCase();
+    
+    console.log("🚨 SubjectSideMenu - Comparaciones:", {
+      categoriaLower,
+      nombreLower,
+      esTrabajoEspecial: nombreLower === "trabajo_especial_de_grado",
+      esTutorias: nombreLower === "tutorias"
+    });
+    
+    // Detección directa por categoría o nombre exacto
+    if (nombreLower === "trabajo_especial_de_grado") {
+      console.log("🚨 SubjectSideMenu - DETECTADO: Trabajo Especial de Grado");
+      if (userType === "docente") {
+        console.log("🚨 SubjectSideMenu - Devolviendo trabajoEspecialDocenteOptions");
+        return trabajoEspecialDocenteOptions;
+      } else {
+        console.log("🚨 SubjectSideMenu - Devolviendo trabajoEspecialEstudianteOptions");
+        return trabajoEspecialEstudianteOptions;
+      }
+    }
+    
+    if (nombreLower === "tutorias") {
+      console.log("🚨 SubjectSideMenu - DETECTADO: Tutorías");
+      if (userType === "docente") {
+        console.log("🚨 SubjectSideMenu - Devolviendo tutoriasDocenteOptions");
+        return tutoriasDocenteOptions;
+      } else {
+        console.log("🚨 SubjectSideMenu - Devolviendo tutoriasEstudianteOptions");
+        return tutoriasEstudianteOptions;
+      }
+    }
+    
+    // Opciones por defecto
+    console.log("🚨 SubjectSideMenu - DETECTADO: Materia regular");
+    if (userType === "docente") {
+      console.log("🚨 SubjectSideMenu - Devolviendo docenteOptions");
+      return docenteOptions;
+    } else {
+      console.log("🚨 SubjectSideMenu - Devolviendo estudianteOptions");
+      return estudianteOptions;
+    }
+  }, [subject, userType, options]);
+
+  console.log("SubjectSideMenu - menuOptions final:", menuOptions);
+  console.log("SubjectSideMenu - Número de opciones:", menuOptions.length);
+  console.log("SubjectSideMenu - Primera opción:", menuOptions[0]);
+  console.log("SubjectSideMenu - Todas las opciones:", menuOptions.map(opt => ({key: opt.key, text: opt.text})));
 
   return (
     <Drawer
@@ -79,7 +316,7 @@ function SubjectSideMenu({
         <List sx={{ mb: 1 }}>
           <ListItem>
             <ListItemText
-              primary={subject ? subject.nombre : "Materia"}
+              primary={subject ? (subject.carrera || subject.nombre) : "Materia"}
               secondary={subject ? subject.descripcion : ""}
               primaryTypographyProps={{ variant: "h6", sx: { color: '#fff', fontWeight: 700, letterSpacing: 1 } }}
               secondaryTypographyProps={{ sx: { color: 'rgba(255,255,255,0.7)' } }}

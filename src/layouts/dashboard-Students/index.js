@@ -270,7 +270,7 @@ function DashboardStudents() {
     console.log("Valor de usuario en dashboard estudiantes:", usuario);
     if (usuario && usuario.userId && usuario.role) {
       console.log("Dashboard fetch materias: userId=", usuario.userId, "role=", usuario.role, "cedula=", usuario.cedula);
-      fetch(`/api/materias-dashboard?userId=${usuario.userId}&role=${usuario.role}`)
+      fetch(`https://proyecto-teg-bakend.onrender.com/api/materias-dashboard?userId=${usuario.userId}&role=${usuario.role}`)
         .then((res) => res.json())
         .then((data) => {
           setMisClases(data);
@@ -280,7 +280,7 @@ function DashboardStudents() {
         });
       // Petición para obtener la cédula si es estudiante
       if (usuario.role === 3 || usuario.role === "3") {
-        fetch(`/api/cedula-estudiante?userId=${usuario.userId}`)
+        fetch(`https://proyecto-teg-bakend.onrender.com/api/cedula-estudiante?userId=${usuario.userId}`)
           .then(res => res.json())
           .then(data => {
             console.log("Cédula del estudiante:", data.cedula);
@@ -291,7 +291,7 @@ function DashboardStudents() {
   }, [usuario]);
 
   useEffect(() => {
-    fetch("/api/materias-aulavirtual")
+    fetch("https://proyecto-teg-bakend.onrender.com/api/materias-aulavirtual")
       .then((res) => res.json())
       .then((data) => setMateriasAulaVirtual(data))
       .catch(() => setMateriasAulaVirtual([]));

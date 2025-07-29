@@ -129,23 +129,41 @@ function CourseView() {
   const materiaId = id || idMateria;
   const location = useLocation();
   const navigate = useNavigate();
-  const menuOptions = [
-    { key: "info", text: "Información", tab: 0 },
-    { key: "anuncios", text: "Crear anuncios", tab: 1 },
-    { key: "cronogramas", text: "Cronogramas", tab: 2 },
-    { key: "participantes", text: "Participantes", tab: 3 },
-    { key: "recursos", text: "Recursos", tab: 4 },
-    { key: "estadisticas", text: "Control Entregas", tab: 5 },
-    { key: "asistencias", text: "Asistencias", tab: 6 },
-  ];
+  
+  // Eliminamos el array menuOptions fijo para que use la detección automática
   const [tabValue, setTabValue] = useState(0);
   
-     
   const handleMenuOptionClick = (key) => {
-    const found = menuOptions.find((opt) => opt.key === key);
-    if (found) setTabValue(found.tab);
+    // Mapeo de keys a tabs para mantener la funcionalidad
+    const keyToTabMap = {
+      "informacion": 0,
+      "anuncios": 1,
+      "cronograma": 2,
+      "participantes": 3,
+      "recursos": 4,
+      "control_entrega": 5,
+      "asistencia": 6
+    };
+    
+    const tab = keyToTabMap[key];
+    if (tab !== undefined) {
+      setTabValue(tab);
+    }
   };
-  const selectedMenuKey = menuOptions.find((opt) => opt.tab === tabValue)?.key;
+  
+  // Función para obtener la key seleccionada basada en el tab
+  const getSelectedMenuKey = () => {
+    const tabToKeyMap = {
+      0: "informacion",
+      1: "anuncios", 
+      2: "cronograma",
+      3: "participantes",
+      4: "recursos",
+      5: "control_entrega",
+      6: "asistencia"
+    };
+    return tabToKeyMap[tabValue] || "informacion";
+  };
 
   // Redirección automática al Aula Virtual si la ruta es exactamente /materia/:id
   React.useEffect(() => {
@@ -316,7 +334,7 @@ function CourseView() {
       setLoadingMateria(true);
       setErrorMateria(null);
       try {
-        const res = await fetch(`${process.env.REACT_APP_API_URL || "http://localhost:3003/api"}/materias-aulavirtual/${materiaId}`);
+        const res = await fetch(`${process.env.REACT_APP_API_URL || "https://proyecto-teg-bakend.onrender.com/api"}/materias-aulavirtual/${materiaId}`);
         if (!res.ok) throw new Error("No se pudo obtener la materia. Verifica la conexión con el backend.");
         const data = await res.json();
         setMateria(data);
@@ -338,10 +356,10 @@ function CourseView() {
 
   // Fetch participantes cuando cambia la sección seleccionada o la pestaña de participantes
   React.useEffect(() => {
-    if (selectedMenuKey === "participantes" && selectedSeccion) {
+    if (getSelectedMenuKey() === "participantes" && selectedSeccion) {
       setLoadingParticipantes(true);
       setErrorParticipantes(null);
-      fetch(`${process.env.REACT_APP_API_URL || "http://localhost:3003/api"}/secciones/${selectedSeccion}/participantes`)
+              fetch(`${process.env.REACT_APP_API_URL || "https://proyecto-teg-bakend.onrender.com/api"}/secciones/${selectedSeccion}/participantes`)
         .then(res => {
           if (!res.ok) throw new Error("No se pudo obtener los participantes. Verifica la conexión con el backend.");
           return res.json();
@@ -350,14 +368,14 @@ function CourseView() {
         .catch(err => setErrorParticipantes(err.message + ' (¿Está el backend corriendo y la URL es correcta?)'))
         .finally(() => setLoadingParticipantes(false));
     }
-  }, [selectedMenuKey, selectedSeccion]);
+  }, [getSelectedMenuKey(), selectedSeccion]);
 
   // Fetch estudiantes por docente cuando se selecciona la pestaña de participantes
   React.useEffect(() => {
-    if (selectedMenuKey === "participantes" && user && user.cedula) {
+    if (getSelectedMenuKey() === "participantes" && user && user.cedula) {
       setLoadingEstudiantesDocente(true);
       setErrorEstudiantesDocente(null);
-      fetch(`${process.env.REACT_APP_API_URL || "http://localhost:3003/api"}/estudiantes-por-docente/${user.cedula}`)
+              fetch(`${process.env.REACT_APP_API_URL || "https://proyecto-teg-bakend.onrender.com/api"}/estudiantes-por-docente/${user.cedula}`)
         .then(res => {
           if (!res.ok) throw new Error("No se pudo obtener los estudiantes por docente.");
           return res.json();
@@ -366,7 +384,7 @@ function CourseView() {
         .catch(err => setErrorEstudiantesDocente(err.message))
         .finally(() => setLoadingEstudiantesDocente(false));
     }
-  }, [selectedMenuKey, user]);
+  }, [getSelectedMenuKey(), user]);
 
   return (
     <DashboardLayout>
@@ -408,8 +426,7 @@ function CourseView() {
             }
             userType="docente"
             onOptionClick={handleMenuOptionClick}
-            selectedKey={selectedMenuKey}
-            options={menuOptions}
+            selectedKey={getSelectedMenuKey()}
           />
         </Box>
         {/* Contenido principal */}
@@ -451,8 +468,8 @@ function CourseView() {
                       BIENVENIDOS
                     </MDTypography>
                   </MDBox>
-                  {selectedMenuKey === "info" && <CourseViewInfo />}
-                  {selectedMenuKey === "anuncios" && (
+                  {getSelectedMenuKey() === "informacion" && <CourseViewInfo />}
+                  {getSelectedMenuKey() === "anuncios" && (
                     <CourseViewAnuncios
                       titleProposals={titleProposals}
                       handleTitleProposalChange={handleTitleProposalChange}
@@ -462,7 +479,7 @@ function CourseView() {
                       handleSubmitTitleProposals={handleSubmitTitleProposals}
                     />
                   )}
-                  {selectedMenuKey === "cronogramas" && (
+                  {getSelectedMenuKey() === "cronograma" && (
                     <CourseViewCronogramas
                       newClassDate={newClassDate}
                       setNewClassDate={setNewClassDate}
@@ -487,7 +504,7 @@ function CourseView() {
                       uploadFile={uploadFile}
                     />
                   )}
-                  {selectedMenuKey === "participantes" && materia && materia.Secciones && materia.Secciones.length > 1 && (
+                  {getSelectedMenuKey() === "participantes" && materia && materia.Secciones && materia.Secciones.length > 1 && (
                     <Box mb={2}>
                       <FormControl fullWidth size="small">
                         <InputLabel id="seccion-label">Sección</InputLabel>
@@ -506,7 +523,7 @@ function CourseView() {
                       </FormControl>
                     </Box>
                   )}
-                  {selectedMenuKey === "participantes" && (
+                  {getSelectedMenuKey() === "participantes" && (
                     loadingParticipantes ? <MDTypography>Cargando participantes...</MDTypography> :
                     errorParticipantes ? <MDTypography color="error">{errorParticipantes}</MDTypography> :
                     <>
@@ -534,14 +551,17 @@ function CourseView() {
                       )}
                     </>
                   )}
-                  {selectedMenuKey === "recursos" && (
+                  {getSelectedMenuKey() === "recursos" && (
                     <RecursosList resources={resources} onAddResource={handleAddResource} />
                   )}
-                  {selectedMenuKey === "estadisticas" && (
-                    <EstadisticasEntregas estadisticas={estadisticasEntregas} />
+                  {getSelectedMenuKey() === "control_entrega" && (
+                    <EstadisticasEntregas 
+                      estadisticas={estadisticasEntregas} 
+                      totalEstudiantes={students.length}
+                    />
                   )}
-                  {selectedMenuKey === "asistencias" && (
-                    <CourseViewAsistencias students={students} />
+                  {getSelectedMenuKey() === "asistencia" && (
+                    <CourseViewAsistencias students={students} materia={materia} />
                   )}
                 </Card>
               </Grid>

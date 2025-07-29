@@ -137,7 +137,7 @@ function CourseView() {
       setLoadingMateria(true);
       setErrorMateria(null);
       try {
-        const res = await fetch(`${process.env.REACT_APP_API_URL || "http://localhost:3001/api"}/materias-aulavirtual/${id}`);
+        const res = await fetch(`${process.env.REACT_APP_API_URL || "https://proyecto-teg-bakend.onrender.com/api"}/materias-aulavirtual/${id}`);
         if (!res.ok) throw new Error("No se pudo obtener la materia");
         const data = await res.json();
         setMateria(data);

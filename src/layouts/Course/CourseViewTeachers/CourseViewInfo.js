@@ -154,11 +154,11 @@ function CourseViewInfo() {
         <Grid item xs={12}>
           <UltimosComunicadosList announcements={latestAnnouncements} />
         </Grid>
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={4}>
           <UltimosConectadosList users={latestUsers} />
         </Grid>
-        <Grid item xs={6}>
-          <EstadisticasEntregas estadisticas={estadisticasEntregas} />
+        <Grid item xs={12} md={8}>
+          <EstadisticasEntregas estadisticas={estadisticasEntregas.slice(0,0)} />
         </Grid>
       </Grid>
     </MDBox>
