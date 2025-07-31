@@ -36,6 +36,12 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import Divider from "@mui/material/Divider";
 import Pagination from "@mui/material/Pagination";
 import Checkbox from "@mui/material/Checkbox";
+import useTheme from "@mui/material/styles/useTheme";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import Container from "@mui/material/Container";
+import IconButton from "@mui/material/IconButton";
+import Drawer from "@mui/material/Drawer";
+import Fab from "@mui/material/Fab";
 
 // @mui icons
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -125,6 +131,9 @@ TabPanel.propTypes = {
 };
 
 function CourseView() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
   const { id, idMateria } = useParams();
   const materiaId = id || idMateria;
   const location = useLocation();
@@ -392,24 +401,25 @@ function CourseView() {
         sx={{
           display: "flex",
           minHeight: "100vh",
-          background: "#f5f6fa",
+          background: theme.palette.mode === 'dark' ? theme.palette.background.default : "#f5f6fa",
           alignItems: "flex-start",
+          flexDirection: { xs: "column", md: "row" },
         }}
       >
         {/* Menú lateral fijo */}
         <Box
           sx={{
-            width: 300,
-            minWidth: 300,
-            background: "#1976d2",
+            width: { xs: "100%", md: 300 },
+            minWidth: { xs: "auto", md: 300 },
+            background: theme.palette.mode === 'dark' ? theme.palette.background.sidenav : "#1976d2",
             boxShadow: 2,
-            borderRadius: 2,
-            m: 2,
-            height: "calc(105vh - 32px)",
-            position: "sticky",
+            borderRadius: { xs: 0, md: 2 },
+            m: { xs: 0, md: 2 },
+            height: { xs: "auto", md: "calc(105vh - 32px)" },
+            position: { xs: "static", md: "sticky" },
             top: 16,
             zIndex: 10,
-            display: { xs: "none", md: "flex" },
+            display: { xs: "block", md: "flex" },
             flexDirection: "column",
           }}
         >
@@ -434,22 +444,29 @@ function CourseView() {
           sx={{
             flex: 1,
             ml: { xs: 0, md: 2 },
-            mt: 2,
+            mt: { xs: 0, md: 2 },
             mb: 2,
-            mr: 2,
-            background: "#f8fafc",
-            borderRadius: 2,
+            mr: { xs: 0, md: 2 },
+            background: theme.palette.mode === 'dark' ? theme.palette.background.default : "#f8fafc",
+            borderRadius: { xs: 0, md: 2 },
             boxShadow: 1,
-            p: 3,
+            p: { xs: 2, md: 3 },
             minHeight: "calc(100vh - 32px)",
             overflow: "auto",
           }}
         >
-          <MDBox pt={6} pb={3}>
-            <Grid container spacing={6}>
-              <Grid item xs={12}>
+                <MDBox pt={{ xs: 2, md: 6 }} pb={3}>
+        <Grid container spacing={{ xs: 2, md: 6 }}>
+          <Grid item xs={12}>
                 <Card
-                  sx={{ boxShadow: 'none', border: 'none', background: 'transparent' }}
+                  sx={{ 
+                    boxShadow: 'none', 
+                    border: 'none', 
+                    background: 'transparent',
+                    '& .MuiCardContent-root': {
+                      backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.card : 'transparent'
+                    }
+                  }}
                 >
                   <MDBox
                     mx={2}

@@ -15,6 +15,13 @@ import {
   ListItemText,
   ListItemIcon,
   Divider,
+  useTheme,
+  useMediaQuery,
+  Container,
+  IconButton,
+  Drawer,
+  Fab,
+  Stack,
 } from "@mui/material";
 import {
   Event as EventIcon,
@@ -25,6 +32,8 @@ import {
   CalendarToday as CalendarIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
+  Menu as MenuIcon,
+  Close as CloseIcon,
 } from "@mui/icons-material";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -41,7 +50,6 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 
 // Images
-import informatica from "assets/images/informatica.png";
 import team1 from "assets/images/team-1.jpg";
 import team2 from "assets/images/team-2.jpg";
 import team3 from "assets/images/team-3.jpg";
@@ -49,6 +57,9 @@ import team4 from "assets/images/team-4.jpg";
 import { useAuth } from "../../context/AuthContext";
 
 function DashboardStudents() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -57,6 +68,7 @@ function DashboardStudents() {
   const [misClases, setMisClases] = useState([]);
   const [materiasAulaVirtual, setMateriasAulaVirtual] = useState([]);
   const [cedula, setCedula] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
 
   // Datos de eventos/actividades del calendario
@@ -273,9 +285,13 @@ function DashboardStudents() {
       fetch(`https://proyecto-teg-bakend.onrender.com/api/materias-dashboard?userId=${usuario.userId}&role=${usuario.role}`)
         .then((res) => res.json())
         .then((data) => {
-          setMisClases(data);
+          // Asegurar que data sea un array
+          const materias = Array.isArray(data) ? data : [];
+          console.log("Materias recibidas:", materias);
+          setMisClases(materias);
         })
         .catch((err) => {
+          console.error("Error fetching materias:", err);
           setMisClases([]);
         });
       // Petición para obtener la cédula si es estudiante
@@ -598,34 +614,177 @@ function DashboardStudents() {
             </MDBox>
           </MDBox>
           <MDBox p={2}>
-            <Grid container spacing={6}>
-              {misClases.length === 0 ? (
+            <Grid container spacing={3}>
+              {!Array.isArray(misClases) || misClases.length === 0 ? (
                 <Grid item xs={12}>
-                  <MDTypography variant="body2" color="text.secondary">
-                    No tienes materias asignadas.
-                  </MDTypography>
+                  <Card>
+                    <CardContent>
+                      <MDTypography variant="body2" color="text.secondary" textAlign="center">
+                        No tienes materias asignadas.
+                      </MDTypography>
+                    </CardContent>
+                  </Card>
                 </Grid>
               ) : (
                 misClases.map((clase, index) => (
-                  <Grid item xs={12} md={6} xl={4} key={index}>
-                    <div
-                      style={{ cursor: "pointer", height: "100%" }}
+                  <Grid item xs={12} sm={6} md={4} lg={3} key={index}>
+                    <Card
+                      sx={{
+                        height: "100%",
+                        cursor: "pointer",
+                        transition: "all 0.3s ease-in-out",
+                        "&:hover": {
+                          transform: "translateY(-4px)",
+                          boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
+                        },
+                        position: "relative",
+                        overflow: "hidden",
+                      }}
                       onClick={() => navigate(`/unidadesEst/${clase.idMateria}`)}
                     >
-                    <DefaultProjectCard
-                      image={informatica}
-                      label={clase.categoria || "Materia"}
-                      title={clase.carrera || "Sin carrera"}
-                      description={`Cargo: ESTUDIANTE`}
-                      action={{
-                        type: "internal",
-                        route: `/unidadesEst/${clase.idMateria}`,
-                        color: "info",
-                        label: "Ver Sección",
-                      }}
-                      authors={[]}
-                    />
-                    </div>
+                      <Box
+                        sx={{
+                          position: "relative",
+                          height: 80,
+                          background: `linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)`,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            top: 8,
+                            left: 8,
+                            backgroundColor: "rgba(255,255,255,0.9)",
+                            borderRadius: "12px",
+                            px: 1.5,
+                            py: 0.5,
+                          }}
+                        >
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              fontWeight: "bold",
+                              color: "#1976d2",
+                              textTransform: "uppercase",
+                              fontSize: "0.7rem",
+                            }}
+                          >
+                            {clase.categoria || "Materia"}
+                          </Typography>
+                        </Box>
+                      </Box>
+                      
+                      <CardContent sx={{ p: 2.5 }}>
+                        <Box sx={{ mb: 2 }}>
+                          <Typography
+                            variant="h6"
+                            sx={{
+                              fontWeight: "bold",
+                              color: "#2c3e50",
+                              mb: 1,
+                              lineHeight: 1.2,
+                              fontSize: "1.1rem",
+                              textAlign: "center",
+                            }}
+                          >
+                            {clase.carrera || "Sin carrera"}
+                          </Typography>
+                          
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              mb: 1,
+                            }}
+                          >
+                            <SchoolIcon
+                              sx={{
+                                fontSize: "1rem",
+                                color: "#7f8c8d",
+                                mr: 0.5,
+                              }}
+                            />
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                color: "#7f8c8d",
+                                fontSize: "0.85rem",
+                              }}
+                            >
+                              Cargo: ESTUDIANTE
+                            </Typography>
+                          </Box>
+                          
+                          {clase.categoria && (
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                mb: 1,
+                              }}
+                            >
+                              <AssignmentIcon
+                                sx={{
+                                  fontSize: "1rem",
+                                  color: "#7f8c8d",
+                                  mr: 0.5,
+                                }}
+                              />
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  color: "#7f8c8d",
+                                  fontSize: "0.85rem",
+                                }}
+                              >
+                                Categoría: {clase.categoria}
+                              </Typography>
+                            </Box>
+                          )}
+                        </Box>
+                        
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
+                          <Button
+                            variant="contained"
+                            size="small"
+                            sx={{
+                              backgroundColor: "#1976d2",
+                              color: "white",
+                              fontWeight: "bold",
+                              textTransform: "none",
+                              borderRadius: "8px",
+                              px: 2,
+                              py: 0.5,
+                              "&:hover": {
+                                backgroundColor: "#1565c0",
+                              },
+                            }}
+                          >
+                            Ver Sección
+                          </Button>
+                          
+                          <Box
+                            sx={{
+                              width: 8,
+                              height: 8,
+                              borderRadius: "50%",
+                              backgroundColor: "#27ae60",
+                              animation: "pulse 2s infinite",
+                            }}
+                          />
+                        </Box>
+                      </CardContent>
+                    </Card>
                   </Grid>
                 ))
               )}

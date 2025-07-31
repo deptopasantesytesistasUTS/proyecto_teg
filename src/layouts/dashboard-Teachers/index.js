@@ -16,6 +16,13 @@ import {
   ListItemIcon,
   Divider,
   Alert,
+  useTheme,
+  useMediaQuery,
+  Container,
+  IconButton,
+  Drawer,
+  Fab,
+  Stack,
 } from "@mui/material";
 import {
   Event as EventIcon,
@@ -26,6 +33,8 @@ import {
   CalendarToday as CalendarIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
+  Menu as MenuIcon,
+  Close as CloseIcon,
 } from "@mui/icons-material";
 import { format, isSameDay } from "date-fns";
 import { es } from "date-fns/locale";
@@ -44,7 +53,6 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 
 // Images
-import informatica from "assets/images/informatica.png";
 import team1 from "assets/images/team-1.jpg";
 import team2 from "assets/images/team-2.jpg";
 import team3 from "assets/images/team-3.jpg";
@@ -55,6 +63,9 @@ import { DateCalendar, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 
 function DashboardStudents() {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
   const navigate = useNavigate();
   const { user: usuario } = useAuth();
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -66,9 +77,10 @@ function DashboardStudents() {
   const [misClases, setMisClases] = useState([]);
   const [materiasAulaVirtual, setMateriasAulaVirtual] = useState([]);
   const [cedula, setCedula] = useState(null);
-  const [filterType, setFilterType] = useState("all"); // "all", "assignment", "exam", "meeting", "presentation"
+  const [filterType, setFilterType] = useState("all");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [entregaSeleccionada, setEntregaSeleccionada] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const API_URL = process.env.REACT_APP_API_URL || "https://proyecto-teg-bakend.onrender.com/api";
 
@@ -108,8 +120,10 @@ function DashboardStudents() {
           fetch(`${API_URL}/materias-aulavirtual`)
             .then((res) => res.json())
             .then((data) => {
+              // Asegurar que data sea un array
+              const materiasData = Array.isArray(data) ? data : [];
               // Filtrar solo las materias donde alguna sección tiene idDocente igual a la cédula
-              const materiasDocente = data.filter(m => m.secciones.some(s => s.idDocente === docenteCedula));
+              const materiasDocente = materiasData.filter(m => m.secciones && Array.isArray(m.secciones) && m.secciones.some(s => s.idDocente === docenteCedula));
               const materiasMapeadas = materiasDocente.map(m => ({
                 idMateria: m.idMateria,
                 categoria: m.categoria,
@@ -120,7 +134,10 @@ function DashboardStudents() {
               console.log("Categorías disponibles:", materiasMapeadas.map(m => m.categoria));
               setMisClases(materiasMapeadas);
             })
-            .catch(() => setMisClases([]));
+            .catch((err) => {
+              console.error("Error fetching materias docente:", err);
+              setMisClases([]);
+            });
         });
     }
   }, [usuario]);
@@ -512,8 +529,74 @@ function DashboardStudents() {
   return (
     <DashboardLayout>
       <DashboardNavbar />
+      
+      {/* Mobile Menu Button */}
+      {isMobile && (
+        <Fab
+          color="primary"
+          aria-label="menu"
+          onClick={() => setMobileMenuOpen(true)}
+          sx={{
+            position: 'fixed',
+            bottom: 16,
+            right: 16,
+            zIndex: 1000,
+            display: { md: 'none' }
+          }}
+        >
+          <MenuIcon />
+        </Fab>
+      )}
+
+      {/* Mobile Drawer */}
+      <Drawer
+        anchor="right"
+        open={mobileMenuOpen}
+        onClose={() => setMobileMenuOpen(false)}
+        sx={{
+          display: { md: 'none' },
+          '& .MuiDrawer-paper': {
+            width: 280,
+            backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#fff',
+            color: theme.palette.mode === 'dark' ? '#fff' : '#000'
+          }
+        }}
+      >
+        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <MDTypography variant="h6">Menú</MDTypography>
+          <IconButton onClick={() => setMobileMenuOpen(false)}>
+            <CloseIcon />
+          </IconButton>
+        </Box>
+        <Divider />
+        <Box sx={{ p: 2 }}>
+          <MDTypography variant="body2" color="text.secondary" mb={2}>
+            Filtros de Eventos
+          </MDTypography>
+          <Stack spacing={1}>
+            {[
+              { label: "Todos", value: "all", color: "default" },
+              { label: "Tareas", value: "assignment", color: "primary" },
+              { label: "Exámenes", value: "exam", color: "error" },
+              { label: "Reuniones", value: "meeting", color: "info" },
+              { label: "Presentaciones", value: "presentation", color: "success" }
+            ].map((filter) => (
+              <Chip
+                key={filter.value}
+                label={filter.label}
+                color={filter.color}
+                variant={filterType === filter.value ? "filled" : "outlined"}
+                onClick={() => setFilterType(filter.value)}
+                sx={{ width: '100%', justifyContent: 'flex-start' }}
+              />
+            ))}
+          </Stack>
+        </Box>
+      </Drawer>
+
       <MDBox pt={6} pb={3}>
-        <Grid container spacing={6}>
+        <Container maxWidth="xl">
+          <Grid container spacing={isMobile ? 2 : 6}>
           {/* Calendario Visual - Lado izquierdo */}
           <Grid item xs={12} lg={6}>
             <MDBox mb={3}>
@@ -523,9 +606,21 @@ function DashboardStudents() {
             </MDBox>
             
             {/* Calendario Visual */}
-            <Card sx={{ mb: 3 }}>
+            <Card 
+              sx={{ 
+                mb: 3,
+                backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.card : '#fff',
+                color: theme.palette.mode === 'dark' ? theme.palette.text.main : 'inherit'
+              }}
+            >
               <CardContent>
-                <Typography variant="h6" sx={{ mb: 2 }}>
+                <Typography 
+                  variant="h6" 
+                  sx={{ 
+                    mb: 2,
+                    color: theme.palette.mode === 'dark' ? theme.palette.text.main : 'inherit'
+                  }}
+                >
                   Calendario del Mes
                 </Typography>
                 <Box sx={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 1 }}>
@@ -538,7 +633,7 @@ function DashboardStudents() {
                         textAlign: "center",
                         fontWeight: "bold",
                         fontSize: "0.875rem",
-                        color: "text.secondary",
+                        color: theme.palette.mode === 'dark' ? theme.palette.text.main : "text.secondary",
                       }}
                     >
                       {day}
@@ -835,6 +930,7 @@ function DashboardStudents() {
             </Card>
           </Grid>
         </Grid>
+        </Container>
       </MDBox>
 
       {/* Sección Mis Clases */}
@@ -843,22 +939,35 @@ function DashboardStudents() {
           <MDTypography variant="h6" fontWeight="medium">
             Mis Clases
           </MDTypography>
-         
         </MDBox>
         <MDBox p={2}>
           <Grid container spacing={3}>
-            {misClases.length === 0 ? (
+            {!Array.isArray(misClases) || misClases.length === 0 ? (
               <Grid item xs={12}>
-                <MDTypography variant="body2" color="text.secondary">
-                  No tienes materias asignadas.
-                </MDTypography>
+                <Card>
+                  <CardContent>
+                    <MDTypography variant="body2" color="text.secondary" textAlign="center">
+                      No tienes materias asignadas.
+                    </MDTypography>
+                  </CardContent>
+                </Card>
               </Grid>
             ) : (
               // Filtrar clases duplicadas por id
               Array.from(new Map(misClases.map(clase => [clase.idMateria, clase])).values()).map((clase, index) => (
-                <Grid item xs={12} sm={6} md={4} key={clase.idMateria}>
-                  <div
-                    style={{ cursor: "pointer", height: "100%" }}
+                <Grid item xs={12} sm={6} md={4} lg={3} key={clase.idMateria}>
+                  <Card
+                    sx={{
+                      height: "100%",
+                      cursor: "pointer",
+                      transition: "all 0.3s ease-in-out",
+                      "&:hover": {
+                        transform: "translateY(-4px)",
+                        boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
+                      },
+                      position: "relative",
+                      overflow: "hidden",
+                    }}
                     onClick={() => {
                       console.log("Materia seleccionada:", clase);
                       setSelectedSubject(clase);
@@ -866,21 +975,149 @@ function DashboardStudents() {
                       navigate(`/aula-virtual/${clase.idMateria}`);
                     }}
                   >
-                    <DefaultProjectCard
-                      image={informatica}
-                      label={clase.categoria || "Materia"}
-                      title={clase.carrera || "Sin carrera"}
-                      description={`Cargo: DOCENTE`}
-                      action={{
-                        type: "internal",
-                        route: `/aula-virtual/${clase.idMateria}`,
-                        color: "info",
-                        label: "Ver Sección",
+                    <Box
+                      sx={{
+                        position: "relative",
+                        height: 80,
+                        background: `linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)`,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        overflow: "hidden",
                       }}
-                      authors={[]}
-                      style={{ height: "100%" }}
-                    />
-                  </div>
+                    >
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          top: 8,
+                          left: 8,
+                          backgroundColor: "rgba(255,255,255,0.9)",
+                          borderRadius: "12px",
+                          px: 1.5,
+                          py: 0.5,
+                        }}
+                      >
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            fontWeight: "bold",
+                            color: "#1976d2",
+                            textTransform: "uppercase",
+                            fontSize: "0.7rem",
+                          }}
+                        >
+                          {clase.categoria || "Materia"}
+                        </Typography>
+                      </Box>
+                    </Box>
+                    
+                    <CardContent sx={{ p: 2.5 }}>
+                      <Box sx={{ mb: 2 }}>
+                        <Typography
+                          variant="h6"
+                          sx={{
+                            fontWeight: "bold",
+                            color: "#2c3e50",
+                            mb: 1,
+                            lineHeight: 1.2,
+                            fontSize: "1.1rem",
+                            textAlign: "center",
+                          }}
+                        >
+                          {clase.carrera || "Sin carrera"}
+                        </Typography>
+                        
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            mb: 1,
+                          }}
+                        >
+                          <SchoolIcon
+                            sx={{
+                              fontSize: "1rem",
+                              color: "#7f8c8d",
+                              mr: 0.5,
+                            }}
+                          />
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: "#7f8c8d",
+                              fontSize: "0.85rem",
+                            }}
+                          >
+                            Cargo: DOCENTE
+                          </Typography>
+                        </Box>
+                        
+                        {clase.categoria && (
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              mb: 1,
+                            }}
+                          >
+                            <AssignmentIcon
+                              sx={{
+                                fontSize: "1rem",
+                                color: "#7f8c8d",
+                                mr: 0.5,
+                              }}
+                            />
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                color: "#7f8c8d",
+                                fontSize: "0.85rem",
+                              }}
+                            >
+                              Categoría: {clase.categoria}
+                            </Typography>
+                          </Box>
+                        )}
+                      </Box>
+                      
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Button
+                          variant="contained"
+                          size="small"
+                          sx={{
+                            backgroundColor: "#1976d2",
+                            color: "white",
+                            fontWeight: "bold",
+                            textTransform: "none",
+                            borderRadius: "8px",
+                            px: 2,
+                            py: 0.5,
+                            "&:hover": {
+                              backgroundColor: "#1565c0",
+                            },
+                          }}
+                        >
+                          Ver Sección
+                        </Button>
+                        
+                        <Box
+                          sx={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: "50%",
+                            backgroundColor: "#27ae60",
+                            animation: "pulse 2s infinite",
+                          }}
+                        />
+                      </Box>
+                    </CardContent>
+                  </Card>
                 </Grid>
               ))
             )}
@@ -902,10 +1139,12 @@ function DashboardStudents() {
             left: "50%",
             transform: "translate(-50%, -50%)",
             width: 400,
-            bgcolor: "background.paper",
+            bgcolor: theme.palette.mode === 'dark' ? theme.palette.background.card : "background.paper",
+            color: theme.palette.mode === 'dark' ? theme.palette.text.main : 'inherit',
             borderRadius: 2,
             boxShadow: 24,
             p: 4,
+            border: theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.1)' : 'none'
           }}
         >
           {selectedEvent && (
