@@ -15,7 +15,6 @@ import {
   ListItemText,
   ListItemIcon,
   Divider,
-  Alert,
   useTheme,
   useMediaQuery,
   Container,
@@ -51,6 +50,7 @@ import { useAuth } from "../../context/AuthContext";
 // Material Dashboard 2 React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
+import Cronograma from "layouts/dashboard/components/Cronograma";
 
 // Images
 import team1 from "assets/images/team-1.jpg";
@@ -58,11 +58,7 @@ import team2 from "assets/images/team-2.jpg";
 import team3 from "assets/images/team-3.jpg";
 import team4 from "assets/images/team-4.jpg";
 
-// DatePicker
-import { DateCalendar, LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-
-function DashboardStudents() {
+function DashboardTeachers() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
@@ -460,481 +456,109 @@ function DashboardStudents() {
     }
   };
 
-  const handleDateClick = (event) => {
-    // setDatePickerAnchor(event.currentTarget); // Removed
-    // setShowDatePicker(true); // Removed
-  };
-
-  const handleDateClose = () => {
-    // setShowDatePicker(false); // Removed
-    // setDatePickerAnchor(null); // Removed
-  };
-
-  const handleDateChange = (event) => {
-    // setSelectedDate(new Date(event.target.value)); // Removed
-  };
-
-  // Función para generar el calendario mensual
-  const generateCalendarDays = () => {
-    const start = startOfMonth(currentMonth);
-    const end = endOfMonth(currentMonth);
-    const days = eachDayOfInterval({ start, end });
-    
-    // Agregar días del mes anterior para completar la primera semana
-    const firstDayOfWeek = start.getDay();
-    const daysFromPrevMonth = [];
-    for (let i = firstDayOfWeek - 1; i >= 0; i--) {
-      const prevDate = new Date(start);
-      prevDate.setDate(start.getDate() - i - 1);
-      daysFromPrevMonth.push(prevDate);
-    }
-    
-    // Agregar días del mes siguiente para completar la última semana
-    const lastDayOfWeek = end.getDay();
-    const daysFromNextMonth = [];
-    for (let i = 1; i <= 6 - lastDayOfWeek; i++) {
-      const nextDate = new Date(end);
-      nextDate.setDate(end.getDate() + i);
-      daysFromNextMonth.push(nextDate);
-    }
-    
-    return [...daysFromPrevMonth, ...days, ...daysFromNextMonth];
-  };
-
-  // Función para obtener eventos de un día específico
-  const getEventsForDay = (date) => {
-    return appointments.filter(event => isSameDay(event.startDate, date));
-  };
-
-  // Función para obtener el color de fondo de un día
-  const getDayBackgroundColor = (date) => {
-    const events = getEventsForDay(date);
-    if (events.length > 0) {
-      return events[0].type === "assignment" ? "#fff3e0" :
-             events[0].type === "exam" ? "#ffebee" :
-             events[0].type === "meeting" ? "#e3f2fd" :
-             events[0].type === "presentation" ? "#e8f5e8" : "#f3e5f5";
-    }
-    return isToday(date) ? "#e8f5e8" : "transparent";
-  };
-
-  // Función para filtrar eventos por tipo
-  const getFilteredEvents = () => {
-    if (filterType === "all") {
-      return getCurrentMonthEvents();
-    }
-    return getCurrentMonthEvents().filter(event => event.type === filterType);
-  };
-
   return (
     <DashboardLayout>
       <DashboardNavbar />
-      
-      {/* Mobile Menu Button */}
-      {isMobile && (
-        <Fab
-          color="primary"
-          aria-label="menu"
-          onClick={() => setMobileMenuOpen(true)}
-          sx={{
-            position: 'fixed',
-            bottom: 16,
-            right: 16,
-            zIndex: 1000,
-            display: { md: 'none' }
-          }}
-        >
-          <MenuIcon />
-        </Fab>
-      )}
-
-      {/* Mobile Drawer */}
-      <Drawer
-        anchor="right"
-        open={mobileMenuOpen}
-        onClose={() => setMobileMenuOpen(false)}
-        sx={{
-          display: { md: 'none' },
-          '& .MuiDrawer-paper': {
-            width: 280,
-            backgroundColor: theme.palette.mode === 'dark' ? '#1a1a1a' : '#fff',
-            color: theme.palette.mode === 'dark' ? '#fff' : '#000'
-          }
-        }}
-      >
-        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <MDTypography variant="h6">Menú</MDTypography>
-          <IconButton onClick={() => setMobileMenuOpen(false)}>
-            <CloseIcon />
-          </IconButton>
-        </Box>
-        <Divider />
-        <Box sx={{ p: 2 }}>
-          <MDTypography variant="body2" color="text.secondary" mb={2}>
-            Filtros de Eventos
-          </MDTypography>
-          <Stack spacing={1}>
-            {[
-              { label: "Todos", value: "all", color: "default" },
-              { label: "Tareas", value: "assignment", color: "primary" },
-              { label: "Exámenes", value: "exam", color: "error" },
-              { label: "Reuniones", value: "meeting", color: "info" },
-              { label: "Presentaciones", value: "presentation", color: "success" }
-            ].map((filter) => (
-              <Chip
-                key={filter.value}
-                label={filter.label}
-                color={filter.color}
-                variant={filterType === filter.value ? "filled" : "outlined"}
-                onClick={() => setFilterType(filter.value)}
-                sx={{ width: '100%', justifyContent: 'flex-start' }}
-              />
-            ))}
-          </Stack>
-        </Box>
-      </Drawer>
-
       <MDBox pt={6} pb={3}>
-        <Container maxWidth="xl">
-          <Grid container spacing={isMobile ? 2 : 6}>
-          {/* Calendario Visual - Lado izquierdo */}
-          <Grid item xs={12} lg={6}>
+        <Grid container spacing={6}>
+          <Grid item xs={12} lg={8}>
             <MDBox mb={3}>
               <MDTypography variant="h6" fontWeight="medium">
-                Vista de Calendario
+                Calendario de Actividades
               </MDTypography>
             </MDBox>
-            
-            {/* Calendario Visual */}
-            <Card 
-              sx={{ 
-                mb: 3,
-                backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.card : '#fff',
-                color: theme.palette.mode === 'dark' ? theme.palette.text.main : 'inherit'
-              }}
-            >
-              <CardContent>
-                <Typography 
-                  variant="h6" 
-                  sx={{ 
-                    mb: 2,
-                    color: theme.palette.mode === 'dark' ? theme.palette.text.main : 'inherit'
-                  }}
-                >
-                  Calendario del Mes
-                </Typography>
-                <Box sx={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 1 }}>
-                  {/* Días de la semana */}
-                  {['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map((day) => (
-                    <Box
-                      key={day}
-                      sx={{
-                        p: 1,
-                        textAlign: "center",
-                        fontWeight: "bold",
-                        fontSize: "0.875rem",
-                        color: theme.palette.mode === 'dark' ? theme.palette.text.main : "text.secondary",
-                      }}
-                    >
-                      {day}
-                    </Box>
-                  ))}
-                  
-                  {/* Días del mes */}
-                  {(() => {
-                    const start = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
-                    const end = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
-                    const days = [];
-                    
-                    // Agregar días del mes anterior para completar la primera semana
-                    const firstDayOfWeek = start.getDay();
-                    for (let i = firstDayOfWeek - 1; i >= 0; i--) {
-                      const prevDate = new Date(start);
-                      prevDate.setDate(start.getDate() - i - 1);
-                      days.push({ date: prevDate, isCurrentMonth: false });
-                    }
-                    
-                    // Agregar días del mes actual
-                    for (let i = 1; i <= end.getDate(); i++) {
-                      const currentDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i);
-                      days.push({ date: currentDate, isCurrentMonth: true });
-                    }
-                    
-                    // Agregar días del mes siguiente para completar la última semana
-                    const lastDayOfWeek = end.getDay();
-                    for (let i = 1; i <= 6 - lastDayOfWeek; i++) {
-                      const nextDate = new Date(end);
-                      nextDate.setDate(end.getDate() + i);
-                      days.push({ date: nextDate, isCurrentMonth: false });
-                    }
-                    
-                    return days.map((dayInfo, index) => {
-                      const events = getEventsForDay(dayInfo.date);
-                      const isToday = dayInfo.date.toDateString() === new Date().toDateString();
-                      
-                      return (
-                        <Box
-                          key={index}
-                          sx={{
-                            p: 1,
-                            textAlign: "center",
-                            borderRadius: 1,
-                            cursor: events.length > 0 ? "pointer" : "default",
-                            backgroundColor: events.length > 0 ? `${getEventColor(events[0].type)}20` : "transparent",
-                            border: isToday ? "2px solid #1976d2" : "1px solid transparent",
-                            opacity: dayInfo.isCurrentMonth ? 1 : 0.5,
-                            fontSize: "0.875rem",
-                            minHeight: "40px",
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            "&:hover": events.length > 0 ? {
-                              backgroundColor: `${getEventColor(events[0].type)}30`,
-                            } : {},
-                          }}
-                          onClick={() => {
-                            if (events.length > 0) {
-                              handleEventClick(events[0]);
-                            }
-                          }}
-                        >
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              fontWeight: isToday ? "bold" : "normal",
-                              color: isToday ? "#1976d2" : "text.primary",
-                            }}
-                          >
-                            {dayInfo.date.getDate()}
-                          </Typography>
-                          {events.length > 0 && (
-                            <Box
-                              sx={{
-                                width: 6,
-                                height: 6,
-                                borderRadius: "50%",
-                                backgroundColor: getEventColor(events[0].type),
-                                mt: 0.5,
-                              }}
-                            />
-                          )}
-                        </Box>
-                      );
-                    });
-                  })()}
-                </Box>
-              </CardContent>
-            </Card>
+            <Cronograma 
+              events={appointments.map(event => ({
+                id: event.id,
+                title: event.title,
+                date: event.startDate,
+                type: event.type === 'assignment' ? 'tarea' : 
+                      event.type === 'exam' ? 'examen' : 
+                      event.type === 'meeting' ? 'reunion' : 
+                      event.type === 'presentation' ? 'proyecto' : 'clase',
+                description: event.description
+              }))}
+              onEventClick={(event) => handleEventClick(event)}
+            />
           </Grid>
 
-          {/* Comunicados - Lado derecho */}
-          <Grid item xs={12} lg={6}>
+          <Grid item xs={12} lg={4}>
             <MDBox mb={3}>
-              <MDTypography variant="h6" fontWeight="medium" color="info">
-                📢 Comunicados
+              <MDTypography variant="h6" fontWeight="medium">
+                Comunicados
               </MDTypography>
             </MDBox>
-            
-            <Card 
+            <Card>
+              <CardContent>
+                <Box
               sx={{ 
-                height: '450px',
-                boxShadow: '0 4px 20px 0 rgba(0,0,0,0.1)',
-                borderRadius: 3,
-                overflow: 'hidden',
-                '&:hover': {
-                  boxShadow: '0 8px 25px 0 rgba(0,0,0,0.15)',
-                  transform: 'translateY(-2px)',
-                  transition: 'all 0.3s ease-in-out'
-                }
-              }}
-            >
-              <CardContent sx={{ p: 3 }}>
-                <Box sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  mb: 2,
-                  pb: 2,
-                  borderBottom: '2px solid #e3f2fd'
-                }}>
-                  <Typography 
-                    variant="h6" 
-                    sx={{ 
-                      fontWeight: 'bold',
-                      color: '#1976d2',
-                      fontSize: '1.1rem'
-                    }}
-                  >
-                    Últimos Comunicados
-                  </Typography>
-                  <Chip 
-                    label={`${comunicados.length} total`}
-                    size="small"
-                    color="info"
-                    sx={{ ml: 'auto', fontSize: '0.7rem' }}
-                  />
-                </Box>
-                
-                <Box sx={{ 
-                  maxHeight: '250px', 
-                  overflowY: 'auto',
-                  '&::-webkit-scrollbar': {
-                    width: '6px',
-                  },
-                  '&::-webkit-scrollbar-track': {
-                    background: '#f1f1f1',
-                    borderRadius: '3px',
-                  },
-                  '&::-webkit-scrollbar-thumb': {
-                    background: '#c1c1c1',
-                    borderRadius: '3px',
-                  },
-                  '&::-webkit-scrollbar-thumb:hover': {
-                    background: '#a8a8a8',
-                  },
-                }}>
-                  <List sx={{ width: '100%', bgcolor: 'transparent', p: 0 }}>
-                    {currentComunicados.map((comunicado, index) => (
-                      <div key={comunicado.id}>
-                        <ListItem 
-                          alignItems="flex-start" 
+                    maxHeight: 400,
+                    overflowY: "auto",
+                    "&::-webkit-scrollbar": {
+                      width: "8px",
+                    },
+                    "&::-webkit-scrollbar-track": {
+                      backgroundColor: "#f1f1f1",
+                      borderRadius: "4px",
+                    },
+                    "&::-webkit-scrollbar-thumb": {
+                      backgroundColor: "#c1c1c1",
+                      borderRadius: "4px",
+                      "&:hover": {
+                        backgroundColor: "#a8a8a8",
+                      },
+                    },
+                    "&::-webkit-scrollbar-thumb:hover": {
+                      backgroundColor: "#a8a8a8",
+                    },
+                  }}
+                >
+                  {currentComunicados.map((comunicado) => (
+                    <Box
+                      key={comunicado.id}
+                      sx={{ mb: 2, p: 2, border: "1px solid #e0e0e0", borderRadius: 1 }}
+                    >
+                      <Box
                           sx={{ 
-                            px: 0,
-                            py: 1.5,
-                            borderRadius: 2,
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "flex-start",
                             mb: 1,
-                            transition: 'all 0.2s ease-in-out',
-                            '&:hover': {
-                              backgroundColor: '#f8f9fa',
-                              transform: 'translateX(4px)',
-                              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                            }
-                          }}
-                        >
-                          <ListItemIcon sx={{ minWidth: 50, mr: 1 }}>
+                        }}
+                      >
+                        <Typography variant="subtitle2" fontWeight="bold">
+                          {comunicado.titulo}
+                        </Typography>
                             <Chip
                               label={comunicado.tipo}
-                              color={getTipoColor(comunicado.tipo)}
                               size="small"
-                              sx={{ 
-                                fontSize: '0.7rem',
-                                fontWeight: 'bold',
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.5px',
-                                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                              }}
-                            />
-                          </ListItemIcon>
-                          <ListItemText
-                            primary={
-                              <Typography
-                                component="span"
-                                variant="body2"
-                                color="text.primary"
-                                sx={{ 
-                                  fontWeight: 'bold', 
-                                  fontSize: '0.95rem',
-                                  lineHeight: 1.3,
-                                  mb: 0.5,
-                                  color: '#2c3e50'
-                                }}
-                              >
-                                {comunicado.titulo}
-                              </Typography>
-                            }
-                            secondary={
-                              <Box>
-                                <Typography
-                                  component="span"
-                                  variant="body2"
-                                  color="text.secondary"
-                                  sx={{ 
-                                    fontSize: '0.85rem',
-                                    lineHeight: 1.4,
-                                    display: 'block',
-                                    mb: 1,
-                                    color: '#5a6c7d'
-                                  }}
-                                >
+                          color={getTipoColor(comunicado.tipo)}
+                        />
+                      </Box>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                                   {comunicado.descripcion}
                                 </Typography>
-                                <Box sx={{ 
-                                  display: 'flex', 
-                                  alignItems: 'center',
-                                  gap: 1
-                                }}>
-                                  <Typography
-                                    component="span"
-                                    variant="caption"
-                                    color="text.secondary"
-                                    sx={{ 
-                                      fontSize: '0.75rem',
-                                      color: '#7f8c8d',
-                                      fontWeight: '500',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: 0.5
-                                    }}
-                                  >
-                                    📅 {comunicado.fecha}
+                      <Typography variant="caption" color="text.secondary">
+                        {format(new Date(comunicado.fecha), "dd/MM/yyyy HH:mm", { locale: es })}
                                   </Typography>
                                 </Box>
-                              </Box>
-                            }
-                          />
-                        </ListItem>
-                        {index < currentComunicados.length - 1 && (
-                          <Divider 
-                            variant="inset" 
-                            component="li" 
-                            sx={{ 
-                              ml: 6,
-                              borderColor: '#e0e0e0',
-                              opacity: 0.6
-                            }} 
-                          />
-                        )}
-                      </div>
-                    ))}
-                  </List>
+                  ))}
                 </Box>
-                
-                {/* Paginación para comunicados */}
-                {totalPages > 1 && (
-                  <Box sx={{ 
-                    display: 'flex', 
-                    justifyContent: 'center', 
-                    mt: 1,
-                    pt: 1,
-                    borderTop: '1px solid #e0e0e0'
-                  }}>
+                <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
                     <Pagination
                       count={totalPages}
                       page={currentPage}
                       onChange={(event, value) => setCurrentPage(value)}
                       size="small"
-                      color="primary"
-                      sx={{
-                        '& .MuiPaginationItem-root': {
-                          borderRadius: 2,
-                          fontWeight: 'bold',
-                          '&.Mui-selected': {
-                            boxShadow: '0 2px 8px rgba(25, 118, 210, 0.3)'
-                          }
-                        }
-                      }}
                     />
                   </Box>
-                )}
               </CardContent>
             </Card>
           </Grid>
         </Grid>
-        </Container>
-      </MDBox>
 
       {/* Sección Mis Clases */}
-      <MDBox pt={2}>
+        <MDBox pt={4}>
         <MDBox pt={2} px={2} lineHeight={1.25}>
           <MDTypography variant="h6" fontWeight="medium">
             Mis Clases
@@ -1122,6 +746,7 @@ function DashboardStudents() {
               ))
             )}
           </Grid>
+          </MDBox>
         </MDBox>
       </MDBox>
 
@@ -1139,12 +764,10 @@ function DashboardStudents() {
             left: "50%",
             transform: "translate(-50%, -50%)",
             width: 400,
-            bgcolor: theme.palette.mode === 'dark' ? theme.palette.background.card : "background.paper",
-            color: theme.palette.mode === 'dark' ? theme.palette.text.main : 'inherit',
+            bgcolor: "background.paper",
             borderRadius: 2,
             boxShadow: 24,
             p: 4,
-            border: theme.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.1)' : 'none'
           }}
         >
           {selectedEvent && (
@@ -1185,11 +808,8 @@ function DashboardStudents() {
           console.log("Opción seleccionada:", optionKey);
         }}
       />
-      
-      {/* Date Picker Popover */}
-      {/* Removed Date Picker Popover */}
     </DashboardLayout>
   );
 }
 
-export default DashboardStudents;
+export default DashboardTeachers;

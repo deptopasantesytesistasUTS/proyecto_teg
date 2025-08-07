@@ -15,6 +15,7 @@ Coded by www.creative-tim.com
 
 // @mui material components
 import Grid from "@mui/material/Grid";
+import { useState, useEffect } from "react";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -34,9 +35,50 @@ import reportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
 // Dashboard components
 import Projects from "layouts/dashboard/components/Projects";
 import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
+import Cronograma from "layouts/dashboard/components/Cronograma";
 
 function Dashboard() {
   const { sales, tasks } = reportsLineChartData;
+  const [dashboardEvents, setDashboardEvents] = useState([
+    {
+      id: 1,
+      title: "Reunión de Coordinación",
+      date: new Date(2024, 11, 15),
+      type: "reunion",
+      description: "Reunión mensual de coordinación académica"
+    },
+    {
+      id: 2,
+      title: "Evaluación de Proyectos",
+      date: new Date(2024, 11, 20),
+      type: "proyecto",
+      description: "Evaluación de proyectos finales de estudiantes"
+    },
+    {
+      id: 3,
+      title: "Planificación Semestral",
+      date: new Date(2024, 11, 25),
+      type: "clase",
+      description: "Planificación del próximo semestre académico"
+    }
+  ]);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        // Obtener eventos del dashboard (para admin, usar role 1)
+        const eventsResponse = await fetch('http://localhost:3003/api/dashboard/events?userId=1&role=1');
+        if (eventsResponse.ok) {
+          const eventsData = await eventsResponse.json();
+          setDashboardEvents(eventsData);
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
 
   return (
     <DashboardLayout>
@@ -44,29 +86,28 @@ function Dashboard() {
       <MDBox py={3}>
         <MDBox mt={4.5}>
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6} lg={4}>
+            {/* Cronograma */}
+            <Grid item xs={12} lg={8}>
               <MDBox mb={3}>
-                <ReportsBarChart
-                  color="info"
-                  title="ENTRADA DE ESTUDIANTES"
-                  chart={reportsBarChartData}
+                <Cronograma 
+                  events={dashboardEvents}
+                  onEventClick={(event) => console.log('Evento seleccionado:', event)}
                 />
               </MDBox>
             </Grid>
-            <Grid item xs={12} md={6} lg={4}>
+
+            {/* Comunicados */}
+            <Grid item xs={12} lg={4}>
               <MDBox mb={3}>
-                <ReportsBarChart
-                  color="success"
-                  title="ENTRADA DE PROFESORES"
-                  chart={reportsBarChartData}
-                />
+                <OrdersOverview />
               </MDBox>
             </Grid>
-            <Grid item xs={10} md={3} lg={3}>
-              <OrdersOverview />
-            </Grid>
-            <Grid item xs={12} md={6} lg={6}>
-              <Projects />
+
+            {/* Projects */}
+            <Grid item xs={12}>
+              <MDBox mb={3}>
+                <Projects />
+              </MDBox>
             </Grid>
           </Grid>
         </MDBox>
