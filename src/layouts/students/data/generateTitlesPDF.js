@@ -95,6 +95,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "#000",
     marginBottom: 5,
     paddingBottom: 2,
+    fontWeight: "normal",
   },
   row: {
     flexDirection: "row",
@@ -156,45 +157,45 @@ const ProtocoloInvestigacionPDF = ({ data }) => (
 
       {/* DATOS DEL ESTUDIANTE */}
       <Text style={styles.sectionTitle}>DATOS DEL ESTUDIANTE</Text>
-      <Text style={styles.text}>
+      <Text style={[styles.text, { fontWeight: "bold" }]}>
         Nombres y Apellidos: <Text style={styles.field}>{data.studentName}</Text>
       </Text>
-      <Text style={styles.text}>
+      <Text style={[styles.text, { fontWeight: "bold" }]}>
         C.I.: <Text style={styles.field}>{data.studentCI}</Text>
       </Text>
       <View style={styles.row}>
-        <Text style={styles.text}>
+        <Text style={[styles.text, { fontWeight: "bold" }]}>
           Teléfonos: <Text style={styles.field}>{data.studentPhone}</Text>
         </Text>
-        <Text style={styles.text}>
+        <Text style={[styles.text, { fontWeight: "bold" }]}>
           E-Mail: <Text style={styles.field}>{data.studentEmail}</Text>
         </Text>
       </View>
-      <Text style={styles.text}>
+      <Text style={[styles.text, { fontWeight: "bold" }]}>
         Carrera: <Text style={styles.field}>{data.studentCareer}</Text>
       </Text>
       <View style={styles.row}>
-        <Text style={styles.text}>
+        <Text style={[styles.text, { fontWeight: "bold" }]}>
           Docente de la Asignatura: <Text style={styles.field}>{data.teacherName}</Text>
         </Text>
-        <Text style={styles.text}>
+        <Text style={[styles.text, { fontWeight: "bold" }]}>
           Sección: <Text style={styles.field}>{data.section}</Text>
         </Text>
         <Text style={styles.text}>
-          Fecha: <Text style={styles.field}>Fecha: ____ / ____ / ____</Text>
+          Fecha: <Text style={styles.field}>____ / ____ / ____</Text>
         </Text>
       </View>
 
       {/* INFORMACIÓN ACADÉMICA */}
       <Text style={styles.sectionTitle}>INFORMACIÓN ACADÉMICA</Text>
-      <Text style={styles.text}>
+      <Text style={[styles.text, { fontWeight: "bold" }]}>
         Título tentativo de la Propuesta de Trabajo Especial de Grado:{" "}
         <Text style={styles.field}>{data.tentativeTitle}</Text>
       </Text>
-      <Text style={styles.text}>
+      <Text style={[styles.text, { fontWeight: "bold" }]}>
         Línea de Investigación: <Text style={styles.field}>{data.researchLine}</Text>
       </Text>
-      <Text style={styles.text}>
+      <Text style={[styles.text, { fontWeight: "bold" }]}>
         Propósito de la Investigación: <Text style={styles.field}>{data.researchPurpose}</Text>
       </Text>
 
@@ -233,24 +234,24 @@ const ProtocoloInvestigacionPDF = ({ data }) => (
       <Text style={styles.sectionTitle}>ACEPTACIÓN DEL TUTOR</Text>
       <View style={styles.row}>
         <Text style={styles.text}>
-          Tutor Asignado: <Text style={styles.field}>{data.assignedTutor}</Text>
+          Tutor Asignado: <Text style={styles.field}>______________________________</Text>
         </Text>
         <Text style={styles.text}>
-          Teléfono: <Text style={styles.field}>{data.tutorPhone}</Text>
+          Teléfono: <Text style={styles.field}>______________________________</Text>
         </Text>
         <Text style={styles.text}>
-          E-Mail: <Text style={styles.field}>{data.tutorEmail}</Text>
+          E-Mail: <Text style={styles.field}>______________________________</Text>
         </Text>
       </View>
       <Text style={styles.acceptanceText}>
-        Por medio del presente, yo <Text style={styles.field}>{data.tutorAcceptanceName}</Text>,
-        portador de la C.I.N.º: <Text style={styles.field}>{data.tutorAcceptanceCI}</Text>, acepto
-        asesorar al estudiante <Text style={styles.field}>{data.studentName}</Text>, durante la
-        etapa de diseño y desarrollo de su Proyecto de Investigación; y durante la etapa de
-        ejecución del Trabajo Especial de Grado, hasta su presentación. Igualmente, me comprometo
-        moral, ética y profesionalmente a guiar al participante en la elaboración de una producción
-        intelectual de excelencia, así como dar cumplimiento a lo previsto en el Reglamento Interno
-        sobre el Trabajo Especial de Grado vigente en la Institución.
+        Por medio del presente, yo ______________________________________________________________,
+        portador de la C.I.N.º: ____________, acepto asesorar al estudiante{" "}
+        <Text style={styles.field}>{data.studentName}</Text>, durante la etapa de diseño y
+        desarrollo de su Proyecto de Investigación; y durante la etapa de ejecución del Trabajo
+        Especial de Grado, hasta su presentación. Igualmente, me comprometo moral, ética y
+        profesionalmente a guiar al participante en la elaboración de una producción intelectual de
+        excelencia, así como dar cumplimiento a lo previsto en el Reglamento Interno sobre el
+        Trabajo Especial de Grado vigente en la Institución.
       </Text>
       <Text style={styles.signatureLine}>Firma del Tutor:</Text>
 
@@ -297,28 +298,30 @@ const ProtocoloGenerator = () => {
   // Puedes reemplazar estos datos con información real de tu aplicación.
   const protocolData = {
     extension: "X",
-    lapsoAcademico: "2024 - 2",
-    studentName: "NOMBRES Y APELLIDOS DEL ESTUDIANTE",
-    studentCI: "V-00.000.000",
+    lapsoAcademico: "2025 - 1",
+    studentName: "LYNERKEN LEANDRO MORA ORTEGA",
+    studentCI: "V-30.523.215",
     studentPhone: "0414-1234567",
-    studentEmail: "estudiante@email.com",
+    studentEmail: "estudiantejdhdhdjjdjdjdjdjdjdjdjdjjdjdjdjdjdjjdjd@email.com",
     studentCareer: "INGENIERÍA EN SISTEMAS",
     teacherName: "Laura Santander Parra",
     section: "A",
     date: "Jueves 10 /10 / 2024",
-    tentativeTitle: "Análisis y Diseño de un Sistema de Gestión Académica",
+    tentativeTitle:
+      "Desarrollo de sistema web para el control de los procesos administrativos del departamento de investigación y pasantías UTS",
     researchLine: "Desarrollo de Software",
-    researchPurpose: "Optimizar los procesos administrativos de la institución.",
+    researchPurpose:
+      "Desarrollar un sistema web para el control de los procesos administrativos del departamento de investigación y pasantías UTS.",
     placeName: "Instituto Universitario de Tecnología 'Antonio José de Sucre'",
     businessTutor: "N/A",
     placeAddress: "Av. Principal, Edificio Central, San Cristóbal",
     placePhone: "0276-1234567",
     placeMobile: "0412-7654321",
-    assignedTutor: "NOMBRE DEL TUTOR ASIGNADO",
+    assignedTutor: "Mayerling Siloé Vesga Contreras",
     tutorPhone: "0424-7654321",
     tutorEmail: "tutor@email.com",
-    tutorAcceptanceName: "NOMBRE COMPLETO DEL TUTOR",
-    tutorAcceptanceCI: "V-00.000.000",
+    tutorAcceptanceName: "Mayerling Siloé Vesga Contreras",
+    tutorAcceptanceCI: "V-15.502.565",
   };
 
   return (
@@ -326,6 +329,7 @@ const ProtocoloGenerator = () => {
       <PDFDownloadLink
         document={<ProtocoloInvestigacionPDF data={protocolData} />}
         fileName="Protocolo_Investigacion.pdf"
+        color="white"
       >
         {({ blob, url, loading, error }) =>
           loading ? "Generando PDF..." : "Descargar Protocolo de Investigación"

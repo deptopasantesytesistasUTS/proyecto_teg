@@ -8,6 +8,18 @@ import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
+import { useState, useEffect } from "react";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import TextField from "@mui/material/TextField";
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
+import Checkbox from "@mui/material/Checkbox";
+import ListItemText from "@mui/material/ListItemText";
+import OutlinedInput from "@mui/material/OutlinedInput";
+import { backendUrl } from "config";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -23,7 +35,150 @@ import DataTable from "examples/Tables/DataTable";
 import coursesTableData from "layouts/Course/data/coursesTableData";
 
 function Course() {
-  const { columns, rows } = coursesTableData();
+  // Estados para datos
+  const [courses, setCourses] = useState([]); // materias
+  const [careers, setCareers] = useState([]);
+  const [professors, setProfessors] = useState([]);
+
+  // Estados para filtros
+  const [filterMateria, setFilterMateria] = useState("");
+  const [filterCarrera, setFilterCarrera] = useState("");
+  const [filterEstatus, setFilterEstatus] = useState("");
+
+  // Estados para tabla
+  const [rows, setRows] = useState([]);
+  const [columns, setColumns] = useState([
+    { Header: "Nombre", accessor: "nombre" },
+    { Header: "Carrera", accessor: "carrera" },
+    { Header: "Profesores", accessor: "profesores" },
+    { Header: "Estatus", accessor: "estatus" },
+    { Header: "Action", accessor: "action" },
+  ]);
+
+  // Estados para formulario de creación
+  const [openNewDialog, setOpenNewDialog] = useState(false);
+  const [newCourse, setNewCourse] = useState({
+    nombre: "",
+    carrera: "",
+    profesores: [],
+    estatus: "Activo",
+    letraSeccion: "",
+  });
+
+  // Snackbar
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const handleCloseSnackbar = () => setSnackbar({ ...snackbar, open: false });
+
+  const handleGetCareersList = async () => {
+    const response = await fetch(`${backendUrl}/UnidadesListA`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+    const data = await response.json();
+
+    console.log(response.ok);
+    if (response.ok) {
+      // Si la respuesta es un array directamente
+      if (Array.isArray(data)) {
+        setCourses(data);
+        console.log("caso 1");
+      }
+      // Si la respuesta tiene la propiedad 'estudiantes'
+      else if (Array.isArray(data.unidades)) {
+        setCourses(data.unidades);
+        console.log("caso 2");
+      } else {
+        setCourses([]); // O maneja el error como prefieras
+        console.error("La respuesta no contiene cursos válidos");
+      }
+    }
+  };
+
+  // Cargar carreras y profesores desde backend
+  useEffect(() => {
+    const fetchCareers = async () => {
+      try {
+        const res = await fetch(`${backendUrl}/carreras`);
+        if (res.ok) {
+          const data = await res.json();
+          setCareers(data);
+        } else {
+          setCareers([]);
+          console.error("error en conexion con servidor");
+        }
+      } catch {
+        setCareers([]);
+        console.error("error en conexion con servidor");
+      }
+    };
+    const fetchProfessors = async () => {
+      try {
+        const res = await fetch(`${backendUrl}/profesoresUnidades`);
+        if (res.ok) {
+          const data = await res.json();
+          setProfessors(data.profesores);
+        } else {
+          console.error("error en conexion con servidor");
+          setProfessors([]);
+        }
+      } catch {
+        console.error("error en conexion con servidor");
+        setProfessors([]);
+      }
+    };
+    fetchCareers();
+    fetchProfessors();
+    // Datos de ejemplo para materias
+    handleGetCareersList();
+  }, []);
+
+  // Filtrado de materias
+  useEffect(() => {
+    let filtered = [...courses];
+    if (filterMateria) filtered = filtered.filter((row) => row.nombre === filterMateria);
+    if (filterCarrera) filtered = filtered.filter((row) => row.carrera === filterCarrera);
+    if (filterEstatus) filtered = filtered.filter((row) => row.estatus === filterEstatus);
+    setRows(coursesTableData(filtered).rows);
+  }, [courses, filterMateria, filterCarrera, filterEstatus]);
+
+  // Manejo de formulario de creación
+  const handleFormChange = (field, value) => {
+    setNewCourse((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleCreateCourse = async () => {
+    // Aquí deberías hacer el POST al backend, por ahora solo agrega localmente
+
+    const response = await fetch(`${backendUrl}/secciones`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nombre: newCourse.nombre,
+        carrera: careers.find((c) => c.idCarrera === newCourse.carrera)?.nombre || "",
+        profesores: professors.filter((p) => newCourse.profesores.includes(p.idProfesor)).map((p) => p.idProfesor).join(","),
+        estatus: "Activo", 
+        letraSeccion: newCourse.letraSeccion,}),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      setOpenNewDialog(false);
+      setNewCourse({ nombre: "", carrera: "", profesores: [], estatus: "Activo" , letraSeccion: ""});
+      handleGetCareersList();
+      setSnackbar({
+        open: true,
+        message: "Curso creada con exitosamente",
+        severity: "success",
+      });
+    } else {
+      setSnackbar({
+        open: true,
+        message: "Fallo en la creacion de curso",
+        severity: "error",
+      });
+    }
+    setOpenNewDialog(false);
+  };
 
   return (
     <DashboardLayout>
@@ -50,25 +205,21 @@ function Course() {
               <Grid container columns={4} spacing={3} px={2} py={1}>
                 <Grid item size={6} width={200}>
                   <FormControl variant="standard" fullWidth>
-                    <InputLabel id="ordenar-select-label">Ordenar Por</InputLabel>
+                    <InputLabel id="materia-select-label">Materia</InputLabel>
                     <Select
-                      labelId="ordenar-select-label"
-                      id="ordenar-select"
-                      label="Ordenar Por"
-                      onChange={() => {}}
-                      defaultValue={1}
+                      labelId="materia-select-label"
+                      id="materia-select"
+                      label="Materia"
+                      value={filterMateria}
+                      onChange={(e) => setFilterMateria(e.target.value)}
                     >
-                      <MenuItem value={1}>Nombre</MenuItem>
-                      <MenuItem value={2}>Código</MenuItem>
-                      <MenuItem value={3}>Profesor</MenuItem>
-                      <MenuItem value={4}>Créditos</MenuItem>
+                      <MenuItem value="">Todas</MenuItem>
+                      <MenuItem value="Trabajo de Grado">Trabajo de Grado</MenuItem>
+                      <MenuItem value="Investigación 2">Investigación 2</MenuItem>
+                      <MenuItem value="Tutorias">Tutorias</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
-                <Grid item>
-                  <MDTypography variant="h6">Filtrar por:</MDTypography>
-                </Grid>
-
                 <Grid item size={6} width={200}>
                   <FormControl variant="standard" fullWidth>
                     <InputLabel id="carrera-select-label">Carrera</InputLabel>
@@ -76,12 +227,15 @@ function Course() {
                       labelId="carrera-select-label"
                       id="carrera-select"
                       label="Carrera"
-                      onChange={() => {}}
-                      defaultValue={1}
+                      value={filterCarrera}
+                      onChange={(e) => setFilterCarrera(e.target.value)}
                     >
-                      <MenuItem value={1}>Todas</MenuItem>
-                      <MenuItem value={2}>Diseño</MenuItem>
-                      <MenuItem value={3}>Informática</MenuItem>
+                      <MenuItem value="">Todas</MenuItem>
+                      {careers.map((career) => (
+                        <MenuItem key={career.idCarrera} value={career.nombre}>
+                          {career.nombre}
+                        </MenuItem>
+                      ))}
                     </Select>
                   </FormControl>
                 </Grid>
@@ -92,12 +246,12 @@ function Course() {
                       labelId="estatus-select-label"
                       id="estatus-select"
                       label="Estatus"
-                      onChange={() => {}}
-                      defaultValue={1}
+                      value={filterEstatus}
+                      onChange={(e) => setFilterEstatus(e.target.value)}
                     >
-                      <MenuItem value={1}>Todos</MenuItem>
-                      <MenuItem value={2}>Activo</MenuItem>
-                      <MenuItem value={3}>Inactivo</MenuItem>
+                      <MenuItem value="">Todos</MenuItem>
+                      <MenuItem value="Activo">Activo</MenuItem>
+                      <MenuItem value="Inactivo">Inactivo</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
@@ -106,11 +260,12 @@ function Course() {
                 <Grid item></Grid>
                 <Grid item>
                   <Stack spacing={2} direction="row">
-                    <Button variant="contained">Agregar Materia</Button>
+                    <Button variant="contained" onClick={() => setOpenNewDialog(true)}>
+                      Agregar Materia
+                    </Button>
                   </Stack>
                 </Grid>
               </Grid>
-
               <MDBox pt={1}>
                 <DataTable
                   table={{ columns, rows }}
@@ -124,6 +279,97 @@ function Course() {
           </Grid>
         </Grid>
       </MDBox>
+      <Dialog open={openNewDialog} onClose={() => setOpenNewDialog(false)}>
+        <DialogTitle>Agregar Materia</DialogTitle>
+        <DialogContent>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel id="nombre-materia-label">Nombre de la Materia</InputLabel>
+                <Select
+                  labelId="nombre-materia-label"
+                  value={newCourse.nombre}
+                  label="Nombre de la Materia"
+                  onChange={(e) => handleFormChange("nombre", e.target.value)}
+                >
+                  <MenuItem value="Trabajo Especial de Grado">Trabajo de Grado</MenuItem>
+                  <MenuItem value="investigación II">Investigación 2</MenuItem>
+                  <MenuItem value="Tutorias">Tutorias</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel id="carrera-materia-label">Carrera</InputLabel>
+                <Select
+                  labelId="carrera-materia-label"
+                  value={newCourse.carrera}
+                  label="Carrera"
+                  onChange={(e) => handleFormChange("carrera", e.target.value)}
+                >
+                  {careers.map((career) => (
+                    <MenuItem key={career.idCarrera} value={career.idCarrera}>
+                      {career.nombre}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel id="profesores-materia-label">Profesores</InputLabel>
+                <Select
+                  labelId="profesores-materia-label"
+                  multiple
+                  value={newCourse.profesores}
+                  onChange={(e) => handleFormChange("profesores", e.target.value)}
+                  input={<OutlinedInput label="Profesores" />}
+                  renderValue={(selected) =>
+                    professors
+                      .filter((p) => selected.includes(p.idProfesor))
+                      .map((p) => p.nombre)
+                      .join(", ")
+                  }
+                >
+                  {professors.map((prof) => (
+                    <MenuItem key={prof.idProfesor} value={prof.idProfesor}>
+                      <Checkbox checked={newCourse.profesores.indexOf(prof.idProfesor) > -1} />
+                      <ListItemText primary={prof.nombre} />
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <TextField
+              label="Letra de Sección"
+              name="letraSeccion"
+              value={newCourse.letraSeccion}
+              onChange={(e) => handleFormChange("letraSeccion", e.target.value)}
+              fullWidth
+              />
+              </FormControl>
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenNewDialog(false)}>Cancelar</Button>
+          <Button onClick={handleCreateCourse} variant="contained">
+            Agregar
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: "100%" }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
       <Footer />
     </DashboardLayout>
   );

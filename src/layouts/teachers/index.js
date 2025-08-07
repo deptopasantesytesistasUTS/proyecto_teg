@@ -27,10 +27,101 @@ import DataTable from "examples/Tables/DataTable";
 import teachersTableData from "./data/teachersTableData";
 
 function Teachers() {
-  const { columns, rows } = teachersTableData();
+  const { columns, rows: originalRows } = teachersTableData();
+  
+  // State for filters
+  const [sortBy, setSortBy] = React.useState("1");
+  const [roleFilter, setRoleFilter] = React.useState("1");
+  const [careerFilter, setCareerFilter] = React.useState("1");
+  const [searchTerm, setSearchTerm] = React.useState("");
+  
+  // State for modal
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+
+  // Filter and sort the data
+  const getFilteredAndSortedRows = () => {
+    let filteredRows = [...originalRows];
+
+    // Apply search filter
+    if (searchTerm.trim() !== "") {
+      filteredRows = filteredRows.filter((row) => {
+        const name = row.profesor.props.name || "";
+        const id = row.profesor.props.id || "";
+        const email = row.profesor.props.email || "";
+        const searchLower = searchTerm.toLowerCase();
+        
+        return (
+          name.toLowerCase().includes(searchLower) ||
+          id.toLowerCase().includes(searchLower) ||
+          email.toLowerCase().includes(searchLower)
+        );
+      });
+    }
+
+    // Apply role filter
+    if (roleFilter !== "1") {
+      filteredRows = filteredRows.filter((row) => {
+        const description = row.carrera.props.description || "";
+        const searchLower = searchTerm.toLowerCase();
+        
+        switch (roleFilter) {
+          case "2": // Tutor
+            return description.toLowerCase().includes("tutor");
+          case "3": // Jurado
+            return description.toLowerCase().includes("jurado");
+            case "4": // Jurado
+            return description.toLowerCase().includes("docente");
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Apply career filter
+    if (careerFilter !== "1") {
+      filteredRows = filteredRows.filter((row) => {
+        const title = row.carrera.props.title || "";
+        
+        switch (careerFilter) {
+          case "2": // Informática
+            return title.toLowerCase().includes("informática");
+          case "3": // Diseño
+            return title.toLowerCase().includes("diseño");
+          default:
+            return true;
+        }
+      });
+    }
+
+    // Apply sorting
+    if (sortBy !== "1") {
+      filteredRows.sort((a, b) => {
+        const nameA = a.profesor.props.name || "";
+        const nameB = b.profesor.props.name || "";
+        const idA = a.profesor.props.id || "";
+        const idB = b.profesor.props.id || "";
+        const careerA = a.carrera.props.title || "";
+        const careerB = b.carrera.props.title || "";
+        
+        switch (sortBy) {
+          case "2": // Nombre
+            return nameA.localeCompare(nameB);
+          case "3": // Cédula
+            return idA.localeCompare(idB);
+          case "4": // Carrera
+            return careerA.localeCompare(careerB);
+          default:
+            return 0;
+        }
+      });
+    }
+
+    return filteredRows;
+  };
+
+  const filteredRows = getFilteredAndSortedRows();
 
   const style = {
     position: "absolute",
@@ -69,17 +160,18 @@ function Teachers() {
               <Grid container columns={4} spacing={3} px={2} py={1}>
                 <Grid item size={6} width={200}>
                   <FormControl variant="standard" fullWidth>
-                    <InputLabel id="demo-simple-select-label">Ordenar Por</InputLabel>
+                    <InputLabel id="sort-select-label">Ordenar Por</InputLabel>
                     <Select
-                      labelId="demo-simple-select-label"
-                      id="demo-simple-select"
-                      label="Age"
-                      onChange={() => {}}
-                      defaultValue={1}
+                      labelId="sort-select-label"
+                      id="sort-select"
+                      value={sortBy}
+                      label="Ordenar Por"
+                      onChange={(e) => setSortBy(e.target.value)}
                     >
-                      <MenuItem value={1}>Nombre</MenuItem>
-                      <MenuItem value={2}>Cedula</MenuItem>
-                      <MenuItem value={3}>Carrera</MenuItem>
+                      <MenuItem value="1">Sin ordenar</MenuItem>
+                      <MenuItem value="2">Nombre</MenuItem>
+                      <MenuItem value="3">Cedula</MenuItem>
+                      <MenuItem value="4">Carrera</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
@@ -88,33 +180,34 @@ function Teachers() {
                 </Grid>
                 <Grid item size={6} width={200}>
                   <FormControl variant="standard" fullWidth>
-                    <InputLabel id="demo-simple-select-label">Rol</InputLabel>
+                    <InputLabel id="role-select-label">Rol</InputLabel>
                     <Select
-                      labelId="demo-simple-select-label"
-                      id="demo-simple-select"
-                      label="Carrera"
-                      onChange={() => {}}
-                      defaultValue={1}
+                      labelId="role-select-label"
+                      id="role-select"
+                      value={roleFilter}
+                      label="Rol"
+                      onChange={(e) => setRoleFilter(e.target.value)}
                     >
-                      <MenuItem value={1}>Docente</MenuItem>
-                      <MenuItem value={2}>Tutor</MenuItem>
-                      <MenuItem value={2}>Jurados</MenuItem>
+                      <MenuItem value="1">Todos los roles</MenuItem>
+                      <MenuItem value="2">Tutor</MenuItem>
+                      <MenuItem value="3">Jurado</MenuItem>
+                      <MenuItem value="4">Docente</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
                 <Grid item size={6} width={200}>
                   <FormControl variant="standard" fullWidth>
-                    <InputLabel id="demo-simple-select-label">Carrera</InputLabel>
+                    <InputLabel id="career-select-label">Carrera</InputLabel>
                     <Select
-                      labelId="demo-simple-select-label"
-                      id="demo-simple-select"
-                      label="Age"
-                      onChange={() => {}}
-                      defaultValue={1}
+                      labelId="career-select-label"
+                      id="career-select"
+                      value={careerFilter}
+                      label="Carrera"
+                      onChange={(e) => setCareerFilter(e.target.value)}
                     >
-                      <MenuItem value={1}>Ninguna</MenuItem>
-                      <MenuItem value={1}>Informática</MenuItem>
-                      <MenuItem value={2}>Diseño</MenuItem>
+                      <MenuItem value="1">Todas las carreras</MenuItem>
+                      <MenuItem value="2">Informática</MenuItem>
+                      <MenuItem value="3">Diseño</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
@@ -122,7 +215,14 @@ function Teachers() {
                   <MDTypography variant="h6">Buscar al: </MDTypography>
                 </Grid>
                 <Grid item size={6} width={200}>
-                  <TextField id="outlined-basic" label="Docente" variant="outlined" />
+                  <TextField 
+                    id="search-field" 
+                    label="Docente" 
+                    variant="outlined"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Nombre, cédula o email"
+                  />
                 </Grid>
                 <Grid item></Grid>
                 <Grid item>
@@ -207,7 +307,7 @@ function Teachers() {
 
               <MDBox pt={1}>
                 <DataTable
-                  table={{ columns, rows }}
+                  table={{ columns, rows: filteredRows }}
                   isSorted={false}
                   entriesPerPage={false}
                   showTotalEntries={false}
