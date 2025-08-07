@@ -53,6 +53,7 @@ import Header from "./components/Header";
 // Config
 import { backendUrl } from "config";
 
+
 // Data
 
 // Images
@@ -150,7 +151,17 @@ function Profile() {
     try {
       setLoading(true);
       // Get user ID from localStorage or context
-      const userId = localStorage.getItem("userId") || "default"; // You might need to adjust this based on your auth system
+      let user = null;
+try {
+  const userStr = localStorage.getItem("user");
+  if (userStr) {
+    user = JSON.parse(userStr);
+  }
+} catch (e) {
+  user = null;
+}
+      console.log(user.userId)
+      const userId = user.userId // You might need to adjust this based on your auth system
       
       const response = await fetch(`${backendUrl}/user/profile/${userId}`, {
         method: "GET",
@@ -172,19 +183,19 @@ function Profile() {
           id: data.id || "",
           phone: data.phone || "",
           email: data.email || "",
+          role: data.role || "",
         });
       } else {
         setError("Error al cargar los datos del usuario");
         // Set default data for development
         setUserData({
-          firstName: "Pedro Alexandro",
+          firstName: "",
           secondName: "",
-          firstLastName: "Perez Mora",
+          firstLastName: "",
           secondLastName: "",
-          id: "20433708",
-          email: "perezmora12@gmail.com",
-          phone: "0414-0343286",
-          career: "Ingeniería Informática",
+          id: "",
+          email: "",
+          phone: "",
           role: "Docente",
         });
       }
@@ -193,16 +204,14 @@ function Profile() {
       console.error("Error fetching user data:", err);
       // Set default data for development
       setUserData({
-        firstName: "Pedro Alexandro",
+        firstName: "Error",
         secondName: "",
-        firstLastName: "Perez Mora",
+        firstLastName: "Error",
         secondLastName: "",
-        id: "20433708",
-        email: "perezmora12@gmail.com",
-        phone: "0414-0343286",
-        career: "Ingeniería Informática",
-        postgraduate: "Maestría en Gestión de Recursos Humanos",
-        role: "Docente",
+        id: "Error",
+        email: "Error",
+        phone: "Error",
+        role: "Error",
       });
     } finally {
       setLoading(false);
@@ -214,7 +223,7 @@ function Profile() {
     try {
       const userId = localStorage.getItem("userId") || "default";
       
-      const response = await fetch(`${backendUrl}/user/profile/${userId}`, {
+      const response = await fetch(`${backendUrl}/user/profile/`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -258,17 +267,6 @@ function Profile() {
     }));
   };
 
-  // Handle form submissions
-  const handleUpdateIdentification = async () => {
-    const success = await updateUserData({
-      firstName: editFormData.firstName,
-      secondName: editFormData.secondName,
-      firstLastName: editFormData.firstLastName,
-      secondLastName: editFormData.secondLastName,
-      id: editFormData.id,
-    });
-    if (success) handleClose2();
-  };
 
   const handleUpdatePhone = async () => {
     const success = await updateUserData({
@@ -298,14 +296,14 @@ function Profile() {
       if (response.ok) {
         setSnackbar({
           open: true,
-          message: "Contraseña reseteada. Revisa tu correo electrónico.",
+          message: "Contraseña reseteada.",
           severity: "success",
         });
         handleClose4();
       } else {
         setSnackbar({
           open: true,
-          message: "Error al resetear la contraseña",
+          message: "Error al cambiar la contraseña",
           severity: "error",
         });
       }
@@ -332,19 +330,6 @@ function Profile() {
     setTabValue(newValue);
   };
 
-  const handleSendCommunication = () => {
-    if (communicationTitle.trim() && communicationDescription.trim()) {
-      console.log("Enviando comunicado:", {
-        title: communicationTitle,
-        description: communicationDescription,
-        date: new Date().toISOString().split("T")[0],
-      });
-      // Aquí se enviaría el comunicado al backend
-      setCommunicationTitle("");
-      setCommunicationDescription("");
-      handleCloseCommunication();
-    }
-  };
 
   if (loading) {
     return (
@@ -379,12 +364,6 @@ function Profile() {
           <Grid container spacing={1}>
             <Grid item xs={12} md={6} xl={4}>
               <Card>
-                <MDTypography variant="h5"> Datos Profesionales: </MDTypography>
-                <MDTypography>Pregrado: {userData?.career || "No especificado"}</MDTypography>
-                <MDTypography>Postgrado: {userData?.postgraduate || "No especificado"}</MDTypography>
-              </Card>
-              <br></br>
-              <Card>
                 <MDTypography variant="h5"> Datos de Contacto: </MDTypography>
                 <MDTypography>Correo: {userData?.email || "No especificado"}</MDTypography>
                 <MDTypography>Teléfono: {userData?.phone || "No especificado"}</MDTypography>
@@ -393,81 +372,9 @@ function Profile() {
             <Grid item xs={12} md={6} xl={4} sx={{ display: "flex" }}>
               <Grid item size={4}>
                 <Stack mt={2} px={5} spacing={3}>
-                  <Button
-                    variant="contained"
-                    onClick={() => {
-                      setOpen2(true), console.log(open2);
-                    }}
-                  >
-                    Cambiar Datos de Identificación
-                  </Button>
-
-                  <Modal
-                    open={open2}
-                    onClose={handleClose2}
-                    aria-labelledby="modal-modal-title2"
-                    aria-describedby="modal-modal-description2"
-                  >
-                    <Box p={3} sx={style}>
-                      <Typography id="modal-modal-title2" variant="h6" component="h2">
-                        Introduzca los Datos de Identificacion del Docente:
-                      </Typography>
-                      <TextField 
-                        fullWidth
-                        margin="normal"
-                        label="Primer Nombre" 
-                        variant="outlined"
-                        value={editFormData.firstName}
-                        onChange={(e) => handleFormChange("firstName", e.target.value)}
-                      />
-                      <TextField 
-                        fullWidth
-                        margin="normal"
-                        label="Segundo Nombre" 
-                        variant="outlined"
-                        value={editFormData.secondName}
-                        onChange={(e) => handleFormChange("secondName", e.target.value)}
-                      />
-                      <TextField 
-                        fullWidth
-                        margin="normal"
-                        label="Primer Apellido" 
-                        variant="outlined"
-                        value={editFormData.firstLastName}
-                        onChange={(e) => handleFormChange("firstLastName", e.target.value)}
-                      />
-                      <TextField 
-                        fullWidth
-                        margin="normal"
-                        label="Segundo Apellido" 
-                        variant="outlined"
-                        value={editFormData.secondLastName}
-                        onChange={(e) => handleFormChange("secondLastName", e.target.value)}
-                      />
-                      <TextField
-                        fullWidth
-                        margin="normal"
-                        type="number"
-                        label="Cedula"
-                        variant="outlined"
-                        value={editFormData.id}
-                        onChange={(e) => handleFormChange("id", e.target.value)}
-                      />
-                      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 2 }}>
-                        <Button variant="outlined" onClick={handleClose2}>
-                          Cancelar
-                        </Button>
-                        <Button color="success" onClick={handleUpdateIdentification}>
-                          Aceptar
-                        </Button>
-                      </Box>
-                    </Box>
-                  </Modal>
-
                   <Button onClick={handleOpen3} variant="contained">
                     Cambiar Número de Teléfono
                   </Button>
-
                   <Modal
                     open={open3}
                     onClose={handleClose3}
@@ -532,7 +439,7 @@ function Profile() {
                   </Modal>
 
                   <Button onClick={handleOpen4} variant="contained">
-                    Restaurar Constraseña
+                    Cambiar Constraseña
                   </Button>
 
                   <Modal
@@ -543,9 +450,16 @@ function Profile() {
                   >
                     <Box p={3} sx={style}>
                       <Typography id="modal-modal-title" variant="h6" component="h2">
-                        Si prosigue la contraseña del docente sera reseteada, la nueva contraseña le
-                        llega al docente por correo
+                        Indique la nueva contraseña:
                       </Typography>
+                      <TextField
+                        fullWidth
+                        margin="normal"
+                        label="Contraseña"
+                        variant="outlined"
+                        value={editFormData.password}
+                        onChange={(e) => handleFormChange("password", e.target.value)}
+                      />
 
                       <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 2 }}>
                         <Button variant="outlined" onClick={handleClose4}>

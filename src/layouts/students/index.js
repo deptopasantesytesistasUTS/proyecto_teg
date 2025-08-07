@@ -138,6 +138,8 @@ function Students() {
     
     if (response.ok && newStudent.seccion == "investigación_II") {
       const data = await response.json();
+      console.log("tutorias")
+      console.log(data)
       setSectionsTutor(data);
       setSectionTutor(true);
     } else {
@@ -146,7 +148,6 @@ function Students() {
   };
 
   useEffect(() => {
-    
     handleGetSectionsTutor(newStudent.carrera);
   }, [newStudent.seccion]);
 

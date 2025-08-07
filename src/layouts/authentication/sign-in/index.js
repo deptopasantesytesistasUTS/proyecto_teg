@@ -40,6 +40,7 @@ import BasicLayout from "layouts/authentication/components/BasicLayout";
 // Images
 import bgImage from "assets/images/illustrations/fondo2.jpg";
 import logo from "assets/images/logo-small.fw.png";
+import { backendUrl } from "config";
 
 // Función global de logout
 export function logout(setUser) {
@@ -60,7 +61,7 @@ function Basic() {
   async function handleLogin(e) {
     e.preventDefault();
     try {
-      const response = await fetch("https://proyecto-teg-bakend.onrender.com/api/login", {
+      const response = await fetch(`${backendUrl}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ correo: email, password }),

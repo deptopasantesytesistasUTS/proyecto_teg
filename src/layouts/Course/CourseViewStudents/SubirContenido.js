@@ -6,7 +6,7 @@ const entregas = [
   { nombre: "Borrador 1", fechaLimite: "2024-07-01T23:59" },
   { nombre: "Borrador 2", fechaLimite: "2024-08-01T23:59" },
   { nombre: "Borrador Final", fechaLimite: "2024-09-01T23:59" },
-  { nombre: "Entrega Final y Defensa", fechaLimite: "2024-09-15T23:59" },
+  { nombre: "Entrega Final", fechaLimite: "2024-09-15T23:59" },
 ];
 
 function SubirContenido() {
@@ -23,6 +23,10 @@ function SubirContenido() {
   const [archivosEntregados, setArchivosEntregados] = useState({}); // { nombreEntrega: nombreArchivo }
   const [archivosSeleccionados, setArchivosSeleccionados] = useState({}); // { nombreEntrega: File }
   const [subiendo, setSubiendo] = useState({}); // { nombreEntrega: boolean }
+
+  // Estado para enlaces subidos por entrega
+  const [enlacesEntregados, setEnlacesEntregados] = useState({}); // { nombreEntrega: enlace }
+  const [enlacesIngresados, setEnlacesIngresados] = useState({}); // { nombreEntrega: string }
 
   // Para nuevas propuestas
   const [nuevasPropuestas, setNuevasPropuestas] = useState(["", "", ""]);
@@ -46,15 +50,15 @@ function SubirContenido() {
     }, 1000);
   };
 
-  // Handlers para subir borradores
-  const handleArchivoChange = (nombreEntrega, file) => {
-    setArchivosSeleccionados((prev) => ({ ...prev, [nombreEntrega]: file }));
+  // Handlers para subir borradores (ahora enlaces)
+  const handleEnlaceChange = (nombreEntrega, enlace) => {
+    setEnlacesIngresados((prev) => ({ ...prev, [nombreEntrega]: enlace }));
   };
   const handleSubirBorrador = (nombreEntrega) => {
     setSubiendo((prev) => ({ ...prev, [nombreEntrega]: true }));
     setTimeout(() => {
-      setArchivosEntregados((prev) => ({ ...prev, [nombreEntrega]: archivosSeleccionados[nombreEntrega].name }));
-      setArchivosSeleccionados((prev) => ({ ...prev, [nombreEntrega]: undefined }));
+      setEnlacesEntregados((prev) => ({ ...prev, [nombreEntrega]: enlacesIngresados[nombreEntrega] }));
+      setEnlacesIngresados((prev) => ({ ...prev, [nombreEntrega]: "" }));
       setSubiendo((prev) => ({ ...prev, [nombreEntrega]: false }));
     }, 1200);
   };
@@ -121,7 +125,7 @@ function SubirContenido() {
         <List>
           {entregas.map((entrega, idx) => {
             const vencida = isVencida(entrega.fechaLimite);
-            const entregado = archivosEntregados[entrega.nombre];
+            const entregado = enlacesEntregados[entrega.nombre];
             return (
               <ListItem key={entrega.nombre} alignItems="flex-start" sx={{ flexDirection: 'column', alignItems: 'stretch', mb: 2, border: '1px solid #e0e0e0', borderRadius: 2, p: 2, bgcolor: vencida && !entregado ? '#fff3f3' : 'background.paper' }}>
                 <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
@@ -140,39 +144,31 @@ function SubirContenido() {
                 </Typography>
                 {entregado ? (
                   <Box display="flex" alignItems="center" gap={1}>
-                    <Chip label={archivosEntregados[entrega.nombre]} color="info" size="small" />
+                    <Chip label="Enlace entregado" color="info" size="small" />
+                    <a href={enlacesEntregados[entrega.nombre]} target="_blank" rel="noopener noreferrer" style={{ wordBreak: 'break-all' }}>
+                      {enlacesEntregados[entrega.nombre]}
+                    </a>
                     <Typography variant="caption" color={vencida ? 'error.main' : 'success.main'}>
                       {vencida ? 'Entregado fuera de tiempo' : 'Entregado a tiempo'}
                     </Typography>
                   </Box>
                 ) : (
                   <Box display="flex" alignItems="center" gap={2}>
-                    <Button
-                      variant="contained"
-                      component="label"
-                      size="small"
-                      disabled={vencida || subiendo[entrega.nombre]}
-                    >
-                      Seleccionar Archivo
-                      <input
-                        type="file"
-                        hidden
-                        onChange={e => handleArchivoChange(entrega.nombre, e.target.files[0])}
-                      />
-                    </Button>
                     <TextField
-                      value={archivosSeleccionados[entrega.nombre]?.name || ""}
-                      placeholder="Ningún archivo seleccionado"
+                      label="Enlace de entrega"
+                      value={enlacesIngresados[entrega.nombre] || ""}
+                      onChange={e => handleEnlaceChange(entrega.nombre, e.target.value)}
+                      placeholder="https://..."
                       size="small"
-                      InputProps={{ readOnly: true }}
                       sx={{ flex: 1 }}
+                      disabled={vencida || subiendo[entrega.nombre]}
                     />
                     <Button
                       variant="outlined"
                       color="primary"
                       size="small"
                       onClick={() => handleSubirBorrador(entrega.nombre)}
-                      disabled={!archivosSeleccionados[entrega.nombre] || vencida || subiendo[entrega.nombre]}
+                      disabled={!(enlacesIngresados[entrega.nombre] && enlacesIngresados[entrega.nombre].startsWith('http')) || vencida || subiendo[entrega.nombre]}
                     >
                       {subiendo[entrega.nombre] ? 'Subiendo...' : 'Subir'}
                     </Button>

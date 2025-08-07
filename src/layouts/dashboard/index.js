@@ -67,7 +67,7 @@ function Dashboard() {
     const fetchDashboardData = async () => {
       try {
         // Obtener eventos del dashboard (para admin, usar role 1)
-        const eventsResponse = await fetch('http://localhost:3003/api/dashboard/events?userId=1&role=1');
+        const eventsResponse = await fetch(`${backendUrl}/dashboard/events?userId=1&role=1`);
         if (eventsResponse.ok) {
           const eventsData = await eventsResponse.json();
           setDashboardEvents(eventsData);

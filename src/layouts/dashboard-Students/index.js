@@ -54,6 +54,7 @@ import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
 // Images
 import team4 from "assets/images/team-4.jpg";
 import { useAuth } from "../../context/AuthContext";
+import { backendUrl } from "config";
 
 function DashboardStudents() {
   const theme = useTheme();
@@ -101,7 +102,7 @@ function DashboardStudents() {
     console.log("Valor de usuario en dashboard estudiantes:", usuario);
     if (usuario && usuario.userId && usuario.role) {
       console.log("Dashboard fetch materias: userId=", usuario.userId, "role=", usuario.role, "cedula=", usuario.cedula);
-      fetch(`https://proyecto-teg-bakend.onrender.com/api/materias-dashboard?userId=${usuario.userId}&role=${usuario.role}`)
+      fetch(`${backendUrl}/materias-dashboard?userId=${usuario.userId}&role=${usuario.role}`)
         .then((res) => res.json())
         .then((data) => {
           // Asegurar que data sea un array
@@ -115,7 +116,7 @@ function DashboardStudents() {
         });
       // Petición para obtener la cédula si es estudiante
       if (usuario.role === 3 || usuario.role === "3") {
-        fetch(`https://proyecto-teg-bakend.onrender.com/api/cedula-estudiante?userId=${usuario.userId}`)
+        fetch(`${backendUrl}/cedula-estudiante?userId=${usuario.userId}`)
           .then(res => res.json())
           .then(data => {
             console.log("Cédula del estudiante:", data.cedula);
@@ -126,7 +127,7 @@ function DashboardStudents() {
   }, [usuario]);
 
   useEffect(() => {
-    fetch("https://proyecto-teg-bakend.onrender.com/api/materias-aulavirtual")
+    fetch(`${backendUrl}/materias-aulavirtual`)
       .then((res) => res.json())
       .then((data) => setMateriasAulaVirtual(data))
       .catch(() => setMateriasAulaVirtual([]));

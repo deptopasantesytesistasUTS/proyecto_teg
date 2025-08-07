@@ -78,7 +78,7 @@ function DashboardTeachers() {
   const [entregaSeleccionada, setEntregaSeleccionada] = useState(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const API_URL = process.env.REACT_APP_API_URL || "https://proyecto-teg-bakend.onrender.com/api";
+  const API_URL = backendUrl;
 
   useEffect(() => {
     console.log("Valor de usuario en dashboard maestros:", usuario);

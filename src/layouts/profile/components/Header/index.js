@@ -35,8 +35,9 @@ import MDAvatar from "components/MDAvatar";
 import breakpoints from "assets/theme/base/breakpoints";
 
 // Images
+import backgroundImage from "assets/images/illustrations/fondo2.jpg";
+import logo from "assets/images/logo-small.fw.png";
 import burceMars from "assets/images/bruce-mars.jpg";
-import backgroundImage from "assets/images/bg-profile.jpeg";
 
 function Header({ children, userData }) {
   const [tabsOrientation, setTabsOrientation] = useState("horizontal");
@@ -113,7 +114,7 @@ function Header({ children, userData }) {
       >
         <Grid container spacing={3} alignItems="center">
           <Grid item>
-            <MDAvatar src={burceMars} alt="profile-image" size="xl" shadow="sm" />
+            <MDAvatar src={logo} alt="profile-image" size="xl" shadow="sm" />
           </Grid>
           <Grid item>
             <MDBox height="100%" mt={0.5} lineHeight={1}>
