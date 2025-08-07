@@ -38,6 +38,7 @@ import {
 import { format, isSameDay } from "date-fns";
 import { es } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
+import { backendUrl } from "config";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
