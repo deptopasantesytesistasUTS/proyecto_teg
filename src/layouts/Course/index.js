@@ -205,11 +205,11 @@ function Course() {
               <Grid container columns={4} spacing={3} px={2} py={1}>
                 <Grid item size={6} width={200}>
                   <FormControl variant="standard" fullWidth>
-                    <InputLabel id="materia-select-label">Materia</InputLabel>
+                    <InputLabel id="materia-select-label">Unidad</InputLabel>
                     <Select
                       labelId="materia-select-label"
                       id="materia-select"
-                      label="Materia"
+                      label="Unidad"
                       value={filterMateria}
                       onChange={(e) => setFilterMateria(e.target.value)}
                     >
@@ -261,7 +261,7 @@ function Course() {
                 <Grid item>
                   <Stack spacing={2} direction="row">
                     <Button variant="contained" onClick={() => setOpenNewDialog(true)}>
-                      Agregar Materia
+                      Agregar Unidad
                     </Button>
                   </Stack>
                 </Grid>
@@ -280,16 +280,16 @@ function Course() {
         </Grid>
       </MDBox>
       <Dialog open={openNewDialog} onClose={() => setOpenNewDialog(false)}>
-        <DialogTitle>Agregar Materia</DialogTitle>
+        <DialogTitle>Agregar Unidad</DialogTitle>
         <DialogContent>
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
               <FormControl fullWidth>
-                <InputLabel id="nombre-materia-label">Nombre de la Materia</InputLabel>
+                <InputLabel id="nombre-materia-label">Nombre de la Unidad</InputLabel>
                 <Select
                   labelId="nombre-materia-label"
                   value={newCourse.nombre}
-                  label="Nombre de la Materia"
+                  label="Nombre de la Unidad"
                   onChange={(e) => handleFormChange("nombre", e.target.value)}
                 >
                   <MenuItem value="Trabajo Especial de Grado">Trabajo de Grado</MenuItem>

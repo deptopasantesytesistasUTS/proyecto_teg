@@ -103,12 +103,133 @@ function SemesterConfig() {
   };
 
   // Validate dates
-  const validateDates = (semesterData) => {
+  const validateDates = (semesterData, isEdit = false, originalData = null) => {
     const newErrors = {};
     const today = new Date();
     const currentDate = today.toISOString().split("T")[0];
 
-    // Check if any date is in the past
+    // If editing, only validate dates that have changed
+    if (isEdit && originalData) {
+      Object.keys(semesterData).forEach((key) => {
+        // Skip validation for dates that haven't changed
+        if (semesterData[key] === originalData[key]) {
+          return;
+        }
+        
+        // Only validate if the date has a value and has changed
+        if (semesterData[key] && semesterData[key] !== originalData[key]) {
+          if (semesterData[key] < currentDate) {
+            newErrors[key] = "No se puede seleccionar una fecha que ya pasó";
+          }
+        }
+      });
+
+      // Check if start date is before end date (only if either has changed)
+      if (
+        semesterData.startDate !== originalData.startDate ||
+        semesterData.endDate !== originalData.endDate
+      ) {
+        if (
+          semesterData.startDate &&
+          semesterData.endDate &&
+          semesterData.startDate >= semesterData.endDate
+        ) {
+          newErrors.endDate = "La fecha de fin debe ser posterior a la fecha de inicio";
+        }
+      }
+
+      // Check if title delivery is within semester dates (only if relevant dates changed)
+      if (
+        semesterData.titleDeliveryDate !== originalData.titleDeliveryDate ||
+        semesterData.startDate !== originalData.startDate ||
+        semesterData.endDate !== originalData.endDate
+      ) {
+        if (semesterData.startDate && semesterData.endDate && semesterData.titleDeliveryDate) {
+          if (
+            semesterData.titleDeliveryDate < semesterData.startDate ||
+            semesterData.titleDeliveryDate > semesterData.endDate
+          ) {
+            newErrors.titleDeliveryDate =
+              "La fecha de entrega de títulos debe estar dentro del lapso académico";
+          }
+        }
+      }
+
+      // Check if draft dates are in logical order (only if any draft date changed)
+      const draftDateFields = [
+        'firstDraftDate', 'secondDraftDate', 'thirdDraftDate', 'finalDraftDate',
+        'inv2Borrador1', 'inv2Borrador2', 'inv2Borrador3', 'inv2Borrador4', 'inv2BorradorFinal',
+        'tutInforme1', 'tutInforme2', 'tutInforme3', 'tutInformeFinal'
+      ];
+      
+      const hasDraftDateChanged = draftDateFields.some(field => 
+        semesterData[field] !== originalData[field]
+      );
+
+      if (hasDraftDateChanged) {
+        // Validate Trabajo de Grado draft dates
+        const tgDraftDates = [
+          semesterData.firstDraftDate,
+          semesterData.secondDraftDate,
+          semesterData.thirdDraftDate,
+          semesterData.finalDraftDate,
+        ].filter((date) => date);
+
+        for (let i = 0; i < tgDraftDates.length - 1; i++) {
+          if (tgDraftDates[i] >= tgDraftDates[i + 1]) {
+            const nextDateField = Object.keys(semesterData).find((key) => 
+              semesterData[key] === tgDraftDates[i + 1]
+            );
+            if (nextDateField) {
+              newErrors[nextDateField] = "Las fechas de borradores deben estar en orden cronológico";
+            }
+            break;
+          }
+        }
+
+        // Validate Investigación 2 draft dates
+        const inv2DraftDates = [
+          semesterData.inv2Borrador1,
+          semesterData.inv2Borrador2,
+          semesterData.inv2Borrador3,
+          semesterData.inv2Borrador4,
+          semesterData.inv2BorradorFinal,
+        ].filter((date) => date);
+
+        for (let i = 0; i < inv2DraftDates.length - 1; i++) {
+          if (inv2DraftDates[i] >= inv2DraftDates[i + 1]) {
+            const nextDateField = Object.keys(semesterData).find((key) => 
+              semesterData[key] === inv2DraftDates[i + 1]
+            );
+            if (nextDateField) {
+              newErrors[nextDateField] = "Las fechas de borradores de Investigación 2 deben estar en orden cronológico";
+            }
+            break;
+          }
+        }
+
+        // Validate Tutorías report dates
+        const tutReportDates = [
+          semesterData.tutInforme1,
+          semesterData.tutInforme2,
+          semesterData.tutInforme3,
+          semesterData.tutInformeFinal,
+        ].filter((date) => date);
+
+        for (let i = 0; i < tutReportDates.length - 1; i++) {
+          if (tutReportDates[i] >= tutReportDates[i + 1]) {
+            const nextDateField = Object.keys(semesterData).find((key) => 
+              semesterData[key] === tutReportDates[i + 1]
+            );
+            if (nextDateField) {
+              newErrors[nextDateField] = "Las fechas de informes de tutorías deben estar en orden cronológico";
+            }
+            break;
+          }
+        }
+      }
+    } else {
+      // For new semester creation, validate all dates
     Object.keys(semesterData).forEach((key) => {
       if (semesterData[key] && semesterData[key] < currentDate) {
         newErrors[key] = "No se puede seleccionar una fecha que ya pasó";
@@ -149,6 +270,7 @@ function SemesterConfig() {
           `${Object.keys(semesterData).find((key) => semesterData[key] === draftDates[i + 1])}`
         ] = "Las fechas de borradores deben estar en orden cronológico";
         break;
+        }
       }
     }
 
@@ -175,8 +297,9 @@ function SemesterConfig() {
 
     if (response.ok) {
       const data = await response.json();
-      console.log(data);
       console.log(data.semester);
+      console.log(data.semester.cartaDate);
+      console.log(formatDate(data.semester.cartaDate))
       setCurrentSemester({
         id: data.semester.id,
         startDate: data.semester.startDate,
@@ -203,12 +326,12 @@ function SemesterConfig() {
   // Ejecutar al montar el componente para obtener el semestre actual
   useEffect(() => {
     handleGetCurrentSemester();
-    // eslint-disable-next-line
+    console.log(currentSemester);
   }, []);
 
   // Create new semester
   const handleCreateSemester = async () => {
-    if (validateDates(newSemester)) {
+    if (validateDates(newSemester, false)) {
       const response = await fetch(`${backendUrl}/newLapse`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -256,7 +379,7 @@ function SemesterConfig() {
 
   // Update semester
   const handleUpdateSemester = async () => {
-    if (validateDates(editSemester)) {
+    if (validateDates(editSemester, true, currentSemester)) {
       const response = await fetch(`${backendUrl}/editLapse`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -309,7 +432,9 @@ function SemesterConfig() {
   // Format date for display
   const formatDate = (dateString) => {
     if (!dateString) return "No definida";
-    const date = new Date(dateString);
+    // Extraer solo la parte de la fecha y parsear como local
+    const [year, month, day] = dateString.split("T")[0].split("-");
+    const date = new Date(Number(year), Number(month) - 1, Number(day));
     return date.toLocaleDateString("es-ES", {
       year: "numeric",
       month: "long",
@@ -362,6 +487,32 @@ function SemesterConfig() {
 
                 {currentSemester ? (
                   <Grid container spacing={3}>
+                    {/* Fechas Generales */}
+                    <Grid item xs={12}>
+                      <MDTypography variant="h6" fontWeight="bold" color="info" mb={1}>
+                        Fechas Generales
+                      </MDTypography>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <MDBox mb={2}>
+                        <MDTypography variant="button" fontWeight="bold" color="text">
+                          Fecha de Inicio:
+                        </MDTypography>
+                        <MDTypography variant="body2" color="text">
+                          {formatDate(currentSemester.startDate)}
+                        </MDTypography>
+                      </MDBox>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <MDBox mb={2}>
+                        <MDTypography variant="button" fontWeight="bold" color="text">
+                          Fecha de Fin:
+                        </MDTypography>
+                        <MDTypography variant="body2" color="text">
+                          {formatDate(currentSemester.endDate)}
+                        </MDTypography>
+                      </MDBox>
+                    </Grid>
                     {/* Trabajo de Grado */}
                     <Grid item xs={12}>
                       <MDTypography variant="h6" fontWeight="bold" color="info" mb={1}>

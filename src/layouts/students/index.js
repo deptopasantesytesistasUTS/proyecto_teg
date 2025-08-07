@@ -188,13 +188,13 @@ function Students() {
         handleGetStudents();
         setSnackbar({
           open: true,
-          message: "Lapso académico creado exitosamente",
+          message: "Estudiante creado exitosamente",
           severity: "success",
         });
       } else {
         setSnackbar({
           open: true,
-          message: "Fallo en la creacion del semestre",
+          message: "Fallo en la creacion del estudiante",
           severity: "error",
         });
       }
@@ -233,8 +233,6 @@ function Students() {
       filtered = filtered.filter((row) => row && row.carrera);
       filtered.sort((a, b) => a.carrera.localeCompare(b.carrera));
     }
-    console.log("hola3");
-    console.log(filtered);
     return studentsTableData(filtered).rows;
   };
 

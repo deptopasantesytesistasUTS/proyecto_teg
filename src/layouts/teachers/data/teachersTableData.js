@@ -26,77 +26,40 @@ export default function teachersTableData(teachers) {
     </MDBox>
   );
 
-  const Job = ({ title, description }) => (
-    <MDBox lineHeight={1} textAlign="left">
-      <MDTypography display="block" variant="caption" color="text" fontWeight="medium">
-        {title}
-      </MDTypography>
-      <MDTypography variant="caption">{description}</MDTypography>
-    </MDBox>
-  );
 
   return {
     columns: [
       { Header: "Profesor", accessor: "profesor", width: "45%", align: "left" },
-      { Header: "Carrera", accessor: "carrera", align: "left" },
       { Header: "Estatus", accessor: "estatus", align: "center" },
       { Header: "Acciones", accessor: "action", align: "center" },
     ],
 
-    rows: [
-      {
-        profesor: (
-          <Profesor
-            name="Pedro Alexandro Perez Mora"
-            id="20433708"
-            image={team2}
-            email="perezmora12@gmail.com"
-          />
-        ),
-        carrera: (
-          <Job
-            title="Informática"
-            description="Trabajo Especial de Grado (TEG) (Docente) Investigación II (Jurado)"
-          />
-        ),
-        estatus: (
-          <MDBox ml={-1}>
-            <MDBadge badgeContent="activo" color="success" variant="gradient" size="sm" />
-          </MDBox>
-        ),
-        action: (
-          <MDTypography
-            component="a"
-            href="/docentes/30443230"
-            variant="caption"
-            color="text"
-            fontWeight="medium"
-          >
-            Ver Profesor
-          </MDTypography>
-        ),
-      },
-      {
-        profesor: (
-          <Profesor
-            name="Oriana Margarita Duran Zambrano"
-            image={team2}
-            email="orianadaran1@gmail.com"
-            id="28457689"
-          />
-        ),
-        carrera: <Job title="Diseño" description="Investigación 2 (Tutor)" />,
-        estatus: (
-          <MDBox ml={-1}>
-            <MDBadge badgeContent="activo" color="success" variant="gradient" size="sm" />
-          </MDBox>
-        ),
-        action: (
-          <MDTypography component="a" href="#" variant="caption" color="text" fontWeight="medium">
-            Ver Profesor
-          </MDTypography>
-        ),
-      },
-    ],
+    rows: teachers.map((p) => ({
+      profesor: (
+        <Profesor
+          name= {p.nombre}
+          id={p.cedula}
+          image={team2}
+          email={p.correo}
+        />
+      ),
+      estatus: (
+        <MDBox ml={-1}>
+          <MDBadge badgeContent={p.estatus} color="success" variant="gradient" size="sm" />
+        </MDBox>
+      ),
+      action: (
+        <MDTypography
+          component="a"
+          href={"/docentes/"+ p.cedula}
+          variant="caption"
+          color="text"
+          fontWeight="medium"
+        >
+          Ver Profesor
+        </MDTypography>
+      ),
+    }))
+      
   };
 }

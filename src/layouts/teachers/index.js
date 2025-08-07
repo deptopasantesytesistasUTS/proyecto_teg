@@ -25,33 +25,70 @@ import DataTable from "examples/Tables/DataTable";
 
 // Data
 import teachersTableData from "./data/teachersTableData";
+import { backendUrl } from "config";
 
 function Teachers() {
-  const { columns, rows: originalRows } = teachersTableData();
-  
-  // State for filters
+  // Estado para la lista de docentes
+  const [teachers, setTeachers] = React.useState([]);
+  const { columns } = teachersTableData([]); // columnas sin carrera
+
+  // Estado para filtros
   const [sortBy, setSortBy] = React.useState("1");
-  const [roleFilter, setRoleFilter] = React.useState("1");
-  const [careerFilter, setCareerFilter] = React.useState("1");
   const [searchTerm, setSearchTerm] = React.useState("");
-  
-  // State for modal
+
+  // Estado para modal y formulario de agregar docente
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+  const [formData, setFormData] = React.useState({
+    firstName: "",
+    secondName: "",
+    firstLastName: "",
+    secondLastName: "",
+    id: "",
+    email: "",
+    telf: "",
+  });
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState("");
 
-  // Filter and sort the data
+  // Obtener docentes del backend al montar
+  React.useEffect(() => {
+    fetchTeachers();
+  }, []);
+
+  const fetchTeachers = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await fetch(`${backendUrl}/docentesAdmin`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setTeachers(data.profesores || []);
+      } else {
+        setError("Error al obtener docentes");
+      }
+    } catch (err) {
+      setError("Error de conexión con el backend");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filtrar y ordenar la lista
   const getFilteredAndSortedRows = () => {
-    let filteredRows = [...originalRows];
-
-    // Apply search filter
+    let filteredRows = [...teachers];
+    // Filtro de búsqueda
     if (searchTerm.trim() !== "") {
-      filteredRows = filteredRows.filter((row) => {
-        const name = row.profesor.props.name || "";
-        const id = row.profesor.props.id || "";
-        const email = row.profesor.props.email || "";
+      filteredRows = filteredRows.filter((teacher) => {
+        console.log(teacher);
+        const name = `${teacher.nombre}`.trim();
+        const id = `${teacher.cedula}`|| "";
+        const email = teacher.correo || "";
         const searchLower = searchTerm.toLowerCase();
-        
         return (
           name.toLowerCase().includes(searchLower) ||
           id.toLowerCase().includes(searchLower) ||
@@ -59,69 +96,65 @@ function Teachers() {
         );
       });
     }
-
-    // Apply role filter
-    if (roleFilter !== "1") {
-      filteredRows = filteredRows.filter((row) => {
-        const description = row.carrera.props.description || "";
-        const searchLower = searchTerm.toLowerCase();
-        
-        switch (roleFilter) {
-          case "2": // Tutor
-            return description.toLowerCase().includes("tutor");
-          case "3": // Jurado
-            return description.toLowerCase().includes("jurado");
-            case "4": // Jurado
-            return description.toLowerCase().includes("docente");
-          default:
-            return true;
-        }
-      });
-    }
-
-    // Apply career filter
-    if (careerFilter !== "1") {
-      filteredRows = filteredRows.filter((row) => {
-        const title = row.carrera.props.title || "";
-        
-        switch (careerFilter) {
-          case "2": // Informática
-            return title.toLowerCase().includes("informática");
-          case "3": // Diseño
-            return title.toLowerCase().includes("diseño");
-          default:
-            return true;
-        }
-      });
-    }
-
-    // Apply sorting
+    // Ordenamiento
     if (sortBy !== "1") {
       filteredRows.sort((a, b) => {
-        const nameA = a.profesor.props.name || "";
-        const nameB = b.profesor.props.name || "";
-        const idA = a.profesor.props.id || "";
-        const idB = b.profesor.props.id || "";
-        const careerA = a.carrera.props.title || "";
-        const careerB = b.carrera.props.title || "";
-        
+        const nameA = `${a.nombre}`.trim();
+        const nameB = `${b.nombre}`.trim();
+        const idA = a.cedula || "";
+        const idB = b.cedula || "";
         switch (sortBy) {
           case "2": // Nombre
             return nameA.localeCompare(nameB);
           case "3": // Cédula
             return idA.localeCompare(idB);
-          case "4": // Carrera
-            return careerA.localeCompare(careerB);
           default:
             return 0;
         }
       });
     }
-
     return filteredRows;
   };
 
   const filteredRows = getFilteredAndSortedRows();
+
+  // Modal: manejar cambios en el formulario
+  const handleFormChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // Modal: agregar docente
+  const handleAddTeacher = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await fetch(`${backendUrl}/docentesAdmin`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      if (response.ok) {
+        // Recargar lista
+        fetchTeachers();
+        setOpen(false);
+        setFormData({
+          firstName: "",
+          secondName: "",
+          firstLastName: "",
+          secondLastName: "",
+          id: "",
+          email: "",
+          telf: "",
+        });
+      } else {
+        setError("Error al agregar docente");
+      }
+    } catch (err) {
+      setError("Error de conexión con el backend");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const style = {
     position: "absolute",
@@ -134,6 +167,9 @@ function Teachers() {
     boxShadow: 24,
     p: 4,
   };
+
+  // Eliminar la columna de carrera de la tabla
+  const filteredColumns = columns.filter(col => col.accessor !== "carrera");
 
   return (
     <DashboardLayout>
@@ -171,43 +207,6 @@ function Teachers() {
                       <MenuItem value="1">Sin ordenar</MenuItem>
                       <MenuItem value="2">Nombre</MenuItem>
                       <MenuItem value="3">Cedula</MenuItem>
-                      <MenuItem value="4">Carrera</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item>
-                  <MDTypography variant="h6">Filtrar por:</MDTypography>
-                </Grid>
-                <Grid item size={6} width={200}>
-                  <FormControl variant="standard" fullWidth>
-                    <InputLabel id="role-select-label">Rol</InputLabel>
-                    <Select
-                      labelId="role-select-label"
-                      id="role-select"
-                      value={roleFilter}
-                      label="Rol"
-                      onChange={(e) => setRoleFilter(e.target.value)}
-                    >
-                      <MenuItem value="1">Todos los roles</MenuItem>
-                      <MenuItem value="2">Tutor</MenuItem>
-                      <MenuItem value="3">Jurado</MenuItem>
-                      <MenuItem value="4">Docente</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item size={6} width={200}>
-                  <FormControl variant="standard" fullWidth>
-                    <InputLabel id="career-select-label">Carrera</InputLabel>
-                    <Select
-                      labelId="career-select-label"
-                      id="career-select"
-                      value={careerFilter}
-                      label="Carrera"
-                      onChange={(e) => setCareerFilter(e.target.value)}
-                    >
-                      <MenuItem value="1">Todas las carreras</MenuItem>
-                      <MenuItem value="2">Informática</MenuItem>
-                      <MenuItem value="3">Diseño</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
@@ -241,7 +240,6 @@ function Teachers() {
                         <MDTypography id="modal-modal-title2" variant="h5" component="h2" mb={3}>
                           Agregar Nuevo Docente
                         </MDTypography>
-
                         <Grid container spacing={3}>
                           <Grid item xs={12} sm={6}>
                             <TextField
@@ -249,6 +247,8 @@ function Teachers() {
                               label="Primer Nombre"
                               variant="outlined"
                               size="medium"
+                              value={formData.firstName}
+                              onChange={e => handleFormChange("firstName", e.target.value)}
                             />
                           </Grid>
                           <Grid item xs={12} sm={6}>
@@ -257,6 +257,8 @@ function Teachers() {
                               label="Segundo Nombre"
                               variant="outlined"
                               size="medium"
+                              value={formData.secondName}
+                              onChange={e => handleFormChange("secondName", e.target.value)}
                             />
                           </Grid>
                           <Grid item xs={12} sm={6}>
@@ -265,6 +267,8 @@ function Teachers() {
                               label="Primer Apellido"
                               variant="outlined"
                               size="medium"
+                              value={formData.firstLastName}
+                              onChange={e => handleFormChange("firstLastName", e.target.value)}
                             />
                           </Grid>
                           <Grid item xs={12} sm={6}>
@@ -273,28 +277,55 @@ function Teachers() {
                               label="Segundo Apellido"
                               variant="outlined"
                               size="medium"
+                              value={formData.secondLastName}
+                              onChange={e => handleFormChange("secondLastName", e.target.value)}
                             />
                           </Grid>
-                          <Grid item xs={12}>
+                          <Grid item xs={12} sm={6}>
                             <TextField
                               fullWidth
                               type="number"
                               label="Cédula"
                               variant="outlined"
                               size="medium"
+                              value={formData.id}
+                              onChange={e => handleFormChange("id", e.target.value)}
+                            />
+                          </Grid>
+                          <Grid item xs={12} sm={6}>
+                            <TextField
+                              fullWidth
+                              label="Correo Electrónico"
+                              variant="outlined"
+                              size="medium"
+                              value={formData.email}
+                              onChange={e => handleFormChange("email", e.target.value)}
+                            />
+                          </Grid>
+                          <Grid item xs={12} sm={6}>
+                            <TextField
+                              fullWidth
+                              label="Teléfono"
+                              variant="outlined"
+                              size="medium"
+                              value={formData.telf}
+                              onChange={e => handleFormChange("telf", e.target.value)}
                             />
                           </Grid>
                         </Grid>
-
+                        {error && (
+                          <MDTypography color="error" mt={2}>{error}</MDTypography>
+                        )}
                         <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 4 }}>
                           <Button variant="outlined" onClick={handleClose} sx={{ minWidth: 100 }}>
                             Cancelar
                           </Button>
                           <Button
-                            variant="contained"
+                            variant="outlined"
                             color="success"
-                            onClick={handleClose}
+                            onClick={handleAddTeacher}
                             sx={{ minWidth: 100 }}
+                            disabled={loading}
                           >
                             Guardar
                           </Button>
@@ -304,10 +335,9 @@ function Teachers() {
                   </Stack>
                 </Grid>
               </Grid>
-
               <MDBox pt={1}>
                 <DataTable
-                  table={{ columns, rows: filteredRows }}
+                  table={{ columns: filteredColumns, rows: teachersTableData(filteredRows).rows }}
                   isSorted={false}
                   entriesPerPage={false}
                   showTotalEntries={false}
