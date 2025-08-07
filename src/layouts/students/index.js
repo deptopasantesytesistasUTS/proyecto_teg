@@ -155,7 +155,8 @@ function Students() {
     if(selectedSection)
 {    console.log(selectedSection)
     console.log(selectedSection.Materias.categoria)}
-    if (selectedSection && selectedSection.Materias.categoria === "investigación_II") {
+    if (selectedSection && selectedSection.Materias.categoria == "investigacion_II") {
+      console.log("Hola")
       handleGetSectionsTutor(newStudent.carrera);
     } else {
       setSectionsTutor([]);
@@ -465,7 +466,7 @@ function Students() {
                 value={newStudent.seccion_tutor}
                 label="Sección"
                 onChange={handleNewStudentChange}
-                disabled={!sectionTutor}
+                disabled={!sectionsTutor}
               >
                 <MenuItem value="">Seleccione una sección de tutor</MenuItem>
                 {sectionsTutor.map((section, index) => (
