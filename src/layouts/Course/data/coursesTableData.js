@@ -11,10 +11,6 @@ const Course = ({ name, code, credits }) => (
       <MDTypography display="block" variant="button" fontWeight="medium">
         {name}
       </MDTypography>
-      <MDTypography variant="caption">Código: {code}</MDTypography>
-      <MDTypography variant="caption" display="block">
-        {credits} créditos
-      </MDTypography>
     </MDBox>
   </MDBox>
 );
@@ -26,6 +22,14 @@ const Professor = ({ name, email }) => (
       {name}
     </MDTypography>
     <MDTypography variant="caption">{email}</MDTypography>
+  </MDBox>
+);
+
+const Job = ({ title }) => (
+  <MDBox lineHeight={1} textAlign="left">
+    <MDTypography display="block" variant="caption" color="text" fontWeight="medium">
+      {title}
+    </MDTypography>
   </MDBox>
 );
 
@@ -46,6 +50,10 @@ Course.propTypes = {
   credits: PropTypes.string.isRequired,
 };
 
+Job.propTypes = {
+  title: PropTypes.string.isRequired,
+};
+
 Professor.propTypes = {
   name: PropTypes.string.isRequired,
   email: PropTypes.string.isRequired,
@@ -58,81 +66,41 @@ Schedule.propTypes = {
 };
 
 // Función que exporta los datos de la tabla
-export default function data() {
+export default function data(courses) {
   return {
     columns: [
-      { Header: "Materia", accessor: "materia", width: "25%", align: "left" },
-      { Header: "Profesor", accessor: "profesor", align: "left" },
-      { Header: "Horario", accessor: "horario", align: "left" },
-      { Header: "Estatus", accessor: "estatus", align: "center" },
-      { Header: "Acciones", accessor: "action", align: "center" },
+      { Header: "Nombre", accessor: "nombre" },
+    { Header: "Carrera", accessor: "carrera" },
+    { Header: "Profesores", accessor: "profesores" },
+    { Header: "Estatus", accessor: "estatus" },
+    { Header: "Action", accessor: "action" },
     ],
-    rows: [
-      {
-        materia: <Course name="Trabajo Especial de Grado (TEG)" code="TEG-001" credits="6" />,
-        profesor: <Professor name="Dr. María González" email="maria.gonzalez@universidad.edu" />,
-        horario: <Schedule day="Lunes" time="8:00 AM - 10:00 AM" classroom="A-101" />,
-        estatus: (
-          <MDBox ml={-1}>
-            <MDBadge badgeContent="activo" color="success" variant="gradient" size="sm" />
-          </MDBox>
-        ),
-        action: (
-          <MDTypography
-            component="a"
-            href="/materias/TEG-001"
-            variant="caption"
-            color="text"
-            fontWeight="medium"
-          >
-            Ver Materia
-          </MDTypography>
-        ),
-      },
-      {
-        materia: <Course name="Investigación II" code="INV-002" credits="4" />,
-        profesor: (
-          <Professor name="Prof. Carlos Rodríguez" email="carlos.rodriguez@universidad.edu" />
-        ),
-        horario: <Schedule day="Martes" time="2:00 PM - 4:00 PM" classroom="B-203" />,
-        estatus: (
-          <MDBox ml={-1}>
-            <MDBadge badgeContent="activo" color="success" variant="gradient" size="sm" />
-          </MDBox>
-        ),
-        action: (
-          <MDTypography
-            component="a"
-            href="/materias/INV-002"
-            variant="caption"
-            color="text"
-            fontWeight="medium"
-          >
-            Ver Materia
-          </MDTypography>
-        ),
-      },
-      {
-        materia: <Course name="Pasantías" code="PAS-003" credits="3" />,
-        profesor: <Professor name="Lic. Ana Martínez" email="ana.martinez@universidad.edu" />,
-        horario: <Schedule day="Miércoles" time="10:00 AM - 12:00 PM" classroom="C-105" />,
-        estatus: (
-          <MDBox ml={-1}>
-            <MDBadge badgeContent="activo" color="success" variant="gradient" size="sm" />
-          </MDBox>
-        ),
-        action: (
-          <MDTypography
-            component="a"
-            href="/materias/PAS-003"
-            variant="caption"
-            color="text"
-            fontWeight="medium"
-          >
-            Ver Materia
-          </MDTypography>
-        ),
-      },
-    ],
+    rows: courses.map((c) => ({
+      nombre: (
+        <Course name={c.nombre}></Course>
+      ),
+      estatus: (
+        <MDBox ml={-1}>
+          <MDBadge badgeContent={c.estatus} color="success" variant="gradient" size="sm" />
+        </MDBox>
+      ),
+      profesores: (
+        <Professor name={c.profesores}></Professor>
+      ),
+      carrera: (
+        <Job title={c.carrera} />
+      ),
+      action: (
+        <MDTypography
+          component="a"
+          href={"/aulaVirtualAdm/" + c.idSeccion}
+          variant="caption"
+          color="text"
+          fontWeight="medium"
+        >
+          Ver Aula Virtual
+        </MDTypography>
+      ),
+    })),
   };
 }

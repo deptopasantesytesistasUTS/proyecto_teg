@@ -59,6 +59,16 @@ function SemesterConfig() {
     secondDraftDate: "",
     thirdDraftDate: "",
     finalDraftDate: "",
+    cartaDate: "",
+    inv2Borrador1: "",
+    inv2Borrador2: "",
+    inv2Borrador3: "",
+    inv2Borrador4: "",
+    inv2BorradorFinal: "",
+    tutInforme1: "",
+    tutInforme2: "",
+    tutInforme3: "",
+    tutInformeFinal: "",
   });
 
   // Form states for editing semester
@@ -71,6 +81,16 @@ function SemesterConfig() {
     secondDraftDate: "",
     thirdDraftDate: "",
     finalDraftDate: "",
+    cartaDate: "",
+    inv2Borrador1: "",
+    inv2Borrador2: "",
+    inv2Borrador3: "",
+    inv2Borrador4: "",
+    inv2BorradorFinal: "",
+    tutInforme1: "",
+    tutInforme2: "",
+    tutInforme3: "",
+    tutInformeFinal: "",
   });
 
   // Validation states
@@ -166,6 +186,16 @@ function SemesterConfig() {
         secondDraftDate: data.semester.secondDraftDate,
         thirdDraftDate: data.semester.thirdDraftDate,
         finalDraftDate: data.semester.finalDraftDate,
+        cartaDate: data.semester.cartaDate,
+        inv2Borrador1: data.semester.inv2Borrador1,
+        inv2Borrador2: data.semester.inv2Borrador2,
+        inv2Borrador3: data.semester.inv2Borrador3,
+        inv2Borrador4: data.semester.inv2Borrador4,
+        inv2BorradorFinal: data.semester.inv2BorradorFinal,
+        tutInforme1: data.semester.tutInforme1,
+        tutInforme2: data.semester.tutInforme2,
+        tutInforme3: data.semester.tutInforme3,
+        tutInformeFinal: data.semester.tutInformeFinal,
       });
     }
   };
@@ -198,6 +228,16 @@ function SemesterConfig() {
           secondDraftDate: "",
           thirdDraftDate: "",
           finalDraftDate: "",
+          cartaDate: "",
+          inv2Borrador1: "",
+          inv2Borrador2: "",
+          inv2Borrador3: "",
+          inv2Borrador4: "",
+          inv2BorradorFinal: "",
+          tutInforme1: "",
+          tutInforme2: "",
+          tutInforme3: "",
+          tutInformeFinal: "",
         });
         setSnackbar({
           open: true,
@@ -252,6 +292,16 @@ function SemesterConfig() {
       secondDraftDate: currentSemester.secondDraftDate,
       thirdDraftDate: currentSemester.thirdDraftDate,
       finalDraftDate: currentSemester.finalDraftDate,
+      cartaDate: currentSemester.cartaDate,
+      inv2Borrador1: currentSemester.inv2Borrador1,
+      inv2Borrador2: currentSemester.inv2Borrador2,
+      inv2Borrador3: currentSemester.inv2Borrador3,
+      inv2Borrador4: currentSemester.inv2Borrador4,
+      inv2BorradorFinal: currentSemester.inv2BorradorFinal,
+      tutInforme1: currentSemester.tutInforme1,
+      tutInforme2: currentSemester.tutInforme2,
+      tutInforme3: currentSemester.tutInforme3,
+      tutInformeFinal: currentSemester.tutInformeFinal,
     });
     setOpenEditDialog(true);
   };
@@ -312,25 +362,11 @@ function SemesterConfig() {
 
                 {currentSemester ? (
                   <Grid container spacing={3}>
-                    <Grid item xs={12} md={6}>
-                      <MDBox mb={2}>
-                        <MDTypography variant="button" fontWeight="bold" color="text">
-                          Fecha de Inicio:
-                        </MDTypography>
-                        <MDTypography variant="body2" color="text">
-                          {formatDate(currentSemester.startDate)}
-                        </MDTypography>
-                      </MDBox>
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <MDBox mb={2}>
-                        <MDTypography variant="button" fontWeight="bold" color="text">
-                          Fecha de Fin:
-                        </MDTypography>
-                        <MDTypography variant="body2" color="text">
-                          {formatDate(currentSemester.endDate)}
-                        </MDTypography>
-                      </MDBox>
+                    {/* Trabajo de Grado */}
+                    <Grid item xs={12}>
+                      <MDTypography variant="h6" fontWeight="bold" color="info" mb={1}>
+                        Fechas de Trabajo de Grado
+                      </MDTypography>
                     </Grid>
                     <Grid item xs={12} md={6}>
                       <MDBox mb={2}>
@@ -379,6 +415,118 @@ function SemesterConfig() {
                         </MDTypography>
                         <MDTypography variant="body2" color="text">
                           {formatDate(currentSemester.finalDraftDate)}
+                        </MDTypography>
+                      </MDBox>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <MDBox mb={2}>
+                        <MDTypography variant="button" fontWeight="bold" color="text">
+                          Generación de Carta:
+                        </MDTypography>
+                        <MDTypography variant="body2" color="text">
+                          {formatDate(currentSemester.cartaDate)}
+                        </MDTypography>
+                      </MDBox>
+                    </Grid>
+                    {/* Investigación 2 */}
+                    <Grid item xs={12}>
+                      <MDTypography variant="h6" fontWeight="bold" color="info" mb={1}>
+                        Fechas de Investigación 2
+                      </MDTypography>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <MDBox mb={2}>
+                        <MDTypography variant="button" fontWeight="bold" color="text">
+                          Borrador 1:
+                        </MDTypography>
+                        <MDTypography variant="body2" color="text">
+                          {formatDate(currentSemester.inv2Borrador1)}
+                        </MDTypography>
+                      </MDBox>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <MDBox mb={2}>
+                        <MDTypography variant="button" fontWeight="bold" color="text">
+                          Borrador 2:
+                        </MDTypography>
+                        <MDTypography variant="body2" color="text">
+                          {formatDate(currentSemester.inv2Borrador2)}
+                        </MDTypography>
+                      </MDBox>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <MDBox mb={2}>
+                        <MDTypography variant="button" fontWeight="bold" color="text">
+                          Borrador 3:
+                        </MDTypography>
+                        <MDTypography variant="body2" color="text">
+                          {formatDate(currentSemester.inv2Borrador3)}
+                        </MDTypography>
+                      </MDBox>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <MDBox mb={2}>
+                        <MDTypography variant="button" fontWeight="bold" color="text">
+                          Borrador 4:
+                        </MDTypography>
+                        <MDTypography variant="body2" color="text">
+                          {formatDate(currentSemester.inv2Borrador4)}
+                        </MDTypography>
+                      </MDBox>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <MDBox mb={2}>
+                        <MDTypography variant="button" fontWeight="bold" color="text">
+                          Borrador Final:
+                        </MDTypography>
+                        <MDTypography variant="body2" color="text">
+                          {formatDate(currentSemester.inv2BorradorFinal)}
+                        </MDTypography>
+                      </MDBox>
+                    </Grid>
+                    {/* Tutorías */}
+                    <Grid item xs={12}>
+                      <MDTypography variant="h6" fontWeight="bold" color="info" mb={1}>
+                        Fechas de Tutorías
+                      </MDTypography>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <MDBox mb={2}>
+                        <MDTypography variant="button" fontWeight="bold" color="text">
+                          Informe 1:
+                        </MDTypography>
+                        <MDTypography variant="body2" color="text">
+                          {formatDate(currentSemester.tutInforme1)}
+                        </MDTypography>
+                      </MDBox>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <MDBox mb={2}>
+                        <MDTypography variant="button" fontWeight="bold" color="text">
+                          Informe 2:
+                        </MDTypography>
+                        <MDTypography variant="body2" color="text">
+                          {formatDate(currentSemester.tutInforme2)}
+                        </MDTypography>
+                      </MDBox>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <MDBox mb={2}>
+                        <MDTypography variant="button" fontWeight="bold" color="text">
+                          Informe 3:
+                        </MDTypography>
+                        <MDTypography variant="body2" color="text">
+                          {formatDate(currentSemester.tutInforme3)}
+                        </MDTypography>
+                      </MDBox>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <MDBox mb={2}>
+                        <MDTypography variant="button" fontWeight="bold" color="text">
+                          Informe Final:
+                        </MDTypography>
+                        <MDTypography variant="body2" color="text">
+                          {formatDate(currentSemester.tutInformeFinal)}
                         </MDTypography>
                       </MDBox>
                     </Grid>
@@ -466,6 +614,12 @@ function SemesterConfig() {
                 margin="normal"
               />
             </Grid>
+            {/* Trabajo de Grado */}
+            <Grid item xs={12}>
+              <MDTypography variant="h6" fontWeight="bold" color="info" mb={1}>
+                Fechas de Trabajo de Grado
+              </MDTypography>
+            </Grid>
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
@@ -536,6 +690,158 @@ function SemesterConfig() {
                 margin="normal"
               />
             </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Generación de Carta"
+                type="date"
+                value={newSemester.cartaDate}
+                onChange={(e) => handleFormChange("new", "cartaDate", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: getCurrentDate() }}
+                error={!!errors.cartaDate}
+                helperText={errors.cartaDate}
+                margin="normal"
+              />
+            </Grid>
+            {/* Investigación 2 */}
+            <Grid item xs={12}>
+              <MDTypography variant="h6" fontWeight="bold" color="info" mb={1}>
+                Fechas de Investigación 2
+              </MDTypography>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Borrador 1 (Inv. 2)"
+                type="date"
+                value={newSemester.inv2Borrador1}
+                onChange={(e) => handleFormChange("new", "inv2Borrador1", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: getCurrentDate() }}
+                error={!!errors.inv2Borrador1}
+                helperText={errors.inv2Borrador1}
+                margin="normal"
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Borrador 2 (Inv. 2)"
+                type="date"
+                value={newSemester.inv2Borrador2}
+                onChange={(e) => handleFormChange("new", "inv2Borrador2", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: getCurrentDate() }}
+                error={!!errors.inv2Borrador2}
+                helperText={errors.inv2Borrador2}
+                margin="normal"
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Borrador 3 (Inv. 2)"
+                type="date"
+                value={newSemester.inv2Borrador3}
+                onChange={(e) => handleFormChange("new", "inv2Borrador3", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: getCurrentDate() }}
+                error={!!errors.inv2Borrador3}
+                helperText={errors.inv2Borrador3}
+                margin="normal"
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Borrador 4 (Inv. 2)"
+                type="date"
+                value={newSemester.inv2Borrador4}
+                onChange={(e) => handleFormChange("new", "inv2Borrador4", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: getCurrentDate() }}
+                error={!!errors.inv2Borrador4}
+                helperText={errors.inv2Borrador4}
+                margin="normal"
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Borrador Final (Inv. 2)"
+                type="date"
+                value={newSemester.inv2BorradorFinal}
+                onChange={(e) => handleFormChange("new", "inv2BorradorFinal", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: getCurrentDate() }}
+                error={!!errors.inv2BorradorFinal}
+                helperText={errors.inv2BorradorFinal}
+                margin="normal"
+              />
+            </Grid>
+            {/* Tutorías */}
+            <Grid item xs={12}>
+              <MDTypography variant="h6" fontWeight="bold" color="info" mb={1}>
+                Fechas de Tutorías
+              </MDTypography>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Informe 1 (Tutorías)"
+                type="date"
+                value={newSemester.tutInforme1}
+                onChange={(e) => handleFormChange("new", "tutInforme1", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: getCurrentDate() }}
+                error={!!errors.tutInforme1}
+                helperText={errors.tutInforme1}
+                margin="normal"
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Informe 2 (Tutorías)"
+                type="date"
+                value={newSemester.tutInforme2}
+                onChange={(e) => handleFormChange("new", "tutInforme2", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: getCurrentDate() }}
+                error={!!errors.tutInforme2}
+                helperText={errors.tutInforme2}
+                margin="normal"
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Informe 3 (Tutorías)"
+                type="date"
+                value={newSemester.tutInforme3}
+                onChange={(e) => handleFormChange("new", "tutInforme3", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: getCurrentDate() }}
+                error={!!errors.tutInforme3}
+                helperText={errors.tutInforme3}
+                margin="normal"
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Informe Final (Tutorías)"
+                type="date"
+                value={newSemester.tutInformeFinal}
+                onChange={(e) => handleFormChange("new", "tutInformeFinal", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: getCurrentDate() }}
+                error={!!errors.tutInformeFinal}
+                helperText={errors.tutInformeFinal}
+                margin="normal"
+              />
+            </Grid>
           </Grid>
         </DialogContent>
         <DialogActions>
@@ -561,7 +867,13 @@ function SemesterConfig() {
             Modifique los campos que desee actualizar. No se pueden seleccionar fechas que ya
             pasaron.
           </DialogContentText>
-          <Grid container spacing={2}>
+          <Grid container spacing={3}>
+            {/* Trabajo de Grado */}
+            <Grid item xs={12}>
+              <MDTypography variant="h6" fontWeight="bold" color="info" mb={1}>
+                Fechas de Trabajo de Grado
+              </MDTypography>
+            </Grid>
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
@@ -693,6 +1005,168 @@ function SemesterConfig() {
                 helperText={errors.finalDraftDate}
                 margin="normal"
                 disabled={!isDateEditable(currentSemester?.finalDraftDate)}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Generación de Carta"
+                type="date"
+                value={editSemester.cartaDate}
+                onChange={(e) => handleFormChange("edit", "cartaDate", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: getCurrentDate() }}
+                error={!!errors.cartaDate}
+                helperText={errors.cartaDate}
+                margin="normal"
+                disabled={!isDateEditable(currentSemester?.cartaDate)}
+              />
+            </Grid>
+            {/* Investigación 2 */}
+            <Grid item xs={12}>
+              <MDTypography variant="h6" fontWeight="bold" color="info" mb={1}>
+                Fechas de Investigación 2
+              </MDTypography>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Borrador 1 (Inv. 2)"
+                type="date"
+                value={editSemester.inv2Borrador1}
+                onChange={(e) => handleFormChange("edit", "inv2Borrador1", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: getCurrentDate() }}
+                error={!!errors.inv2Borrador1}
+                helperText={errors.inv2Borrador1}
+                margin="normal"
+                disabled={!isDateEditable(currentSemester?.inv2Borrador1)}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Borrador 2 (Inv. 2)"
+                type="date"
+                value={editSemester.inv2Borrador2}
+                onChange={(e) => handleFormChange("edit", "inv2Borrador2", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: getCurrentDate() }}
+                error={!!errors.inv2Borrador2}
+                helperText={errors.inv2Borrador2}
+                margin="normal"
+                disabled={!isDateEditable(currentSemester?.inv2Borrador2)}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Borrador 3 (Inv. 2)"
+                type="date"
+                value={editSemester.inv2Borrador3}
+                onChange={(e) => handleFormChange("edit", "inv2Borrador3", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: getCurrentDate() }}
+                error={!!errors.inv2Borrador3}
+                helperText={errors.inv2Borrador3}
+                margin="normal"
+                disabled={!isDateEditable(currentSemester?.inv2Borrador3)}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Borrador 4 (Inv. 2)"
+                type="date"
+                value={editSemester.inv2Borrador4}
+                onChange={(e) => handleFormChange("edit", "inv2Borrador4", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: getCurrentDate() }}
+                error={!!errors.inv2Borrador4}
+                helperText={errors.inv2Borrador4}
+                margin="normal"
+                disabled={!isDateEditable(currentSemester?.inv2Borrador4)}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Borrador Final (Inv. 2)"
+                type="date"
+                value={editSemester.inv2BorradorFinal}
+                onChange={(e) => handleFormChange("edit", "inv2BorradorFinal", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: getCurrentDate() }}
+                error={!!errors.inv2BorradorFinal}
+                helperText={errors.inv2BorradorFinal}
+                margin="normal"
+                disabled={!isDateEditable(currentSemester?.inv2BorradorFinal)}
+              />
+            </Grid>
+            {/* Tutorías */}
+            <Grid item xs={12}>
+              <MDTypography variant="h6" fontWeight="bold" color="info" mb={1}>
+                Fechas de Tutorías
+              </MDTypography>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Informe 1 (Tutorías)"
+                type="date"
+                value={editSemester.tutInforme1}
+                onChange={(e) => handleFormChange("edit", "tutInforme1", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: getCurrentDate() }}
+                error={!!errors.tutInforme1}
+                helperText={errors.tutInforme1}
+                margin="normal"
+                disabled={!isDateEditable(currentSemester?.tutInforme1)}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Informe 2 (Tutorías)"
+                type="date"
+                value={editSemester.tutInforme2}
+                onChange={(e) => handleFormChange("edit", "tutInforme2", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: getCurrentDate() }}
+                error={!!errors.tutInforme2}
+                helperText={errors.tutInforme2}
+                margin="normal"
+                disabled={!isDateEditable(currentSemester?.tutInforme2)}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Informe 3 (Tutorías)"
+                type="date"
+                value={editSemester.tutInforme3}
+                onChange={(e) => handleFormChange("edit", "tutInforme3", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: getCurrentDate() }}
+                error={!!errors.tutInforme3}
+                helperText={errors.tutInforme3}
+                margin="normal"
+                disabled={!isDateEditable(currentSemester?.tutInforme3)}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Informe Final (Tutorías)"
+                type="date"
+                value={editSemester.tutInformeFinal}
+                onChange={(e) => handleFormChange("edit", "tutInformeFinal", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: getCurrentDate() }}
+                error={!!errors.tutInformeFinal}
+                helperText={errors.tutInformeFinal}
+                margin="normal"
+                disabled={!isDateEditable(currentSemester?.tutInformeFinal)}
               />
             </Grid>
           </Grid>
