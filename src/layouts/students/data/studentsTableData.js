@@ -35,10 +35,6 @@ export default function data(students) {
     </MDBox>
   );
 
-  console.log("hola2");
-
-    console.log(students);
-
   return {
     columns: [
       { Header: "Estudiante", accessor: "estudiante", width: "45%", align: "left" },

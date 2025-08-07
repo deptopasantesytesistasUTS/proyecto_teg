@@ -83,12 +83,10 @@ function Students() {
       // Si la respuesta es un array directamente
       if (Array.isArray(data)) {
         setStudents(data);
-        console.log("caso 1");
       }
       // Si la respuesta tiene la propiedad 'estudiantes'
       else if (Array.isArray(data.estudiantes)) {
         setStudents(data.estudiantes);
-        console.log("caso 2");
       } else {
         setStudents([]); // O maneja el error como prefieras
         console.error("La respuesta no contiene estudiantes válidos");
@@ -136,7 +134,7 @@ function Students() {
       headers: { "Content-Type": "application/json" },
     });
     
-    if (response.ok && newStudent.seccion == "investigación_II") {
+    if (response.ok) {
       const data = await response.json();
       console.log("tutorias")
       console.log(data)
@@ -148,8 +146,23 @@ function Students() {
   };
 
   useEffect(() => {
-    handleGetSectionsTutor(newStudent.carrera);
-  }, [newStudent.seccion]);
+    // Busca la sección seleccionada en el array de sections
+    console.log(newStudent.seccion)
+    const selectedSection = sections.find(
+      (section) => section.idSeccion === newStudent.seccion
+    );
+
+    if(selectedSection)
+{    console.log(selectedSection)
+    console.log(selectedSection.Materias.categoria)}
+    if (selectedSection && selectedSection.Materias.categoria === "investigación_II") {
+      handleGetSectionsTutor(newStudent.carrera);
+    } else {
+      setSectionsTutor([]);
+      setSectionTutor(false);
+      setNewStudent((prev) => ({ ...prev, seccion_tutor: "" }));
+    }
+  }, [newStudent.seccion, newStudent.carrera, sections]);
 
   useEffect(() => {
     handleGetCareers();
@@ -448,18 +461,18 @@ function Students() {
               <InputLabel id="seccion-add-label">Sección Tutorias</InputLabel>
               <Select
                 labelId="seccion-add-label"
-                name="seccion"
-                value={newStudent.seccion}
+                name="seccion_tutor"
+                value={newStudent.seccion_tutor}
                 label="Sección"
                 onChange={handleNewStudentChange}
                 disabled={!sectionTutor}
               >
                 <MenuItem value="">Seleccione una sección de tutor</MenuItem>
                 {sectionsTutor.map((section, index) => (
-                          <MenuItem key={index} value={section.idSeccion}>
-                            {section.letra + ") " + section.Materias.categoria}
-                          </MenuItem>
-                        ))}
+                  <MenuItem key={index} value={section.idSeccion}>
+                    {section.letra + ") " + section.Materias.categoria}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
             </Grid>
