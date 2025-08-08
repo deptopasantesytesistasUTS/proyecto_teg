@@ -178,6 +178,9 @@ function CourseView() {
             flexDirection: "column",
           }}
         >
+          {console.log("🔍 CourseViewStudents - userType que se pasa:", "estudiante")}
+          {console.log("🔍 CourseViewStudents - materia:", materia)}
+          {console.log("🔍 CourseViewStudents - subject que se pasa:", materia ? { nombre: `${materia.categoria}${materia.Carreras?.nombre ? ' - ' + materia.Carreras.nombre : ''}`, descripcion: `ID: ${materia.idMateria}` } : { nombre: `Materia #${materiaId}`, descripcion: "" })}
           <SubjectSideMenu
             open={true}
             onClose={() => {}}

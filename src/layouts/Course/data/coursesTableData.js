@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import MDBadge from "components/MDBadge";
+import { useNavigate } from "react-router-dom";
 
 // Componente para mostrar la materia
 const Course = ({ name, code, credits }) => (
@@ -93,10 +94,37 @@ export default function data(courses) {
       action: (
         <MDTypography
           component="a"
-          href={"/aulaVirtualAdm/" + c.idSeccion}
+          href="#"
           variant="caption"
           color="text"
           fontWeight="medium"
+          onClick={(e) => {
+            e.preventDefault();
+            console.log("Datos de la materia:", c);
+            console.log("idMateria:", c.idMateria);
+            console.log("idSeccion:", c.idSeccion);
+            console.log("idUnidad:", c.idUnidad);
+            console.log("id:", c.id);
+
+            const composedName = `${c.categoria || c.nombre || ''}${c.carrera ? ' - ' + c.carrera : ''}`.trim();
+
+            // Intentar diferentes propiedades para encontrar el ID correcto
+            const materiaId = c.idMateria || c.idSeccion || c.idUnidad || c.id;
+
+            if (materiaId) {
+              const params = new URLSearchParams({
+                name: composedName || '',
+                idMateria: c.idMateria ? String(c.idMateria) : '',
+                idSeccion: c.idSeccion ? String(c.idSeccion) : '',
+              });
+              const target = `/aula-virtual/${materiaId}?${params.toString()}`;
+              console.log("Navegando a:", target);
+              window.location.href = target;
+            } else {
+              console.error("No se encontró ID de materia para navegar. Propiedades disponibles:", Object.keys(c));
+            }
+          }}
+          sx={{ cursor: 'pointer' }}
         >
           Ver Aula Virtual
         </MDTypography>

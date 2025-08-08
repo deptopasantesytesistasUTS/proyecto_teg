@@ -199,7 +199,7 @@ export default function App() {
           <Route
             path="/aula-virtual/:idMateria"
             element={
-              <ProtectedRoute allowedRoles={[2]}>
+              <ProtectedRoute allowedRoles={[1, 2]}>
                 <CourseViewTeachers />
               </ProtectedRoute>
             }
@@ -253,7 +253,7 @@ export default function App() {
         <Route
           path="/aula-virtual/:idMateria"
           element={
-            <ProtectedRoute allowedRoles={[2]}>
+              <ProtectedRoute allowedRoles={[1, 2]}>
               <CourseViewTeachers />
             </ProtectedRoute>
           }

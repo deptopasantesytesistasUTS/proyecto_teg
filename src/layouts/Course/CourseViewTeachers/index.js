@@ -6,10 +6,6 @@ import PropTypes from "prop-types";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import Box from "@mui/material/Box";
-import InputLabel from "@mui/material/InputLabel";
-import MenuItem from "@mui/material/MenuItem";
-import FormControl from "@mui/material/FormControl";
-import Select from "@mui/material/Select";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import Tabs from "@mui/material/Tabs";
@@ -138,6 +134,10 @@ function CourseView() {
   const materiaId = id || idMateria;
   const location = useLocation();
   const navigate = useNavigate();
+  const search = new URLSearchParams(location.search);
+  const seccionParam = search.get('idSeccion');
+  const nombreParam = search.get('name');
+  const idMateriaParam = search.get('idMateria');
   
   // Eliminamos el array menuOptions fijo para que use la detección automática
   const [tabValue, setTabValue] = useState(0);
@@ -329,7 +329,6 @@ function CourseView() {
   const [materia, setMateria] = React.useState(null);
   const [loadingMateria, setLoadingMateria] = React.useState(true);
   const [errorMateria, setErrorMateria] = React.useState(null);
-  const [selectedSeccion, setSelectedSeccion] = useState(null);
   const [participantes, setParticipantes] = useState({ docente: null, estudiantes: [] });
   const [loadingParticipantes, setLoadingParticipantes] = useState(false);
   const [errorParticipantes, setErrorParticipantes] = useState(null);
@@ -340,15 +339,69 @@ function CourseView() {
 
   React.useEffect(() => {
     async function fetchMateria() {
+      console.log("🔍 CourseViewTeachers - Fetching materia with ID:", materiaId);
       setLoadingMateria(true);
       setErrorMateria(null);
       try {
-        const res = await fetch(`${process.env.REACT_APP_API_URL || "https://proyecto-teg-bakend.onrender.com/api"}/materias-aulavirtual/${materiaId}`);
+        const baseUrl = process.env.REACT_APP_API_URL || "https://proyecto-teg-bakend.onrender.com/api";
+        const res = await fetch(`${baseUrl}/materias-aulavirtual/${materiaId}`);
+        console.log("🔍 CourseViewTeachers - API Response status:", res.status);
         if (!res.ok) throw new Error("No se pudo obtener la materia. Verifica la conexión con el backend.");
         const data = await res.json();
+        console.log("🔍 CourseViewTeachers - API Response data:", data);
+        // Si no trae categoria o carrera, intentar fallback al listado
+        const hasCategoria = !!data?.categoria;
+        const hasCarrera = !!(data?.Carreras?.nombre || data?.carrera);
+        if (!hasCategoria || !hasCarrera) {
+          console.warn("⚠️ CourseViewTeachers - Datos incompletos, intentando fallback desde listado general");
+          try {
+            const resList = await fetch(`${baseUrl}/materias-aulavirtual`);
+            if (resList.ok) {
+              const list = await resList.json();
+              const foundById = Array.isArray(list) ? list.find((m) => Number(m.idMateria) === Number(materiaId)) : null;
+              const foundBySeccion = Array.isArray(list) ? list.find((m) => Array.isArray(m.secciones) && m.secciones.some((s) => Number(s.idSeccion) === Number(materiaId))) : null;
+              const found = foundById || foundBySeccion;
+              if (found) {
+                const merged = {
+                  ...data,
+                  categoria: data?.categoria || found.categoria,
+                  Carreras: data?.Carreras || (found.carrera ? { nombre: found.carrera } : undefined),
+                  idMateria: data?.idMateria || found.idMateria,
+                };
+                setMateria(merged);
+              } else {
+                setMateria(data);
+              }
+            } else {
+              setMateria(data);
+            }
+          } catch {
+            setMateria(data);
+          }
+        } else {
         setMateria(data);
+        }
       } catch (err) {
         setErrorMateria(err.message + ' (¿Está el backend corriendo y la URL es correcta?)');
+        // Fallback total: intentar construir desde listado público
+        try {
+          const baseUrl = process.env.REACT_APP_API_URL || "https://proyecto-teg-bakend.onrender.com/api";
+          const resList = await fetch(`${baseUrl}/materias-aulavirtual`);
+          if (resList.ok) {
+            const list = await resList.json();
+            const foundById = Array.isArray(list) ? list.find((m) => Number(m.idMateria) === Number(materiaId)) : null;
+            const foundBySeccion = Array.isArray(list) ? list.find((m) => Array.isArray(m.secciones) && m.secciones.some((s) => Number(s.idSeccion) === Number(materiaId))) : null;
+            const found = foundById || foundBySeccion;
+            if (found) {
+              setMateria({
+                idMateria: found.idMateria,
+                categoria: found.categoria,
+                Carreras: found.carrera ? { nombre: found.carrera } : undefined,
+                Secciones: found.secciones || [],
+              });
+            }
+          }
+        } catch {}
       } finally {
         setLoadingMateria(false);
       }
@@ -356,19 +409,13 @@ function CourseView() {
     if (materiaId) fetchMateria();
   }, [materiaId]);
 
-  // Cuando cambia la materia o la sección seleccionada, actualizar la sección seleccionada por defecto
+  // Fetch participantes cuando se selecciona la pestaña de participantes
   React.useEffect(() => {
-    if (materia && materia.Secciones && materia.Secciones.length > 0) {
-      setSelectedSeccion(materia.Secciones[0].idSeccion);
-    }
-  }, [materia]);
-
-  // Fetch participantes cuando cambia la sección seleccionada o la pestaña de participantes
-  React.useEffect(() => {
-    if (getSelectedMenuKey() === "participantes" && selectedSeccion) {
+    if (getSelectedMenuKey() === "participantes" && materia && materia.Secciones && materia.Secciones.length > 0) {
       setLoadingParticipantes(true);
       setErrorParticipantes(null);
-              fetch(`${process.env.REACT_APP_API_URL || "https://proyecto-teg-bakend.onrender.com/api"}/secciones/${selectedSeccion}/participantes`)
+      const primeraSeccion = materia.Secciones[0].idSeccion;
+      fetch(`${process.env.REACT_APP_API_URL || "https://proyecto-teg-bakend.onrender.com/api"}/secciones/${primeraSeccion}/participantes`)
         .then(res => {
           if (!res.ok) throw new Error("No se pudo obtener los participantes. Verifica la conexión con el backend.");
           return res.json();
@@ -377,7 +424,7 @@ function CourseView() {
         .catch(err => setErrorParticipantes(err.message + ' (¿Está el backend corriendo y la URL es correcta?)'))
         .finally(() => setLoadingParticipantes(false));
     }
-  }, [getSelectedMenuKey(), selectedSeccion]);
+  }, [getSelectedMenuKey(), materia]);
 
   // Fetch estudiantes por docente cuando se selecciona la pestaña de participantes
   React.useEffect(() => {
@@ -423,16 +470,27 @@ function CourseView() {
             flexDirection: "column",
           }}
         >
+          {console.log("🔍 CourseViewTeachers - userType que se pasa:", "docente")}
+          {console.log("🔍 CourseViewTeachers - user del contexto:", user)}
+          {console.log("🔍 CourseViewTeachers - materia completa:", materia)}
+          {console.log("🔍 CourseViewTeachers - materia.nombre:", materia?.nombre)}
+          {console.log("🔍 CourseViewTeachers - materia.categoria:", materia?.categoria)}
           <SubjectSideMenu
             open={true}
             onClose={() => {}}
             subject={
               materia
                 ? {
-                    nombre: materia.categoria,
-                    descripcion: materia.carrera ? materia.carrera : `ID: ${materia.idMateria}`,
+                    ...materia,
+                    carrera: materia.Carreras?.nombre || materia.carrera,
+                    nombre: `${materia.categoria}${(materia.Carreras?.nombre || materia.carrera) ? ' - ' + (materia.Carreras?.nombre || materia.carrera) : ''}`,
+                    descripcion: `ID: ${materia.idMateria}`,
                   }
-                : { nombre: `Materia #${materiaId}`, descripcion: "" }
+                : {
+                    nombre: nombreParam || `Materia #${materiaId}`,
+                    descripcion: `ID: ${idMateriaParam || materiaId}`,
+                    idMateria: Number(idMateriaParam || materiaId) || undefined,
+                  }
             }
             userType="docente"
             onOptionClick={handleMenuOptionClick}
@@ -521,25 +579,7 @@ function CourseView() {
                       uploadFile={uploadFile}
                     />
                   )}
-                  {getSelectedMenuKey() === "participantes" && materia && materia.Secciones && materia.Secciones.length > 1 && (
-                    <Box mb={2}>
-                      <FormControl fullWidth size="small">
-                        <InputLabel id="seccion-label">Sección</InputLabel>
-                        <Select
-                          labelId="seccion-label"
-                          value={selectedSeccion || ''}
-                          label="Sección"
-                          onChange={e => setSelectedSeccion(e.target.value)}
-                        >
-                          {materia.Secciones.map(sec => (
-                            <MenuItem key={sec.idSeccion} value={sec.idSeccion}>
-                              {sec.seccion_letra ? `Sección ${sec.seccion_letra}` : `Sección ${sec.idSeccion}`}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    </Box>
-                  )}
+
                   {getSelectedMenuKey() === "participantes" && (
                     loadingParticipantes ? <MDTypography>Cargando participantes...</MDTypography> :
                     errorParticipantes ? <MDTypography color="error">{errorParticipantes}</MDTypography> :

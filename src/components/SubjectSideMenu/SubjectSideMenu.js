@@ -80,82 +80,10 @@ const tutoriasDocenteOptions = [
     icon: <CheckCircleIcon />,
     key: "asistencia",
   },
-  {
-    text: "Control de Entrega",
-    icon: <AssignmentIcon />,
-    key: "control_entrega",
-  },
+  
 ];
 
-// Opciones para Trabajo Especial de Grado - ESTUDIANTE
-const trabajoEspecialEstudianteOptions = [
-  {
-    text: "Información",
-    icon: <InfoIcon />,
-    key: "informacion",
-  },
-  {
-    text: "Anuncios",
-    icon: <AnnouncementIcon />,
-    key: "anuncios",
-  },
-  {
-    text: "Participantes",
-    icon: <PeopleIcon />,
-    key: "participantes",
-  },
-  {
-    text: "Recursos",
-    icon: <FolderIcon />,
-    key: "recursos",
-  },
-  {
-    text: "Control de Entrega",
-    icon: <CheckCircleIcon />,
-    key: "control_entrega",
-  },
-];
-
-// Opciones para Tutorías - ESTUDIANTE
-const tutoriasEstudianteOptions = [
-  {
-    text: "Información",
-    icon: <InfoIcon />,
-    key: "informacion",
-  },
-  {
-    text: "Anuncios",
-    icon: <AnnouncementIcon />,
-    key: "anuncios",
-  },
-  {
-    text: "Cronograma",
-    icon: <ScheduleIcon />,
-    key: "cronograma",
-  },
-  {
-    text: "Participantes",
-    icon: <PeopleIcon />,
-    key: "participantes",
-  },
-  {
-    text: "Recursos",
-    icon: <FolderIcon />,
-    key: "recursos",
-  },
-  {
-    text: "Asistencia",
-    icon: <CheckCircleIcon />,
-    key: "asistencia",
-  },
-  {
-    text: "Control de Entrega",
-    icon: <AssignmentIcon />,
-    key: "control_entrega",
-  },
-];
-
-// Opciones por defecto (para materias regulares)
+// Opciones por defecto (TEG Y TUTORIAS II)
 const docenteOptions = [
   {
     text: "Información",
@@ -173,20 +101,21 @@ const docenteOptions = [
     key: "participantes",
   },
   {
+    text: "Control Actividades",
+    icon: <CheckCircleIcon />,
+    key: "control_entrega",
+  },
+  {
     text: "Recursos",
     icon: <FolderIcon />,
     key: "recursos",
   },
-  {
-    text: "Control de Entrega",
-    icon: <CheckCircleIcon />,
-    key: "control_entrega",
-  },
 ];
 
+// Opciones por defecto (TEG Y TUTORIAS II)
 const estudianteOptions = [
   {
-    text: "Home",
+    text: "Informacion",
     icon: <DashboardIcon />,
     key: "inicio",
   },
@@ -200,6 +129,26 @@ const estudianteOptions = [
     icon: <CloudUploadIcon />,
     key: "subir",
   },
+  {
+    text: "Recursos",
+    icon: <FolderIcon />,
+    key: "recursos",
+  },
+];
+
+// Opciones por tutorias - estudiantes 
+const estudianteOptionsTutorias = [
+  {
+    text: "Informacion",
+    icon: <DashboardIcon />,
+    key: "inicio",
+  },
+  {
+    text: "Fechas ",
+    icon: <EventNoteIcon />,
+    key: "cronograma",
+  },
+  
   {
     text: "Recursos",
     icon: <FolderIcon />,
@@ -245,7 +194,30 @@ function SubjectSideMenu({
       return options;
     }
     
-    // Determinar el tipo de materia basado en la categoría o nombre
+    // Si es estudiante, determinar el tipo de materia
+    if (userType === "estudiante") {
+      const materiaCategoria = subject?.categoria || "";
+      const materiaNombre = subject?.nombre || subject?.carrera || "";
+      
+      console.log("🚨 SubjectSideMenu - Valores extraídos para estudiante:", {
+        materiaCategoria,
+        materiaNombre
+      });
+      
+      // Detección para estudiantes
+      const categoriaLower = materiaCategoria.toLowerCase();
+      const nombreLower = materiaNombre.toLowerCase();
+      
+      if (categoriaLower === "tutorias" || nombreLower === "tutorias") {
+        console.log("🚨 SubjectSideMenu - Estudiante en tutorías, devolviendo estudianteOptionsTutorias");
+        return estudianteOptionsTutorias;
+      }
+      
+      console.log("🚨 SubjectSideMenu - Estudiante en materia regular, devolviendo estudianteOptions");
+      return estudianteOptions;
+    }
+    
+    // Para docentes y administradores, determinar el tipo de materia
     const materiaCategoria = subject?.categoria || "";
     const materiaNombre = subject?.nombre || subject?.carrera || "";
     
@@ -265,44 +237,66 @@ function SubjectSideMenu({
       esTutorias: nombreLower === "tutorias"
     });
     
-    // Detección directa por categoría o nombre exacto
+    // Detección directa por categoría o nombre exacto (para docentes y administradores)
     if (nombreLower === "trabajo_especial_de_grado") {
       console.log("🚨 SubjectSideMenu - DETECTADO: Trabajo Especial de Grado");
-      if (userType === "docente") {
         console.log("🚨 SubjectSideMenu - Devolviendo trabajoEspecialDocenteOptions");
         return trabajoEspecialDocenteOptions;
-      } else {
-        console.log("🚨 SubjectSideMenu - Devolviendo trabajoEspecialEstudianteOptions");
-        return trabajoEspecialEstudianteOptions;
-      }
     }
     
     if (nombreLower === "tutorias") {
       console.log("🚨 SubjectSideMenu - DETECTADO: Tutorías");
-      if (userType === "docente") {
         console.log("🚨 SubjectSideMenu - Devolviendo tutoriasDocenteOptions");
         return tutoriasDocenteOptions;
-      } else {
-        console.log("🚨 SubjectSideMenu - Devolviendo tutoriasEstudianteOptions");
-        return tutoriasEstudianteOptions;
-      }
     }
     
-    // Opciones por defecto
+    // Opciones por defecto para docentes y administradores
     console.log("🚨 SubjectSideMenu - DETECTADO: Materia regular");
-    if (userType === "docente") {
       console.log("🚨 SubjectSideMenu - Devolviendo docenteOptions");
       return docenteOptions;
-    } else {
-      console.log("🚨 SubjectSideMenu - Devolviendo estudianteOptions");
-      return estudianteOptions;
-    }
   }, [subject, userType, options]);
 
   console.log("SubjectSideMenu - menuOptions final:", menuOptions);
   console.log("SubjectSideMenu - Número de opciones:", menuOptions.length);
   console.log("SubjectSideMenu - Primera opción:", menuOptions[0]);
   console.log("SubjectSideMenu - Todas las opciones:", menuOptions.map(opt => ({key: opt.key, text: opt.text})));
+
+  // Título y descripción a mostrar en el header del menú
+  const displayTitle = useMemo(() => {
+    if (!subject) return "Materia";
+    
+    const categoria = subject.categoria || "";
+    const carrera = subject.carrera || subject.Carreras?.nombre || "";
+    
+    // Mostrar categoría si está disponible
+    if (categoria) {
+      return ` ${categoria}`;
+    }
+    
+    // Fallback al nombre directo si no hay categoría
+    return subject.nombre || "Materia";
+  }, [subject]);
+
+  const secondaryText = useMemo(() => {
+    if (!subject) return "";
+    
+    const carrera = subject.carrera || subject.Carreras?.nombre || "";
+    const id = subject.idMateria || subject.id || "";
+    
+    let info = [];
+    
+    // Agregar carrera si está disponible
+    if (carrera) {
+      info.push(`Carrera: ${carrera}`);
+    }
+    
+    // Agregar ID si está disponible
+    if (id) {
+      info.push(`ID: ${id}`);
+    }
+    
+    return info.join('\n');
+  }, [subject]);
 
   return (
     <Drawer
@@ -316,10 +310,17 @@ function SubjectSideMenu({
         <List sx={{ mb: 1 }}>
           <ListItem>
             <ListItemText
-              primary={subject ? (subject.carrera || subject.nombre) : "Materia"}
-              secondary={subject ? subject.descripcion : ""}
+              primary={displayTitle}
+              secondary={secondaryText}
               primaryTypographyProps={{ variant: "h6", sx: { color: '#fff', fontWeight: 700, letterSpacing: 1 } }}
-              secondaryTypographyProps={{ sx: { color: 'rgba(255,255,255,0.7)' } }}
+              secondaryTypographyProps={{ 
+                sx: { 
+                  color: 'rgba(255,255,255,0.7)', 
+                  whiteSpace: 'pre-line',
+                  fontSize: '0.875rem',
+                  lineHeight: 1.5
+                } 
+              }}
             />
           </ListItem>
         </List>

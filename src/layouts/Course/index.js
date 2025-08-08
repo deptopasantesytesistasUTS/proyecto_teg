@@ -138,6 +138,10 @@ function Course() {
     if (filterMateria) filtered = filtered.filter((row) => row.nombre === filterMateria);
     if (filterCarrera) filtered = filtered.filter((row) => row.carrera === filterCarrera);
     if (filterEstatus) filtered = filtered.filter((row) => row.estatus === filterEstatus);
+    
+    console.log("Datos filtrados que se pasan a coursesTableData:", filtered);
+    console.log("Primera materia:", filtered[0]);
+    
     setRows(coursesTableData(filtered).rows);
   }, [courses, filterMateria, filterCarrera, filterEstatus]);
 
@@ -215,7 +219,7 @@ function Course() {
                     >
                       <MenuItem value="">Todas</MenuItem>
                       <MenuItem value="Trabajo de Grado">Trabajo de Grado</MenuItem>
-                      <MenuItem value="Investigación 2">Investigación 2</MenuItem>
+                      <MenuItem value="Investigación 2">Investigación II</MenuItem>
                       <MenuItem value="Tutorias">Tutorias</MenuItem>
                     </Select>
                   </FormControl>
