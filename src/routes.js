@@ -61,6 +61,7 @@ import CourseViewStudents from "layouts/Course/CourseViewStudents";
 import DashboardTeachers from "layouts/dashboard-Teachers";
 import CourseViewTeachers from "layouts/Course/CourseViewTeachers";
 import SemesterConfig from "layouts/semester";
+import UsersSuperusuario from "layouts/users_superusuario";
 // @mui icons
 import Icon from "@mui/material/Icon";
 
@@ -72,7 +73,7 @@ const routes = [
     icon: <Icon fontSize="small">dashboard</Icon>,
     route: "/dashboard",
     component: <Dashboard />,
-    allowedRoles: [1],
+    allowedRoles: [1, 4 ],
   },
   {
     type: "collapse",
@@ -118,6 +119,7 @@ const routes = [
     component: <SemesterConfig />,
     allowedRoles: [1],
   },
+  
 
   // rutas profesores
   {
@@ -140,7 +142,17 @@ const routes = [
     component: <DashboardStudents />,
     allowedRoles: [3],
   },
-  // rutas publicas
+  //rutas superusuario 
+  {
+    type: "collapse",
+    name: "Usuarios",
+    key: "users-superusuario",
+    icon: <Icon fontSize="small">manage_accounts</Icon>,
+    route: "/users-superusuario",
+    component: <UsersSuperusuario />,
+    allowedRoles: [4],
+  },
+ // rutas publicas
   {
     type: "url",
     name: "Profile",
@@ -148,7 +160,7 @@ const routes = [
     icon: <Icon fontSize="small">person</Icon>,
     route: "/profile",
     component: <Profile />,
-    allowedRoles: [1, 2, 3],
+    allowedRoles: [1, 2, 3, 4],
   },
   
   {
@@ -158,7 +170,7 @@ const routes = [
     icon: <Icon fontSize="small">login</Icon>,
     route: "/authentication/sign-in",
     component: <SignIn />,
-    allowedRoles: [1, 2, 3],
+    allowedRoles: [1, 2, 3 ,4 ],
   },
   
 ];

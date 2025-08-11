@@ -58,6 +58,7 @@ function Sidenav({ routes }) {
 
     const isActive = key === collapseName;
 
+
     return href ? (
       <MDBox key={key} mx={1}>
         <a href={href} target="_blank" rel="noreferrer" style={{ textDecoration: "none" }}>

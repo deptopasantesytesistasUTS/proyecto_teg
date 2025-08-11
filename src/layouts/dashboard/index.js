@@ -32,6 +32,8 @@ import MDTypography from "components/MDTypography";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
+import ReportsBarChart from "examples/Charts/BarCharts/ReportsBarChart";
+import reportsBarChartData from "layouts/dashboard/data/reportsBarChartData";
 
 // Dashboard components
 import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
@@ -91,38 +93,15 @@ function Dashboard() {
               <MDBox mb={3}>
                 <OrdersOverview />
               </MDBox>
-            </Grid>
+              </Grid>
 
-            {/* Conectados Ahora */}
-            <Grid item xs={12} lg={4}>
-              <MDBox mb={3}>
-                <Card>
-                  <MDBox p={2} pb={0}>
-                    <MDTypography variant="h6" fontWeight="medium">
-                      Conectados Ahora
-                    </MDTypography>
-                    <Typography variant="body2" color="text.secondary">
-                      Usuarios actualmente en línea
-                    </Typography>
-                  </MDBox>
-                  <MDBox p={2}>
-                    <List>
-                      {connectedUsers.map((user) => (
-                        <ListItem key={user.id} disableGutters>
-                          <ListItemAvatar>
-                            <Avatar src={user.avatar} alt={user.name} />
-                          </ListItemAvatar>
-                          <ListItemText
-                            primary={user.name}
-                            secondary={user.role}
-                          />
-                        </ListItem>
-                      ))}
-                    </List>
-                  </MDBox>
-                </Card>
+             <MDBox mb={6}>
+                <ReportsBarChart
+                  color="info"
+                  title="ENTRADA DE ESTUDIANTES"
+                  chart={reportsBarChartData}
+                />
               </MDBox>
-            </Grid>
           </Grid>
         </MDBox>
       </MDBox>

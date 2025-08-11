@@ -90,6 +90,10 @@ function Basic() {
           console.log("Antes de navigate /dashboard-students");
           navigate("/dashboard-students");
           console.log("Después de navigate /dashboard-students");
+        } else if (userData.role === 4 || userData.role === "4") {
+          console.log("Antes de navigate /dashboard-students");
+          navigate("/dashboard");
+          console.log("Después de navigate /dashboard-students");
         } else {
           alert("Rol desconocido, no se puede redirigir.");
         }
