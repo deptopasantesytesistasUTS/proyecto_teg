@@ -15,52 +15,42 @@ Coded by www.creative-tim.com
 
 // @mui material components
 import Grid from "@mui/material/Grid";
+import Card from "@mui/material/Card";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemAvatar from "@mui/material/ListItemAvatar";
+import Avatar from "@mui/material/Avatar";
+import ListItemText from "@mui/material/ListItemText";
+import Typography from "@mui/material/Typography";
 import { useState, useEffect } from "react";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
+import MDTypography from "components/MDTypography";
 
 // Material Dashboard 2 React example components
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
-import ReportsBarChart from "examples/Charts/BarCharts/ReportsBarChart";
-import ReportsLineChart from "examples/Charts/LineCharts/ReportsLineChart";
-import ComplexStatisticsCard from "examples/Cards/StatisticsCards/ComplexStatisticsCard";
-
-// Data
-import reportsBarChartData from "layouts/dashboard/data/reportsBarChartData";
-import reportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
 
 // Dashboard components
-import Projects from "layouts/dashboard/components/Projects";
 import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
 import Cronograma from "layouts/dashboard/components/Cronograma";
 
+// Data
+import reportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
+
 function Dashboard() {
   const { sales, tasks } = reportsLineChartData;
-  const [dashboardEvents, setDashboardEvents] = useState([
-    {
-      id: 1,
-      title: "Reunión de Coordinación",
-      date: new Date(2024, 11, 15),
-      type: "reunion",
-      description: "Reunión mensual de coordinación académica"
-    },
-    {
-      id: 2,
-      title: "Evaluación de Proyectos",
-      date: new Date(2024, 11, 20),
-      type: "proyecto",
-      description: "Evaluación de proyectos finales de estudiantes"
-    },
-    {
-      id: 3,
-      title: "Planificación Semestral",
-      date: new Date(2024, 11, 25),
-      type: "clase",
-      description: "Planificación del próximo semestre académico"
-    }
+  const [dashboardEvents, setDashboardEvents] = useState([]);
+
+
+  // Lista simulada de conectados
+  const [connectedUsers, setConnectedUsers] = useState([
+    { id: 1, name: "Luis Cárdenas", role: "Administrador", avatar: "https://i.pravatar.cc/40?img=1" },
+    { id: 2, name: "Ismael Sánchez", role: "Docente", avatar: "https://i.pravatar.cc/40?img=2" },
+    { id: 3, name: "Kevin Sanabria", role: "Estudiante", avatar: "https://i.pravatar.cc/40?img=3" },
+    { id: 4, name: "Oriana Durán", role: "Coordinadora", avatar: "https://i.pravatar.cc/40?img=4" }
   ]);
 
   useEffect(() => {
@@ -103,10 +93,34 @@ function Dashboard() {
               </MDBox>
             </Grid>
 
-            {/* Projects */}
-            <Grid item xs={12}>
+            {/* Conectados Ahora */}
+            <Grid item xs={12} lg={4}>
               <MDBox mb={3}>
-                <Projects />
+                <Card>
+                  <MDBox p={2} pb={0}>
+                    <MDTypography variant="h6" fontWeight="medium">
+                      Conectados Ahora
+                    </MDTypography>
+                    <Typography variant="body2" color="text.secondary">
+                      Usuarios actualmente en línea
+                    </Typography>
+                  </MDBox>
+                  <MDBox p={2}>
+                    <List>
+                      {connectedUsers.map((user) => (
+                        <ListItem key={user.id} disableGutters>
+                          <ListItemAvatar>
+                            <Avatar src={user.avatar} alt={user.name} />
+                          </ListItemAvatar>
+                          <ListItemText
+                            primary={user.name}
+                            secondary={user.role}
+                          />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </MDBox>
+                </Card>
               </MDBox>
             </Grid>
           </Grid>
@@ -118,3 +132,4 @@ function Dashboard() {
 }
 
 export default Dashboard;
+

@@ -89,7 +89,7 @@ const routes = [
     icon: <Icon fontSize="small">table_view</Icon>,
     route: "/estudiantes/:id",
     component: <StudentProfile />,
-    allowedRoles: [1],
+    allowedRoles: [1, 2],
   },
   {
     type: "collapse",

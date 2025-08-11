@@ -20,6 +20,8 @@ import autoTable from "jspdf-autotable";
 import { saveAs } from "file-saver";
 import { useState, useMemo } from "react";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import { useNavigate } from "react-router-dom";
+import { getValidStudentId, wasCedulaMapped } from "utils/studentUtils";
 
 function adaptStudents(students) {
   if (!Array.isArray(students)) return [];
@@ -39,6 +41,18 @@ function adaptStudents(students) {
 }
 
 function ParticipantesList({ teachers, students }) {
+  const navigate = useNavigate();
+  
+  // Función helper para navegar al perfil del estudiante
+  const handleViewStudent = (cedula) => {
+    const validCedula = getValidStudentId(cedula);
+    console.log("🔍 ParticipantesList - Cédula original:", cedula);
+    console.log("🔍 ParticipantesList - Cédula a usar:", validCedula);
+    console.log("🔍 ParticipantesList - ¿Cédula fue mapeada?", wasCedulaMapped(cedula, validCedula));
+    
+    navigate(`/estudiantes/${validCedula}`);
+  };
+  
   const [searchName, setSearchName] = useState("");
   const [searchId, setSearchId] = useState("");
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -82,12 +96,15 @@ function ParticipantesList({ teachers, students }) {
     doc.save("estudiantes.pdf");
   };
 
-  // Función para ver perfil (puedes personalizar el modal)
+  // Función para ver perfil - navega al perfil del estudiante
   const handleViewProfile = (student) => {
-    setSelectedStudent(student);
-    alert(
-      `Perfil del estudiante:\n\nNombre: ${student.name}\nCédula: ${student.id}\nEmail: ${student.email}\nTeléfono: ${student.telf}`
-    );
+    const studentId = student.id || student.cedula;
+    if (studentId) {
+      handleViewStudent(studentId);
+    } else {
+      console.error("No se pudo obtener el ID del estudiante para navegar al perfil");
+      alert("Error: No se pudo acceder al perfil del estudiante");
+    }
   };
 
   return (
@@ -219,7 +236,7 @@ function ParticipantesList({ teachers, students }) {
             <MDTypography variant="body2"><b>Email:</b> {s.email}</MDTypography>
           </Box>
           <Box>
-            <Tooltip title="Ver perfil" arrow>
+            <Tooltip title="Ver perfil completo del estudiante" arrow>
               <Button
                 variant="outlined"
                 color="primary"

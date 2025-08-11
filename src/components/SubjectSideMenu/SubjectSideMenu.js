@@ -83,7 +83,7 @@ const tutoriasDocenteOptions = [
   
 ];
 
-// Opciones por defecto (TEG Y TUTORIAS II)
+// Opciones por defecto (TEG Y investigacion II)
 const docenteOptions = [
   {
     text: "Información",
@@ -112,7 +112,7 @@ const docenteOptions = [
   },
 ];
 
-// Opciones por defecto (TEG Y TUTORIAS II)
+// Opciones por defecto (TEG e investigacion II)
 const estudianteOptions = [
   {
     text: "Informacion",
@@ -182,15 +182,10 @@ function SubjectSideMenu({
 
   // Función para determinar las opciones según el tipo de materia y rol
   const menuOptions = useMemo(() => {
-    console.log("🚨 SubjectSideMenu - useMemo INICIADO");
-    console.log("🚨 SubjectSideMenu - subject:", subject);
-    console.log("🚨 SubjectSideMenu - userType:", userType);
-    console.log("🚨 SubjectSideMenu - options:", options);
-    console.log("🚨 SubjectSideMenu - options type:", typeof options);
-    console.log("🚨 SubjectSideMenu - options truthy:", !!options);
+    
     
     if (options) {
-      console.log("🚨 SubjectSideMenu - Retornando options personalizadas");
+      
       return options;
     }
     
@@ -209,11 +204,11 @@ function SubjectSideMenu({
       const nombreLower = materiaNombre.toLowerCase();
       
       if (categoriaLower === "tutorias" || nombreLower === "tutorias") {
-        console.log("🚨 SubjectSideMenu - Estudiante en tutorías, devolviendo estudianteOptionsTutorias");
+        
         return estudianteOptionsTutorias;
       }
       
-      console.log("🚨 SubjectSideMenu - Estudiante en materia regular, devolviendo estudianteOptions");
+     
       return estudianteOptions;
     }
     
@@ -230,36 +225,23 @@ function SubjectSideMenu({
     const categoriaLower = materiaCategoria.toLowerCase();
     const nombreLower = materiaNombre.toLowerCase();
     
-    console.log("🚨 SubjectSideMenu - Comparaciones:", {
-      categoriaLower,
-      nombreLower,
-      esTrabajoEspecial: nombreLower === "trabajo_especial_de_grado",
-      esTutorias: nombreLower === "tutorias"
-    });
+    
     
     // Detección directa por categoría o nombre exacto (para docentes y administradores)
     if (nombreLower === "trabajo_especial_de_grado") {
-      console.log("🚨 SubjectSideMenu - DETECTADO: Trabajo Especial de Grado");
-        console.log("🚨 SubjectSideMenu - Devolviendo trabajoEspecialDocenteOptions");
+      
         return trabajoEspecialDocenteOptions;
     }
     
     if (nombreLower === "tutorias") {
-      console.log("🚨 SubjectSideMenu - DETECTADO: Tutorías");
-        console.log("🚨 SubjectSideMenu - Devolviendo tutoriasDocenteOptions");
         return tutoriasDocenteOptions;
     }
     
-    // Opciones por defecto para docentes y administradores
-    console.log("🚨 SubjectSideMenu - DETECTADO: Materia regular");
-      console.log("🚨 SubjectSideMenu - Devolviendo docenteOptions");
       return docenteOptions;
   }, [subject, userType, options]);
 
   console.log("SubjectSideMenu - menuOptions final:", menuOptions);
-  console.log("SubjectSideMenu - Número de opciones:", menuOptions.length);
-  console.log("SubjectSideMenu - Primera opción:", menuOptions[0]);
-  console.log("SubjectSideMenu - Todas las opciones:", menuOptions.map(opt => ({key: opt.key, text: opt.text})));
+  
 
   // Título y descripción a mostrar en el header del menú
   const displayTitle = useMemo(() => {

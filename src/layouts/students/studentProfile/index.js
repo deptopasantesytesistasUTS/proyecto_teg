@@ -1,6 +1,8 @@
 import * as React from "react";
 // prop-types is a library for typechecking of props
 import PropTypes from "prop-types";
+import { useParams } from "react-router-dom";
+import { getValidStudentId, wasCedulaMapped } from "utils/studentUtils";
 
 // @mui material components
 import Grid from "@mui/material/Grid";
@@ -102,6 +104,15 @@ TabPanel.propTypes = {
 };
 
 function Overview() {
+  const { id } = useParams(); // Obtener el ID del estudiante de la URL
+  console.log("🔍 StudentProfile - ID del estudiante de la URL:", id);
+  
+  // Para pruebas, si el ID no existe en la lista válida, usar la primera cédula válida
+  const studentId = getValidStudentId(id);
+  console.log("🔍 StudentProfile - ID del estudiante a buscar:", studentId);
+  console.log("🔍 StudentProfile - ID original solicitado:", id);
+  console.log("🔍 StudentProfile - ¿ID fue mapeado?", wasCedulaMapped(id, studentId));
+  
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -133,6 +144,11 @@ function Overview() {
   const [accessPage, setAccessPage] = React.useState(true);
   const [accessResults, setAccessResults] = React.useState(true);
   const [accessDeliveries, setAccessDeliveries] = React.useState(false);
+  
+  // Student data state
+  const [studentData, setStudentData] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(null);
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
@@ -155,6 +171,88 @@ function Overview() {
       handleCloseCommunication();
     }
   };
+
+  // Función para cargar los datos del estudiante
+  const loadStudentData = React.useCallback(async () => {
+    if (!studentId) {
+      setError("No se proporcionó ID de estudiante");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Importar la URL del backend
+      const { backendUrl } = await import("config");
+      const url = `${backendUrl}/estudiantesA`;
+      
+      console.log("🔍 StudentProfile - Intentando cargar datos del estudiante");
+      console.log("🔍 StudentProfile - ID del estudiante:", studentId);
+      console.log("🔍 StudentProfile - URL de la petición:", url);
+      
+      const response = await fetch(url, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      console.log("🔍 StudentProfile - Status de la respuesta:", response.status);
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("🔍 StudentProfile - Datos de todos los estudiantes:", data);
+        
+        // Buscar el estudiante específico por cédula
+        const estudiantes = data.estudiantes || data;
+        const estudiante = estudiantes.find(est => String(est.cedula) === String(studentId));
+        
+        if (estudiante) {
+          console.log("🔍 StudentProfile - Estudiante encontrado:", estudiante);
+          setStudentData({
+            estudiante: {
+              cedula: estudiante.cedula,
+              nombre1: estudiante.nombre.split(' ')[0] || '',
+              nombre2: estudiante.nombre.split(' ')[1] || '',
+              apellido1: estudiante.nombre.split(' ')[2] || '',
+              apellido2: estudiante.nombre.split(' ')[3] || '',
+              telf: estudiante.telf || '',
+              Carreras: {
+                nombre: estudiante.carrera || ''
+              }
+            },
+            matricula: {
+              // Datos básicos de matrícula
+              materia: estudiante.materia || '',
+              status: estudiante.status || 'activo'
+            }
+          });
+        } else {
+          console.error("🔍 StudentProfile - Estudiante no encontrado con cédula:", studentId);
+          if (wasCedulaMapped(id, studentId)) {
+            setError(`Estudiante con cédula ${id} no encontrado. Mostrando perfil del estudiante ${studentId} como alternativa.`);
+          } else {
+            setError(`Estudiante con cédula ${studentId} no encontrado`);
+          }
+        }
+      } else {
+        const errorText = await response.text();
+        console.error("🔍 StudentProfile - Error al cargar datos del estudiante:", response.status);
+        console.error("🔍 StudentProfile - Respuesta de error:", errorText);
+        setError(`No se pudo cargar los datos del estudiante (${response.status})`);
+      }
+    } catch (error) {
+      console.error("🔍 StudentProfile - Error en la petición:", error);
+      setError("Error de conexión al cargar los datos del estudiante");
+    } finally {
+      setLoading(false);
+    }
+  }, [studentId]);
+
+  // Cargar datos del estudiante cuando cambie el ID
+  React.useEffect(() => {
+    loadStudentData();
+  }, [loadStudentData]);
 
   // Mock data for judges
   const assignedJudges = [
@@ -246,7 +344,27 @@ function Overview() {
   return (
     <DashboardLayout>
       <MDBox mb={2} />
-      <Header tabValue={tabValue} onTabChange={handleTabChange}>
+      
+      {/* Verificación de estado de carga y error */}
+      {loading && (
+        <MDBox display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+          <MDTypography variant="h6" color="text">
+            Cargando perfil del estudiante...
+          </MDTypography>
+        </MDBox>
+      )}
+      
+      {error && (
+        <MDBox display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+          <MDTypography variant="h6" color="error">
+            Error: {error}
+          </MDTypography>
+        </MDBox>
+      )}
+      
+      {!loading && !error && studentData && (
+        <>
+          <Header tabValue={tabValue} onTabChange={handleTabChange}>
         <MDBox mt={5} mb={3}>
           <Grid container spacing={1}>
             <Grid item xs={12} md={6} xl={4}>
@@ -734,6 +852,8 @@ function Overview() {
           </MDBox>
         </Box>
       </Modal>
+        </>
+      )}
 
       <Footer />
     </DashboardLayout>

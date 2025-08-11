@@ -6,12 +6,14 @@ import MDTypography from "components/MDTypography";
 import MDAvatar from "components/MDAvatar";
 import MDBadge from "components/MDBadge";
 
+
 // Images
 import team2 from "assets/images/team-2.jpg";
 import team3 from "assets/images/team-3.jpg";
 import team4 from "assets/images/team-4.jpg";
 
-export default function data(students) {
+export default function data(students, onViewStudent) {
+  
   const Estudiante = ({ image, name, id, email }) => (
     <MDBox display="flex" alignItems="center" lineHeight={1}>
       <MDAvatar src={image} name={name} size="sm" />
@@ -56,11 +58,20 @@ export default function data(students) {
       ),
       action: (
         <MDTypography
-          component="a"
-          href={"/estudiantes/" + student.cedula}
+          component="button"
+          onClick={() => onViewStudent ? onViewStudent(student.cedula) : window.location.href = `/estudiantes/${student.cedula}`}
           variant="caption"
           color="text"
           fontWeight="medium"
+          sx={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            textDecoration: 'underline',
+            '&:hover': {
+              color: 'primary.main',
+            }
+          }}
         >
           Ver Estudiante
         </MDTypography>

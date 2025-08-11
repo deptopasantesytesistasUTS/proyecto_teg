@@ -10,6 +10,8 @@ import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { getValidStudentId, wasCedulaMapped } from "utils/studentUtils";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
@@ -32,6 +34,18 @@ import studentsTableData from "layouts/students/data/studentsTableData";
 import { backendUrl } from "config";
 
 function Students() {
+  const navigate = useNavigate();
+  
+  // Función helper para navegar al perfil del estudiante
+  const handleViewStudent = (cedula) => {
+    const validCedula = getValidStudentId(cedula);
+    console.log("🔍 Students - Cédula original:", cedula);
+    console.log("🔍 Students - Cédula a usar:", validCedula);
+    console.log("🔍 Students - ¿Cédula fue mapeada?", wasCedulaMapped(cedula, validCedula));
+    
+    navigate(`/estudiantes/${validCedula}`);
+  };
+  
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const [careers, setCareers] = useState([]);
   const [sections, setSections] = useState([]);
@@ -39,8 +53,8 @@ function Students() {
   const [section, setSection] = useState(false);
   const [sectionTutor, setSectionTutor] = useState(false);
   const [students, setStudents] = useState([]);
-  const [columns, setColumns] = useState(studentsTableData(students).columns);
-  const [rows, setRows] = useState(studentsTableData(students).rows);
+  const [columns, setColumns] = useState(studentsTableData(students, handleViewStudent).columns);
+  const [rows, setRows] = useState(studentsTableData(students, handleViewStudent).rows);
   const [openNewDialog, setOpenNewDialog] = useState(false);
 
    // Close snackbar
@@ -175,7 +189,7 @@ function Students() {
   }, [newStudent.carrera]);
 
   useEffect(() => {
-    setRows(studentsTableData(students).rows);
+    setRows(studentsTableData(students, handleViewStudent).rows);
   }, [students]);
 
   const handleAddStudent = async () => {
@@ -248,7 +262,7 @@ function Students() {
       filtered = filtered.filter((row) => row && row.carrera);
       filtered.sort((a, b) => a.carrera.localeCompare(b.carrera));
     }
-    return studentsTableData(filtered).rows;
+    return studentsTableData(filtered, handleViewStudent).rows;
   };
 
   return (
