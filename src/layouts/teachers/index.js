@@ -101,8 +101,8 @@ function Teachers() {
       filteredRows.sort((a, b) => {
         const nameA = `${a.nombre}`.trim();
         const nameB = `${b.nombre}`.trim();
-        const idA = a.cedula || "";
-        const idB = b.cedula || "";
+        const idA = `${a.cedula}` || "";
+        const idB = `${b.cedula}` || "";
         switch (sortBy) {
           case "2": // Nombre
             return nameA.localeCompare(nameB);

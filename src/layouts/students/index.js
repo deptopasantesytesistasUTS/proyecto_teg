@@ -18,6 +18,8 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import Alert from "@mui/material/Alert";
 import Snackbar from "@mui/material/Snackbar";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -77,12 +79,99 @@ function Students() {
     cedula: "",
   });
 
+  const [validationErrors, setValidationErrors] = useState({
+    nombre1: "",
+    apellido1: "",
+    cedula: "",
+    nombre2: "",
+    apellido2: "",
+  });
+
   const handleOpenAdd = () => setOpenAdd(true);
-  const handleCloseAdd = () => setOpenAdd(false);
+  const handleCloseAdd = () => {
+    setOpenAdd(false);
+    setValidationErrors({
+      nombre1: "",
+      apellido1: "",
+      cedula: "",
+      nombre2: "",
+      apellido2: "",
+    });
+  };
+
+  // Función para validar solo letras
+  const validateLettersOnly = (value) => {
+    const lettersRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$/;
+    return lettersRegex.test(value);
+  };
+
+  const validateEmailStructure = (value) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(value);
+  };
+
+
+  // Función para validar solo números
+  const validateNumbersOnly = (value) => {
+    const numbersRegex = /^[0-9]*$/;
+    return numbersRegex.test(value);
+  };
+
+  // Función para validar campos obligatorios
+  const validateRequiredFields = () => {
+    const errors = {};
+    
+    if (!newStudent.nombre1.trim()) {
+      errors.nombre1 = "El primer nombre es obligatorio";
+    }
+    
+    if (!newStudent.apellido1.trim()) {
+      errors.apellido1 = "El primer apellido es obligatorio";
+    }
+    
+    if (!newStudent.cedula.trim()) {
+      errors.cedula = "La cédula es obligatoria";
+    }
+
+    if (!newStudent.correo.trim()) {
+      errors.correo = "El Correo es obligatoria";
+    }
+    
+    return errors;
+  };
 
   const handleNewStudentChange = (e) => {
     const { name, value } = e.target;
+    
+    // Validaciones en tiempo real
+    let error = "";
+    
+    if (name === "nombre1" || name === "nombre2" || name === "apellido1" || name === "apellido2") {
+      if (value && !validateLettersOnly(value)) {
+        error = "Solo se permiten letras";
+        return; // No actualizar el valor si no es válido
+      }
+    }
+    
+    if (name === "cedula") {
+      if (value && !validateNumbersOnly(value)) {
+        error = "Solo se permiten números";
+        return; // No actualizar el valor si no es válido
+      }
+    }
+    
+    // Limpiar error si el valor es válido
+    setValidationErrors(prev => ({ ...prev, [name]: error }));
+    
     setNewStudent((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleTelfChange = (value) => {
+    setNewStudent({
+      ...newStudent,
+      telf: value,
+    });
+    console.log(newStudent);
   };
 
   const handleGetStudents = async () => {
@@ -193,40 +282,61 @@ function Students() {
   }, [students]);
 
   const handleAddStudent = async () => {
-      const response = await fetch(`${backendUrl}/estudiante`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ newStudent }),
+    // Validar campos obligatorios
+    const errors = validateRequiredFields();
+    
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(prev => ({ ...prev, ...errors }));
+      setSnackbar({
+        open: true,
+        message: "Por favor, complete todos los campos obligatorios",
+        severity: "error",
       });
+      return;
+    }
 
-      const data = await response.json();
+    const response = await fetch(`${backendUrl}/estudiante`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ newStudent }),
+    });
 
-      if (response.ok) {
-        setOpenNewDialog(false);
-        setNewStudent({
-          nombre1: "",
-          nombre2: "",
-          apellido1: "",
-          apellido2: "",
-          correo: "",
-          telf: "",
-          carrera: "",
-          seccion: "",
-          cedula: "",
-        });
-        handleGetStudents();
-        setSnackbar({
-          open: true,
-          message: "Estudiante creado exitosamente",
-          severity: "success",
-        });
-      } else {
-        setSnackbar({
-          open: true,
-          message: "Fallo en la creacion del estudiante",
-          severity: "error",
-        });
-      }
+    const data = await response.json();
+
+    if (response.ok) {
+      setOpenNewDialog(false);
+      setNewStudent({
+        nombre1: "",
+        nombre2: "",
+        apellido1: "",
+        apellido2: "",
+        correo: "",
+        telf: "",
+        carrera: "",
+        seccion: "",
+        seccion_tutor: "",
+        cedula: "",
+      });
+      setValidationErrors({
+        nombre1: "",
+        apellido1: "",
+        cedula: "",
+        nombre2: "",
+        apellido2: "",
+      });
+      handleGetStudents();
+      setSnackbar({
+        open: true,
+        message: "Estudiante creado exitosamente",
+        severity: "success",
+      });
+    } else {
+      setSnackbar({
+        open: true,
+        message: "Fallo en la creacion del estudiante",
+        severity: "error",
+      });
+    }
     handleCloseAdd();
   };
 
@@ -251,13 +361,16 @@ function Students() {
     if (search) {
       filtered = filtered.filter((row) => row.nombre.toLowerCase().includes(search.toLowerCase()));
     }
+    if (search) {
+      filtered = filtered.filter((row) => `${row.cedula}`.toLowerCase().includes(search.toLowerCase()));
+    }
     // Ordenar
     if (orderBy === "Nombre") {
       filtered = filtered.filter((row) => row && row.nombre); // Solo los que tienen nombre
       filtered.sort((a, b) => a.nombre.localeCompare(b.nombre));
     } else if (orderBy === "Cedula") {
       filtered = filtered.filter((row) => row && row.cedula);
-      filtered.sort((a, b) => a.cedula.localeCompare(b.cedula));
+      filtered.sort((a, b) => `${a.cedula}`.localeCompare(b.cedula));
     } else if (orderBy === "Carrera") {
       filtered = filtered.filter((row) => row && row.carrera);
       filtered.sort((a, b) => a.carrera.localeCompare(b.carrera));
@@ -315,16 +428,16 @@ function Students() {
                     >
                       <MenuItem value="">Todas</MenuItem>
                       {careers.map((career, index) => (
-                          <MenuItem key={index} value={career.nombre}>
-                            {career.nombre}
-                          </MenuItem>
-                        ))}
+                        <MenuItem key={index} value={career.nombre}>
+                          {career.nombre}
+                        </MenuItem>
+                      ))}
                     </Select>
                   </FormControl>
                 </Grid>
                 <Grid item size={6} width={200}>
                   <FormControl variant="standard" fullWidth>
-                    <InputLabel id="materia-label">Materia</InputLabel>
+                    <InputLabel id="materia-label">Unidad</InputLabel>
                     <Select
                       labelId="materia-label"
                       id="materia-select"
@@ -333,7 +446,9 @@ function Students() {
                       onChange={(e) => setFilterMateria(e.target.value)}
                     >
                       <MenuItem value="">Todas</MenuItem>
-                      <MenuItem value="Trabajo_Especial_de_Grado">Trabajo Especial de Grado</MenuItem>
+                      <MenuItem value="Trabajo_Especial_de_Grado">
+                        Trabajo Especial de Grado
+                      </MenuItem>
                       <MenuItem value="investigación_II">Investigación II</MenuItem>
                       <MenuItem value="Tutorias">Tutorias</MenuItem>
                     </Select>
@@ -377,130 +492,146 @@ function Students() {
       <Dialog open={openAdd} onClose={handleCloseAdd}>
         <DialogTitle>Agregar Estudiante</DialogTitle>
         <DialogContent>
-           <Grid container spacing={2}>
+          <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
-            <TextField
-              label="Primer Nombre"
-              name="nombre1"
-              value={newStudent.nombre1}
-              onChange={handleNewStudentChange}
-              fullWidth
-            />
-            </Grid>
-            <Grid item xs={12} md={6}>
-            <TextField
-              label="Segundo Nombre"
-              name="nombre2"
-              value={newStudent.nombre2}
-              onChange={handleNewStudentChange}
-              fullWidth
-            />
-            </Grid>
-            <Grid item xs={12} md={6}>
-            <TextField
-              label="Primer Apellido"
-              name="apellido1"
-              value={newStudent.apellido1}
-              onChange={handleNewStudentChange}
-              fullWidth
-            />
-            </Grid>
-            <Grid item xs={12} md={6}>
-            <TextField
-              label="Segundo Apellido"
-              name="apellido2"
-              value={newStudent.apellido2}
-              onChange={handleNewStudentChange}
-              fullWidth
-            />
-            </Grid>
-            <Grid item xs={12} md={6}>
-            <TextField
-              label="Correo"
-              name="correo"
-              value={newStudent.correo}
-              onChange={handleNewStudentChange}
-              fullWidth
-            />
-            </Grid>
-            <Grid item xs={12} md={6}>
-            <TextField
-              label="Teléfono"
-              name="telf"
-              value={newStudent.telf}
-              onChange={handleNewStudentChange}
-              fullWidth
-            />
-            </Grid>
-            <Grid item xs={12} md={6}>
-            <FormControl variant="standard" fullWidth>
-              <InputLabel id="carrera-add-label">Carrera</InputLabel>
-              <Select
-                labelId="carrera-add-label"
-                name="carrera"
-                value={newStudent.carrera}
-                label="Carrera"
+              <TextField
+                label="Primer Nombre"
+                name="nombre1"
+                value={newStudent.nombre1}
                 onChange={handleNewStudentChange}
-              >
-                <MenuItem value="">Seleccione una carrera</MenuItem>
-                {careers.map((career, index) => (
-                          <MenuItem key={index} value={career.idCarrera}>
-                            {career.nombre}
-                          </MenuItem>
-                        ))}
-              </Select>
-            </FormControl>
+                fullWidth
+                error={!!validationErrors.nombre1}
+                helperText={validationErrors.nombre1}
+              />
             </Grid>
             <Grid item xs={12} md={6}>
-            <FormControl variant="standard" fullWidth>
-              <InputLabel id="seccion-add-label">Sección</InputLabel>
-              <Select
-                labelId="seccion-add-label"
-                name="seccion"
-                value={newStudent.seccion}
-                label="Sección"
+              <TextField
+                label="Segundo Nombre"
+                name="nombre2"
+                value={newStudent.nombre2}
                 onChange={handleNewStudentChange}
-                disabled={!section}
-              >
-                <MenuItem value="">Seleccione una sección</MenuItem>
-                {sections.map((section, index) => (
-                          <MenuItem key={index} value={section.idSeccion}>
-                            {section.letra + " " + section.Materias.categoria}
-                          </MenuItem>
-                        ))}
-              </Select>
-            </FormControl>
+                fullWidth
+                error={!!validationErrors.nombre2}
+                helperText={validationErrors.nombre2}
+              />
             </Grid>
             <Grid item xs={12} md={6}>
-            <FormControl variant="standard" fullWidth>
-              <InputLabel id="seccion-add-label">Sección Tutorias</InputLabel>
-              <Select
-                labelId="seccion-add-label"
-                name="seccion_tutor"
-                value={newStudent.seccion_tutor}
-                label="Sección"
+              <TextField
+                label="Primer Apellido"
+                name="apellido1"
+                value={newStudent.apellido1}
                 onChange={handleNewStudentChange}
-                disabled={!sectionsTutor}
-              >
-                <MenuItem value="">Seleccione una sección de tutor</MenuItem>
-                {sectionsTutor.map((section, index) => (
-                  <MenuItem key={index} value={section.idSeccion}>
-                    {section.letra + ") " + section.Materias.categoria}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+                fullWidth
+                error={!!validationErrors.apellido1}
+                helperText={validationErrors.apellido1}
+              />
             </Grid>
             <Grid item xs={12} md={6}>
-            <TextField
-              label="Cédula"
-              name="cedula"
-              value={newStudent.cedula}
-              onChange={handleNewStudentChange}
-              fullWidth
-            />
+              <TextField
+                label="Segundo Apellido"
+                name="apellido2"
+                value={newStudent.apellido2}
+                onChange={handleNewStudentChange}
+                fullWidth
+                error={!!validationErrors.apellido2}
+                helperText={validationErrors.apellido2}
+              />
             </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                label="Correo"
+                name="correo"
+                value={newStudent.correo}
+                onChange={handleNewStudentChange}
+                fullWidth
+              />
             </Grid>
+            <Grid item xs={12} md={6}>
+              <FormControl variant="standard" fullWidth>
+                <PhoneInput
+                  className="hola MuiInputBase-root  MuiInputBase-colorPrimary MuiInputBase-fullWidth MuiInputBase-formControl css-1u5lk04-MuiInputBase-root-MuiOutlinedInput-root"
+                  placeholder="Ingresar N° de Teléfono"
+                  value={newStudent.telf}
+                  onChange={handleTelfChange}
+                  defaultCountry="VE"
+                  numberInputProps={{
+                    className:
+                      "MuiInputBase-input MuiOutlinedInput-input css-5mmmz-MuiInputBase-input-MuiOutlinedInput-input",
+                  }}
+                />
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <FormControl variant="standard" fullWidth>
+                <InputLabel id="carrera-add-label">Carrera</InputLabel>
+                <Select
+                  labelId="carrera-add-label"
+                  name="carrera"
+                  value={newStudent.carrera}
+                  label="Carrera"
+                  onChange={handleNewStudentChange}
+                >
+                  <MenuItem value="">Seleccione una carrera</MenuItem>
+                  {careers.map((career, index) => (
+                    <MenuItem key={index} value={career.idCarrera}>
+                      {career.nombre}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <FormControl variant="standard" fullWidth>
+                <InputLabel id="seccion-add-label">Sección</InputLabel>
+                <Select
+                  labelId="seccion-add-label"
+                  name="seccion"
+                  value={newStudent.seccion}
+                  label="Sección"
+                  onChange={handleNewStudentChange}
+                  disabled={!section}
+                >
+                  <MenuItem value="">Seleccione una sección</MenuItem>
+                  {sections.map((section, index) => (
+                    <MenuItem key={index} value={section.idSeccion}>
+                      {section.letra + " " + section.Materias.categoria}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <FormControl variant="standard" fullWidth>
+                <InputLabel id="seccion-add-label">Sección Tutorias</InputLabel>
+                <Select
+                  labelId="seccion-add-label"
+                  name="seccion_tutor"
+                  value={newStudent.seccion_tutor}
+                  label="Sección"
+                  onChange={handleNewStudentChange}
+                  disabled={!sectionsTutor}
+                >
+                  <MenuItem value="">Seleccione una sección de tutor</MenuItem>
+                  {sectionsTutor.map((section, index) => (
+                    <MenuItem key={index} value={section.idSeccion}>
+                      {section.letra + ") " + section.Materias.categoria}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                label="Cédula"
+                name="cedula"
+                value={newStudent.cedula}
+                onChange={handleNewStudentChange}
+                fullWidth
+                error={!!validationErrors.cedula}
+                helperText={validationErrors.cedula}
+              />
+            </Grid>
+          </Grid>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseAdd}>Cancelar</Button>
@@ -510,8 +641,8 @@ function Students() {
         </DialogActions>
       </Dialog>
 
- {/* Snackbar for notifications */}
- <Snackbar
+      {/* Snackbar for notifications */}
+      <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={handleCloseSnackbar}

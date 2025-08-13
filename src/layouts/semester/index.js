@@ -42,12 +42,14 @@ import Footer from "examples/Footer";
 import Icon from "@mui/material/Icon";
 
 import { backendUrl } from "config";
+import { Button } from "@mui/material";
 
 function SemesterConfig() {
   const [currentSemester, setCurrentSemester] = useState(null);
   const [openNewDialog, setOpenNewDialog] = useState(false);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [cronogramaB, setCronogramaB] = useState(false)
 
   // Form states for new semester
   const [newSemester, setNewSemester] = useState({
@@ -65,10 +67,9 @@ function SemesterConfig() {
     inv2Borrador3: "",
     inv2Borrador4: "",
     inv2BorradorFinal: "",
-    tutInforme1: "",
-    tutInforme2: "",
-    tutInforme3: "",
-    tutInformeFinal: "",
+    tutInicio: "",
+    tutFinal: "",
+    urlCronograma: "",
   });
 
   // Form states for editing semester
@@ -87,11 +88,12 @@ function SemesterConfig() {
     inv2Borrador3: "",
     inv2Borrador4: "",
     inv2BorradorFinal: "",
-    tutInforme1: "",
-    tutInforme2: "",
-    tutInforme3: "",
-    tutInformeFinal: "",
+    tutInicio: "",
+    tutFinal: "",
+    urlCronograma: "",
   });
+
+  
 
   // Validation states
   const [errors, setErrors] = useState({});
@@ -100,6 +102,39 @@ function SemesterConfig() {
   const getCurrentDate = () => {
     const today = new Date();
     return today.toISOString().split("T")[0];
+  };
+
+  const validateLinkStructure = (value) => {
+    try {
+      new URL(value);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const handleEnlaceChange = (formType,nombreEntrega, enlace) => {
+    let error = "";
+    let errorBool = false;
+
+    if (enlace && !validateLinkStructure(enlace)) {
+      error = "Enlace Invalido";
+      errorBool = true;
+    } else {
+      errorBool = false;
+    }
+
+    if (errorBool) {
+      setSnackbar({
+        open: true,
+        message: error,
+        severity: "error",
+      });
+    }
+
+    setErrors((prev) => ({ ...prev, [nombreEntrega]: error }));
+
+    handleFormChange(formType, nombreEntrega, enlace);
   };
 
   // Validate dates
@@ -159,7 +194,6 @@ function SemesterConfig() {
       const draftDateFields = [
         'firstDraftDate', 'secondDraftDate', 'thirdDraftDate', 'finalDraftDate',
         'inv2Borrador1', 'inv2Borrador2', 'inv2Borrador3', 'inv2Borrador4', 'inv2BorradorFinal',
-        'tutInforme1', 'tutInforme2', 'tutInforme3', 'tutInformeFinal'
       ];
       
       const hasDraftDateChanged = draftDateFields.some(field => 
@@ -210,10 +244,8 @@ function SemesterConfig() {
 
         // Validate Tutorías report dates
         const tutReportDates = [
-          semesterData.tutInforme1,
-          semesterData.tutInforme2,
-          semesterData.tutInforme3,
-          semesterData.tutInformeFinal,
+          semesterData.tutInicio,
+          semesterData.tutFinal,
         ].filter((date) => date);
 
         for (let i = 0; i < tutReportDates.length - 1; i++) {
@@ -297,9 +329,6 @@ function SemesterConfig() {
 
     if (response.ok) {
       const data = await response.json();
-      console.log(data.semester);
-      console.log(data.semester.cartaDate);
-      console.log(formatDate(data.semester.cartaDate))
       setCurrentSemester({
         id: data.semester.id,
         startDate: data.semester.startDate,
@@ -315,18 +344,17 @@ function SemesterConfig() {
         inv2Borrador3: data.semester.inv2Borrador3,
         inv2Borrador4: data.semester.inv2Borrador4,
         inv2BorradorFinal: data.semester.inv2BorradorFinal,
-        tutInforme1: data.semester.tutInforme1,
-        tutInforme2: data.semester.tutInforme2,
-        tutInforme3: data.semester.tutInforme3,
-        tutInformeFinal: data.semester.tutInformeFinal,
+        tutInicio: data.semester.tutInicio,
+        tutFinal: data.semester.tutFinal,
+        urlCronograma: data.semester.urlCronograma,
       });
+      setCronogramaB(true);
     }
   };
 
   // Ejecutar al montar el componente para obtener el semestre actual
   useEffect(() => {
     handleGetCurrentSemester();
-    console.log(currentSemester);
   }, []);
 
   // Create new semester
@@ -357,10 +385,9 @@ function SemesterConfig() {
           inv2Borrador3: "",
           inv2Borrador4: "",
           inv2BorradorFinal: "",
-          tutInforme1: "",
-          tutInforme2: "",
-          tutInforme3: "",
-          tutInformeFinal: "",
+          tutInicio: "",
+          tutFinal: "",
+          urlCronograma: "",
         });
         setSnackbar({
           open: true,
@@ -421,10 +448,8 @@ function SemesterConfig() {
       inv2Borrador3: currentSemester.inv2Borrador3,
       inv2Borrador4: currentSemester.inv2Borrador4,
       inv2BorradorFinal: currentSemester.inv2BorradorFinal,
-      tutInforme1: currentSemester.tutInforme1,
-      tutInforme2: currentSemester.tutInforme2,
-      tutInforme3: currentSemester.tutInforme3,
-      tutInformeFinal: currentSemester.tutInformeFinal,
+      tutInicio: currentSemester.tutInicio,
+      tutFinal: currentSemester.tutFinal,
     });
     setOpenEditDialog(true);
   };
@@ -466,6 +491,14 @@ function SemesterConfig() {
               <MDTypography variant="h4" fontWeight="medium">
                 Configuración del Lapso Académico
               </MDTypography>
+              <Button
+                variant="outlined"
+                disabled={!cronogramaB}
+                href={currentSemester?.urlCronograma}
+              >
+                {" "}
+                Ver Cronograma
+              </Button>
               <MDButton
                 variant="gradient"
                 color="info"
@@ -482,7 +515,7 @@ function SemesterConfig() {
             <Card>
               <MDBox p={3}>
                 <MDTypography variant="h5" fontWeight="medium" mb={3}>
-                  Lapso Académico Actual
+                  Lapso Académico Actual {currentSemester?.id}
                 </MDTypography>
 
                 {currentSemester ? (
@@ -644,40 +677,20 @@ function SemesterConfig() {
                     <Grid item xs={12} md={6}>
                       <MDBox mb={2}>
                         <MDTypography variant="button" fontWeight="bold" color="text">
-                          Informe 1:
+                          Fecha Inicio:
                         </MDTypography>
                         <MDTypography variant="body2" color="text">
-                          {formatDate(currentSemester.tutInforme1)}
+                          {formatDate(currentSemester.tutInicio)}
                         </MDTypography>
                       </MDBox>
                     </Grid>
                     <Grid item xs={12} md={6}>
                       <MDBox mb={2}>
                         <MDTypography variant="button" fontWeight="bold" color="text">
-                          Informe 2:
+                          Fecha Final:
                         </MDTypography>
                         <MDTypography variant="body2" color="text">
-                          {formatDate(currentSemester.tutInforme2)}
-                        </MDTypography>
-                      </MDBox>
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <MDBox mb={2}>
-                        <MDTypography variant="button" fontWeight="bold" color="text">
-                          Informe 3:
-                        </MDTypography>
-                        <MDTypography variant="body2" color="text">
-                          {formatDate(currentSemester.tutInforme3)}
-                        </MDTypography>
-                      </MDBox>
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <MDBox mb={2}>
-                        <MDTypography variant="button" fontWeight="bold" color="text">
-                          Informe Final:
-                        </MDTypography>
-                        <MDTypography variant="body2" color="text">
-                          {formatDate(currentSemester.tutInformeFinal)}
+                          {formatDate(currentSemester.tutFinal)}
                         </MDTypography>
                       </MDBox>
                     </Grid>
@@ -762,6 +775,19 @@ function SemesterConfig() {
                 inputProps={{ min: getCurrentDate() }}
                 error={!!errors.endDate}
                 helperText={errors.endDate}
+                margin="normal"
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Enlace de Cronograma"
+                value={newSemester.urlCronograma}
+                InputLabelProps={{ shrink: true }}
+                onChange={(e) => handleEnlaceChange("new", "urlCronograma", e.target.value)}
+                placeholder="https://..."
+                error={!!errors.urlCronograma}
+                helperText={errors.urlCronograma}
                 margin="normal"
               />
             </Grid>
@@ -940,42 +966,14 @@ function SemesterConfig() {
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Informe 1 (Tutorías)"
+                label="Informe Inicio (Tutorías)"
                 type="date"
-                value={newSemester.tutInforme1}
-                onChange={(e) => handleFormChange("new", "tutInforme1", e.target.value)}
+                value={newSemester.tutInicio}
+                onChange={(e) => handleFormChange("new", "tutInicio", e.target.value)}
                 InputLabelProps={{ shrink: true }}
                 inputProps={{ min: getCurrentDate() }}
-                error={!!errors.tutInforme1}
-                helperText={errors.tutInforme1}
-                margin="normal"
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Informe 2 (Tutorías)"
-                type="date"
-                value={newSemester.tutInforme2}
-                onChange={(e) => handleFormChange("new", "tutInforme2", e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                inputProps={{ min: getCurrentDate() }}
-                error={!!errors.tutInforme2}
-                helperText={errors.tutInforme2}
-                margin="normal"
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Informe 3 (Tutorías)"
-                type="date"
-                value={newSemester.tutInforme3}
-                onChange={(e) => handleFormChange("new", "tutInforme3", e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                inputProps={{ min: getCurrentDate() }}
-                error={!!errors.tutInforme3}
-                helperText={errors.tutInforme3}
+                error={!!errors.tutInicio}
+                helperText={errors.tutInicio}
                 margin="normal"
               />
             </Grid>
@@ -984,12 +982,12 @@ function SemesterConfig() {
                 fullWidth
                 label="Informe Final (Tutorías)"
                 type="date"
-                value={newSemester.tutInformeFinal}
-                onChange={(e) => handleFormChange("new", "tutInformeFinal", e.target.value)}
+                value={newSemester.tutFinal}
+                onChange={(e) => handleFormChange("new", "tutFinal", e.target.value)}
                 InputLabelProps={{ shrink: true }}
                 inputProps={{ min: getCurrentDate() }}
-                error={!!errors.tutInformeFinal}
-                helperText={errors.tutInformeFinal}
+                error={!!errors.tutFinal}
+                helperText={errors.tutFinal}
                 margin="normal"
               />
             </Grid>
@@ -1061,6 +1059,19 @@ function SemesterConfig() {
                 helperText={errors.endDate}
                 margin="normal"
                 disabled={!isDateEditable(currentSemester?.endDate)}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Enlace de Cronograma"
+                value={newSemester.urlCronograma}
+                InputLabelProps={{ shrink: true }}
+                onChange={(e) => handleEnlaceChange("edit", "urlCronograma", e.target.value)}
+                placeholder="https://..."
+                error={!!errors.urlCronograma}
+                helperText={errors.urlCronograma}
+                margin="normal"
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -1263,46 +1274,16 @@ function SemesterConfig() {
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Informe 1 (Tutorías)"
+                label="Informe Inicio (Tutorías)"
                 type="date"
-                value={editSemester.tutInforme1}
-                onChange={(e) => handleFormChange("edit", "tutInforme1", e.target.value)}
+                value={editSemester.tutInicio}
+                onChange={(e) => handleFormChange("edit", "tutInicio", e.target.value)}
                 InputLabelProps={{ shrink: true }}
                 inputProps={{ min: getCurrentDate() }}
-                error={!!errors.tutInforme1}
-                helperText={errors.tutInforme1}
+                error={!!errors.tutInicio}
+                helperText={errors.tutInicio}
                 margin="normal"
-                disabled={!isDateEditable(currentSemester?.tutInforme1)}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Informe 2 (Tutorías)"
-                type="date"
-                value={editSemester.tutInforme2}
-                onChange={(e) => handleFormChange("edit", "tutInforme2", e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                inputProps={{ min: getCurrentDate() }}
-                error={!!errors.tutInforme2}
-                helperText={errors.tutInforme2}
-                margin="normal"
-                disabled={!isDateEditable(currentSemester?.tutInforme2)}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Informe 3 (Tutorías)"
-                type="date"
-                value={editSemester.tutInforme3}
-                onChange={(e) => handleFormChange("edit", "tutInforme3", e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                inputProps={{ min: getCurrentDate() }}
-                error={!!errors.tutInforme3}
-                helperText={errors.tutInforme3}
-                margin="normal"
-                disabled={!isDateEditable(currentSemester?.tutInforme3)}
+                disabled={!isDateEditable(currentSemester?.tutInicio)}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -1310,14 +1291,14 @@ function SemesterConfig() {
                 fullWidth
                 label="Informe Final (Tutorías)"
                 type="date"
-                value={editSemester.tutInformeFinal}
-                onChange={(e) => handleFormChange("edit", "tutInformeFinal", e.target.value)}
+                value={editSemester.tutFinal}
+                onChange={(e) => handleFormChange("edit", "tutFinal", e.target.value)}
                 InputLabelProps={{ shrink: true }}
                 inputProps={{ min: getCurrentDate() }}
-                error={!!errors.tutInformeFinal}
-                helperText={errors.tutInformeFinal}
+                error={!!errors.tutFinal}
+                helperText={errors.tutFinal}
                 margin="normal"
-                disabled={!isDateEditable(currentSemester?.tutInformeFinal)}
+                disabled={!isDateEditable(currentSemester?.tutFinal)}
               />
             </Grid>
           </Grid>
