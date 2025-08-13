@@ -6,14 +6,11 @@ import MDTypography from "components/MDTypography";
 import MDAvatar from "components/MDAvatar";
 import MDBadge from "components/MDBadge";
 
-
 // Images
 import team2 from "assets/images/team-2.jpg";
-import team3 from "assets/images/team-3.jpg";
-import team4 from "assets/images/team-4.jpg";
 
-export default function data(students, onViewStudent) {
-  
+export default function data(students, onViewStudent, onDeleteClick) {
+  // Cambiado a onDeleteClick
   const Estudiante = ({ image, name, id, email }) => (
     <MDBox display="flex" alignItems="center" lineHeight={1}>
       <MDAvatar src={image} name={name} size="sm" />
@@ -45,37 +42,52 @@ export default function data(students, onViewStudent) {
       { Header: "Acciones", accessor: "action", align: "center" },
     ],
 
-
     rows: students.map((student) => ({
       estudiante: (
         <Estudiante name={student.nombre} id={student.cedula} image={team2} email={student.email} />
       ),
-      carrera: <Job title={student.carrera} description={student.materia.map((m) => {
-        return `${m} `;})} />,
+      carrera: <Job title={student.carrera} description={student.materia.map((m) => `${m} `)} />,
       estatus: (
         <MDBox ml={-1}>
           <MDBadge badgeContent={student.status} color="success" variant="gradient" size="sm" />
         </MDBox>
       ),
       action: (
-        <MDTypography
-          component="button"
-          onClick={() => onViewStudent ? onViewStudent(student.cedula) : window.location.href = `/estudiantes/${student.cedula}`}
-          variant="caption"
-          color="text"
-          fontWeight="medium"
-          sx={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            textDecoration: 'underline',
-            '&:hover': {
-              color: 'primary.main',
-            }
-          }}
-        >
-          Ver Estudiante
-        </MDTypography>
+        <>
+          <MDTypography
+            component="button"
+            onClick={() => onViewStudent?.(student.cedula)}
+            variant="caption"
+            color="text"
+            fontWeight="medium"
+            sx={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              textDecoration: "underline",
+              "&:hover": { color: "primary.main" },
+              marginRight: "10px",
+            }}
+          >
+            Ver Estudiante
+          </MDTypography>
+          <MDTypography
+            component="button"
+            onClick={() => onDeleteClick?.(student.cedula)}
+            variant="caption"
+            color="text"
+            fontWeight="medium"
+            sx={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              textDecoration: "underline",
+              "&:hover": { color: "error.main" },
+            }}
+          >
+            Borrar Estudiante
+          </MDTypography>
+        </>
       ),
     })),
   };

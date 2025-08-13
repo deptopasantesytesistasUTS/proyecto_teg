@@ -15,6 +15,7 @@ import { getValidStudentId, wasCedulaMapped } from "utils/studentUtils";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
+import DialogContentText  from "@mui/material/DialogContentText";
 import DialogActions from "@mui/material/DialogActions";
 import Alert from "@mui/material/Alert";
 import Snackbar from "@mui/material/Snackbar";
@@ -55,8 +56,12 @@ function Students() {
   const [section, setSection] = useState(false);
   const [sectionTutor, setSectionTutor] = useState(false);
   const [students, setStudents] = useState([]);
-  const [columns, setColumns] = useState(studentsTableData(students, handleViewStudent).columns);
-  const [rows, setRows] = useState(studentsTableData(students, handleViewStudent).rows);
+  const [columns, setColumns] = useState(
+    studentsTableData(students, handleViewStudent).columns
+  );
+  const [rows, setRows] = useState(
+    studentsTableData(students, handleViewStudent).rows
+  );
   const [openNewDialog, setOpenNewDialog] = useState(false);
 
   // Close snackbar
@@ -97,6 +102,41 @@ function Students() {
       nombre2: "",
       apellido2: "",
     });
+  };
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [studentToDelete, setStudentToDelete] = useState(null);
+
+  const handleDeleteClick = (cedula) => {
+    setStudentToDelete(cedula);
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (studentToDelete) {
+      const response = await fetch(`${backendUrl}/matriculas`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({cedula: studentToDelete}),
+      });
+
+      console.log(response.ok);
+      if (response.ok) {
+        handleGetStudents();
+        setSnackbar({
+          open: true,
+          message: "Estudiante creado exitosamente",
+          severity: "success",
+        });
+      }
+    } else {
+      setSnackbar({
+        open: true,
+        message: "Fallo al borrar al estudiante",
+        severity: "error",
+      });
+    }
+    setDeleteModalOpen(false);
   };
 
   // Función para validar solo letras
@@ -253,8 +293,6 @@ function Students() {
 
     if (response.ok) {
       const data = await response.json();
-      console.log("tutorias");
-      console.log(data);
       setSectionsTutor(data);
       setSectionTutor(true);
     } else {
@@ -291,7 +329,7 @@ function Students() {
   }, [newStudent.carrera]);
 
   useEffect(() => {
-    setRows(studentsTableData(students, handleViewStudent).rows);
+    setRows(studentsTableData(students, handleViewStudent, handleDeleteClick).rows);
   }, [students]);
 
   const handleAddStudent = async () => {
@@ -397,7 +435,7 @@ function Students() {
       filtered = filtered.filter((row) => row && row.carrera);
       filtered.sort((a, b) => a.carrera.localeCompare(b.carrera));
     }
-    return studentsTableData(filtered, handleViewStudent).rows;
+    return studentsTableData(filtered, handleViewStudent, handleDeleteClick).rows;
   };
 
   return (
@@ -500,7 +538,7 @@ function Students() {
 
               <MDBox pt={1}>
                 <DataTable
-                  table={{ columns: columns, rows: getFilteredRows() }}
+                  table={{ columns: columns, rows: getFilteredRows(),  }}
                   isSorted={false}
                   entriesPerPage={false}
                   showTotalEntries={false}
@@ -665,6 +703,20 @@ function Students() {
           <Button onClick={handleCloseAdd}>Cancelar</Button>
           <Button onClick={handleAddStudent} variant="contained">
             Agregar
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Modal de confirmación */}
+      <Dialog open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)}>
+        <DialogTitle>Confirmar eliminación</DialogTitle>
+        <DialogContent>
+          <DialogContentText>¿Estás seguro que deseas eliminar este estudiante?</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteModalOpen(false)}>Cancelar</Button>
+          <Button onClick={handleConfirmDelete} color="error">
+            Eliminar
           </Button>
         </DialogActions>
       </Dialog>

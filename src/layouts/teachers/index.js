@@ -36,6 +36,12 @@ function Teachers() {
   // Estado para la lista de docentes
   const [teachers, setTeachers] = React.useState([]);
   const { columns } = teachersTableData([]); // columnas sin carrera
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+
+  // Close snackbar
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
 
   // Estado para filtros
   const [sortBy, setSortBy] = React.useState("1");
@@ -134,6 +140,9 @@ function Teachers() {
 
     if (!formData.email.trim()) {
       errors.email = "El Correo es obligatoria";
+      if (formData.email && !validateEmailStructure(formData.email)) {
+        error.email = "Correo Electronico Invalido";
+      }
     }
 
     return errors;
@@ -196,11 +205,21 @@ function Teachers() {
     }
 
     console.log(field);
+    console.log(field === "id");
 
     if (field === "id") {
+      console.log(value && !validateNumbersOnly(value));
+      console.log("value: " + value);
+      console.log(!validateNumbersOnly(value));
       if (value && !validateNumbersOnly(value)) {
         error = "Solo se permiten números";
         return; // No actualizar el valor si no es válido
+      }
+    }
+
+    if (field === "email") {
+      if (value && !validateEmailStructure(value)) {
+        error = "Correo Electronico Invalido";
       }
     }
 
@@ -346,6 +365,8 @@ function Teachers() {
                               size="medium"
                               value={formData.firstName}
                               onChange={(e) => handleFormChange("firstName", e.target.value)}
+                              error={!!validationErrors.firstName}
+                              helperText={validationErrors.firstName}
                             />
                           </Grid>
                           <Grid item xs={12} sm={6}>
@@ -356,6 +377,8 @@ function Teachers() {
                               size="medium"
                               value={formData.secondName}
                               onChange={(e) => handleFormChange("secondName", e.target.value)}
+                              error={!!validationErrors.secondName}
+                              helperText={validationErrors.secondName}
                             />
                           </Grid>
                           <Grid item xs={12} sm={6}>
@@ -366,6 +389,8 @@ function Teachers() {
                               size="medium"
                               value={formData.firstLastName}
                               onChange={(e) => handleFormChange("firstLastName", e.target.value)}
+                              error={!!validationErrors.firstLastName}
+                              helperText={validationErrors.firstLastName}
                             />
                           </Grid>
                           <Grid item xs={12} sm={6}>
@@ -376,17 +401,20 @@ function Teachers() {
                               size="medium"
                               value={formData.secondLastName}
                               onChange={(e) => handleFormChange("secondLastName", e.target.value)}
+                              error={!!validationErrors.secondLastName}
+                              helperText={validationErrors.secondLastName}
                             />
                           </Grid>
                           <Grid item xs={12} sm={6}>
                             <TextField
                               fullWidth
-                              type="number"
                               label="Cédula"
                               variant="outlined"
                               size="medium"
                               value={formData.id}
                               onChange={(e) => handleFormChange("id", e.target.value)}
+                              error={!!validationErrors.id}
+                              helperText={validationErrors.id}
                             />
                           </Grid>
                           <Grid item xs={12} sm={6}>
@@ -397,6 +425,8 @@ function Teachers() {
                               size="medium"
                               value={formData.email}
                               onChange={(e) => handleFormChange("email", e.target.value)}
+                              error={!!validationErrors.email}
+                              helperText={validationErrors.email}
                             />
                           </Grid>
                           <Grid item xs={12} md={6}>
@@ -415,11 +445,6 @@ function Teachers() {
                             </FormControl>
                           </Grid>
                         </Grid>
-                        {error && (
-                          <MDTypography color="error" mt={2}>
-                            {error}
-                          </MDTypography>
-                        )}
                         <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 4 }}>
                           <Button variant="outlined" onClick={handleClose} sx={{ minWidth: 100 }}>
                             Cancelar
@@ -452,6 +477,20 @@ function Teachers() {
           </Grid>
         </Grid>
       </MDBox>
+      
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: "100%" }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
       <Footer />
     </DashboardLayout>
   );
