@@ -45,7 +45,22 @@ import { Button, Card, Stack } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import Modal from "@mui/material/Modal";
 import { TextField } from "@mui/material";
+import { styled } from "@mui/material/styles";
 import Box from "@mui/material/Box";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+
+const VisuallyHiddenInput = styled("input")({
+  clip: "rect(0 0 0 0)",
+  clipPath: "inset(50%)",
+  height: 1,
+  overflow: "hidden",
+  position: "absolute",
+  bottom: 0,
+  left: 0,
+  whiteSpace: "nowrap",
+  width: 1,
+});
+
 
 // Overview page components
 import Header from "./components/Header";
@@ -62,6 +77,8 @@ import team2 from "assets/images/team-2.jpg";
 import team3 from "assets/images/team-3.jpg";
 import team4 from "assets/images/team-4.jpg";
 import informatica from "assets/images/informatica.png";
+
+ 
 
 const style = {
   position: "absolute",
@@ -99,6 +116,7 @@ TabPanel.propTypes = {
 
 function Profile() {
   // User data state
+
   const [userData, setUserData] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
@@ -114,6 +132,201 @@ function Profile() {
     email: "",
   });
 
+  const [passwordData, setPasswordData] = React.useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [passwordErrors, setPasswordErrors] = React.useState({
+    current: "",
+    new: "",
+    confirm: "",
+  });
+
+  // Estados para la imagen de perfil
+  const [profileImage, setProfileImage] = React.useState(null);
+  const [ProfileImageURL, setProfileImageURL] = React.useState("");
+  const [imagePreview, setImagePreview] = React.useState(null);
+  const [imageError, setImageError] = React.useState("");
+
+  // Manejar cambio de imagen
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+
+    if (!file) {
+      setImageError("No se seleccionó ningún archivo");
+      return;
+    }
+
+    // Validar tipo de archivo
+    if (!file.type.match("image.*")) {
+      setImageError("Por favor selecciona un archivo de imagen (JPEG, PNG)");
+      return;
+    }
+
+    // Validar tamaño (2MB máximo)
+    if (file.size > 2 * 1024 * 1024) {
+      setImageError("La imagen no debe exceder los 2MB");
+      return;
+    }
+
+    // Crear previsualización
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        // Validar dimensiones
+        if (img.width !== 80 || img.height !== 80) {
+          setImageError("La imagen debe ser exactamente de 80x80 píxeles");
+          return;
+        }
+
+        setImageError("");
+        setImagePreview(e.target.result);
+        setProfileImage(file);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  async function getProfileImageUrl(userId) {
+    try {
+      const response = await fetch(`${backendUrl}/user/profileImage/${userId}`);
+
+      if (response.ok) {
+        // Para uso en componentes o como background
+        console.log(`${backendUrl}/user/profileImage/${userId}?t=${Date.now()}`)
+        return `${backendUrl}/user/profileImage/${userId}?t=${Date.now()}`;
+      }
+      return "/default-profile.webp";
+    } catch (error) {
+      console.error("Error al obtener imagen:", error);
+      return "/default-profile.webp";
+    }
+  }
+
+  // Subir imagen al servidor
+  const uploadProfileImage = async () => {
+    if (!profileImage || imageError) {
+      setSnackbar({
+        open: true,
+        message: "Por favor corrige los errores antes de subir",
+        severity: "error",
+      });
+      return;
+    }
+
+    try {
+      let user = null;
+      try {
+        const userStr = localStorage.getItem("user");
+        if (userStr) {
+          user = JSON.parse(userStr);
+        }
+      } catch (e) {
+        user = null;
+      }
+      const userId = user.userId; // You might need to adjust this based on your auth system
+      const formData = new FormData();
+      formData.append("profileImage", profileImage);
+      formData.append("userId", userId);
+      console.log("form")
+      console.log(formData)
+
+      const response = await fetch(`${backendUrl}/user/profileImage`, {
+        method: "PUT",
+        body: formData,
+        // No incluir Content-Type, el navegador lo establecerá con el boundary correcto
+      });
+
+      if (response.ok) {
+        setSnackbar({
+          open: true,
+          message: "Imagen de perfil actualizada exitosamente",
+          severity: "success",
+        });
+        // Actualizar la vista con la nueva imagen
+        fetchUserData();
+      } else {
+        const errorData = await response.json();
+        setSnackbar({
+          open: true,
+          message: errorData.message || "Error al subir la imagen",
+          severity: "error",
+        });
+      }
+    } catch (err) {
+      setSnackbar({
+        open: true,
+        message: "Error de conexión al subir la imagen",
+        severity: "error",
+      });
+    }
+  };
+
+  const validatePassword = (password) => {
+    const errors = [];
+    if (password.length < 8) errors.push("Al menos 8 caracteres");
+    if (!/[A-Z]/.test(password)) errors.push("Al menos una mayúscula");
+    if (!/[a-z]/.test(password)) errors.push("Al menos una minúscula");
+    if (!/[0-9]/.test(password)) errors.push("Al menos un número");
+    if (!/[^A-Za-z0-9]/.test(password)) errors.push("Al menos un carácter especial");
+    return errors;
+  };
+
+  // Manejar cambios en los campos de contraseña
+  const handlePasswordChange = (field, value) => {
+    setPasswordData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+
+    // Validaciones en tiempo real
+    if (field === "newPassword") {
+      const errors = validatePassword(value);
+      setPasswordErrors((prev) => ({
+        ...prev,
+        new: errors.length > 0 ? errors.join(", ") : "",
+      }));
+    } else if (field === "confirmPassword" && value !== passwordData.newPassword) {
+      setPasswordErrors((prev) => ({
+        ...prev,
+        confirm: "Las contraseñas no coinciden",
+      }));
+    } else if (field === "confirmPassword") {
+      setPasswordErrors((prev) => ({
+        ...prev,
+        confirm: "",
+      }));
+    }
+  };
+
+  // Validar antes de enviar
+  const validateBeforeSubmit = () => {
+    let valid = true;
+    const newErrors = { current: "", new: "", confirm: "" };
+
+    if (!passwordData.currentPassword) {
+      newErrors.current = "La contraseña actual es requerida";
+      valid = false;
+    }
+
+    const newPassErrors = validatePassword(passwordData.newPassword);
+    if (newPassErrors.length > 0) {
+      newErrors.new = newPassErrors.join(", ");
+      valid = false;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      newErrors.confirm = "Las contraseñas no coinciden";
+      valid = false;
+    }
+
+    setPasswordErrors(newErrors);
+    return valid;
+  };
+
   // Modal states
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
@@ -128,21 +341,8 @@ function Profile() {
   const handleOpen4 = () => setOpen4(true);
   const handleClose4 = () => setOpen4(false);
 
-  // Communication modal state
-  const [openCommunication, setOpenCommunication] = React.useState(false);
-  const handleOpenCommunication = () => setOpenCommunication(true);
-  const handleCloseCommunication = () => setOpenCommunication(false);
-  const [communicationTitle, setCommunicationTitle] = React.useState("");
-  const [communicationDescription, setCommunicationDescription] = React.useState("");
-
   // Tab state
   const [tabValue, setTabValue] = React.useState(0);
-
-  // Configuration state
-  const [accessPage, setAccessPage] = React.useState(true);
-  const [accessResults, setAccessResults] = React.useState(true);
-  const [accessDeliveries, setAccessDeliveries] = React.useState(false);
-
   // Snackbar state
   const [snackbar, setSnackbar] = React.useState({ open: false, message: "", severity: "success" });
 
@@ -152,17 +352,17 @@ function Profile() {
       setLoading(true);
       // Get user ID from localStorage or context
       let user = null;
-try {
-  const userStr = localStorage.getItem("user");
-  if (userStr) {
-    user = JSON.parse(userStr);
-  }
-} catch (e) {
-  user = null;
-}
-      console.log(user.userId)
-      const userId = user.userId // You might need to adjust this based on your auth system
-      
+      try {
+        const userStr = localStorage.getItem("user");
+        if (userStr) {
+          user = JSON.parse(userStr);
+        }
+      } catch (e) {
+        user = null;
+      }
+      console.log(user.userId);
+      const userId = user.userId; // You might need to adjust this based on your auth system
+
       const response = await fetch(`${backendUrl}/user/profile/${userId}`, {
         method: "GET",
         headers: {
@@ -185,6 +385,11 @@ try {
           email: data.email || "",
           role: data.role || "",
         });
+
+        const url = await getProfileImageUrl(userId);
+        setProfileImageURL(url)
+        
+
       } else {
         setError("Error al cargar los datos del usuario");
         // Set default data for development
@@ -199,6 +404,7 @@ try {
           role: "Docente",
         });
       }
+
     } catch (err) {
       setError("Error de conexión");
       console.error("Error fetching user data:", err);
@@ -218,94 +424,60 @@ try {
     }
   };
 
-  // Update user data
-  const updateUserData = async (updateData) => {
-    try {
-      const userId = localStorage.getItem("userId") || "default";
-      
-      const response = await fetch(`${backendUrl}/user/profile/`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          // "Authorization": `Bearer ${localStorage.getItem("token")}`
-        },
-        body: JSON.stringify(updateData),
-      });
-
-      if (response.ok) {
-        setSnackbar({
-          open: true,
-          message: "Datos actualizados exitosamente",
-          severity: "success",
-        });
-        // Refresh user data
-        fetchUserData();
-        return true;
-      } else {
-        setSnackbar({
-          open: true,
-          message: "Error al actualizar los datos",
-          severity: "error",
-        });
-        return false;
-      }
-    } catch (err) {
-      setSnackbar({
-        open: true,
-        message: "Error de conexión",
-        severity: "error",
-      });
-      return false;
-    }
-  };
-
-  // Handle form changes
-  const handleFormChange = (field, value) => {
-    setEditFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-
-  const handleUpdatePhone = async () => {
-    const success = await updateUserData({
-      phone: editFormData.phone,
-    });
-    if (success) handleClose3();
-  };
-
-  const handleUpdateEmail = async () => {
-    const success = await updateUserData({
-      email: editFormData.email,
-    });
-    if (success) handleClose();
-  };
-
   const handleResetPassword = async () => {
+    if (!validateBeforeSubmit()) return;
+
     try {
-      const userId = localStorage.getItem("userId") || "default";
-      
-      const response = await fetch(`${backendUrl}/user/reset-password/${userId}`, {
+      let user = null;
+      try {
+        const userStr = localStorage.getItem("user");
+        if (userStr) {
+          user = JSON.parse(userStr);
+        }
+      } catch (e) {
+        user = null;
+      }
+      const userId = user.userId; // You might need to adjust this based on your auth system
+
+      const response = await fetch(`${backendUrl}/user/password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          userId,
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword,
+        }),
       });
+
+      const data = await response.json();
 
       if (response.ok) {
         setSnackbar({
           open: true,
-          message: "Contraseña reseteada.",
+          message: "Contraseña cambiada exitosamente",
           severity: "success",
+        });
+        setPasswordData({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
         });
         handleClose4();
       } else {
         setSnackbar({
           open: true,
-          message: "Error al cambiar la contraseña",
+          message: data.message || "Error al cambiar la contraseña",
           severity: "error",
         });
+        // Manejar error específico de contraseña incorrecta
+        if (data.error === "Invalid current password") {
+          setPasswordErrors((prev) => ({
+            ...prev,
+            current: "Contraseña actual incorrecta",
+          }));
+        }
       }
     } catch (err) {
       setSnackbar({
@@ -330,7 +502,6 @@ try {
     setTabValue(newValue);
   };
 
-
   if (loading) {
     return (
       <DashboardLayout>
@@ -348,7 +519,9 @@ try {
       <DashboardLayout>
         <DashboardNavbar />
         <MDBox display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-          <MDTypography variant="h6" color="error">{error}</MDTypography>
+          <MDTypography variant="h6" color="error">
+            {error}
+          </MDTypography>
         </MDBox>
         <Footer />
       </DashboardLayout>
@@ -359,12 +532,20 @@ try {
   return (
     <DashboardLayout>
       <MDBox mb={2} />
-      <Header tabValue={tabValue} onTabChange={handleTabChange} userData={userData}>
+      <Header
+        tabValue={tabValue}
+        onTabChange={handleTabChange}
+        userData={userData}
+        imagePreview={imagePreview}
+        imageError={imageError}
+        profileImage={ProfileImageURL}
+      >
         <MDBox mt={5} mb={3}>
           <Grid container spacing={1}>
             <Grid item xs={12} md={6} xl={4}>
               <Card>
                 <MDTypography variant="h5"> Datos de Contacto: </MDTypography>
+
                 <MDTypography>Correo: {userData?.email || "No especificado"}</MDTypography>
                 <MDTypography>Teléfono: {userData?.phone || "No especificado"}</MDTypography>
               </Card>
@@ -372,72 +553,6 @@ try {
             <Grid item xs={12} md={6} xl={4} sx={{ display: "flex" }}>
               <Grid item size={4}>
                 <Stack mt={2} px={5} spacing={3}>
-                  <Button onClick={handleOpen3} variant="contained">
-                    Cambiar Número de Teléfono
-                  </Button>
-                  <Modal
-                    open={open3}
-                    onClose={handleClose3}
-                    aria-labelledby="modal-modal-title2"
-                    aria-describedby="modal-modal-description2"
-                  >
-                    <Box p={3} sx={style}>
-                      <Typography id="modal-modal-title2" variant="h6" component="h2">
-                        Introduzca el Número de Teléfono:
-                      </Typography>
-                      <TextField 
-                        fullWidth
-                        margin="normal"
-                        label="Telefono" 
-                        variant="outlined"
-                        value={editFormData.phone}
-                        onChange={(e) => handleFormChange("phone", e.target.value)}
-                      />
-                      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 2 }}>
-                        <Button variant="outlined" onClick={handleClose3}>
-                          Cancelar
-                        </Button>
-                        <Button color="success" onClick={handleUpdatePhone}>
-                          Aceptar
-                        </Button>
-                      </Box>
-                    </Box>
-                  </Modal>
-
-                  <Button variant="contained" onClick={handleOpen}>
-                    Cambiar Correo Electrónico
-                  </Button>
-
-                  <Modal
-                    open={open}
-                    onClose={handleClose}
-                    aria-labelledby="modal-modal-title"
-                    aria-describedby="modal-modal-description"
-                  >
-                    <Box p={3} sx={style}>
-                      <Typography id="modal-modal-title" variant="h6" component="h2">
-                        Introduzca el Nuevo Correo:
-                      </Typography>
-
-                      <TextField
-                        fullWidth
-                        margin="normal"
-                        label="Correo Electrónico"
-                        variant="outlined"
-                        value={editFormData.email}
-                        onChange={(e) => handleFormChange("email", e.target.value)}
-                      />
-                      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 2 }}>
-                        <Button variant="outlined" onClick={handleClose}>
-                          Cancelar
-                        </Button>
-                        <Button color="success" onClick={handleUpdateEmail}>
-                          Aceptar
-                        </Button>
-                      </Box>
-                    </Box>
-                  </Modal>
-
                   <Button onClick={handleOpen4} variant="contained">
                     Cambiar Constraseña
                   </Button>
@@ -448,29 +563,116 @@ try {
                     aria-labelledby="modal-modal-title"
                     aria-describedby="modal-modal-description"
                   >
-                    <Box p={3} sx={style}>
-                      <Typography id="modal-modal-title" variant="h6" component="h2">
-                        Indique la nueva contraseña:
+                    <Box p={3} sx={{ ...style, width: 500 }}>
+                      <Typography id="modal-modal-title" variant="h6" component="h2" mb={2}>
+                        Cambiar Contraseña
                       </Typography>
+
                       <TextField
                         fullWidth
                         margin="normal"
-                        label="Contraseña"
+                        label="Contraseña Actual"
+                        type="password"
                         variant="outlined"
-                        value={editFormData.password}
-                        onChange={(e) => handleFormChange("password", e.target.value)}
+                        value={passwordData.currentPassword}
+                        onChange={(e) => handlePasswordChange("currentPassword", e.target.value)}
+                        error={!!passwordErrors.current}
+                        helperText={passwordErrors.current}
                       />
 
-                      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 2 }}>
+                      <TextField
+                        fullWidth
+                        margin="normal"
+                        label="Nueva Contraseña"
+                        type="password"
+                        variant="outlined"
+                        value={passwordData.newPassword}
+                        onChange={(e) => handlePasswordChange("newPassword", e.target.value)}
+                        error={!!passwordErrors.new}
+                        helperText={
+                          passwordErrors.new ||
+                          "Mínimo 8 caracteres, mayúscula, minúscula, número y carácter especial"
+                        }
+                      />
+
+                      <TextField
+                        fullWidth
+                        margin="normal"
+                        label="Confirmar Nueva Contraseña"
+                        type="password"
+                        variant="outlined"
+                        value={passwordData.confirmPassword}
+                        onChange={(e) => handlePasswordChange("confirmPassword", e.target.value)}
+                        error={!!passwordErrors.confirm}
+                        helperText={passwordErrors.confirm}
+                      />
+
+                      <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 3 }}>
                         <Button variant="outlined" onClick={handleClose4}>
                           Cancelar
                         </Button>
-                        <Button color="error" onClick={handleResetPassword}>
-                          Aceptar
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          onClick={handleResetPassword}
+                          disabled={
+                            !passwordData.currentPassword ||
+                            !passwordData.newPassword ||
+                            !passwordData.confirmPassword ||
+                            !!passwordErrors.new ||
+                            !!passwordErrors.confirm
+                          }
+                        >
+                          Cambiar Contraseña
                         </Button>
                       </Box>
                     </Box>
                   </Modal>
+
+                  <Box>
+                    <Button
+                      component="label"
+                      role={undefined}
+                      variant="contained"
+                      tabIndex={-1}
+                      startIcon={<CloudUploadIcon />}
+                      sx={{ mb: 2 }}
+                    >
+                      Seleccionar Foto
+                      <VisuallyHiddenInput
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageChange}
+                      />
+                    </Button>
+
+                    {imagePreview && (
+                      <Button
+                        variant="contained"
+                        onClick={uploadProfileImage}
+                        disabled={!!imageError}
+                        fullWidth
+                      >
+                        Guardar Foto
+                      </Button>
+                    )}
+
+                    {imagePreview && (
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        onClick={() => {
+                          setImagePreview(null);
+                          setProfileImage(null);
+                          setImageError("");
+                        }}
+                        fullWidth
+                        sx={{ mt: 1 }}
+                      >
+                        Cancelar
+                      </Button>
+                    )}
+                  </Box>
                 </Stack>
               </Grid>
             </Grid>

@@ -27,3 +27,4 @@ yarn.lock
 commit.sh
 export-vscode-settings.sh
 Proyecto_tec.zip
+src/config.js

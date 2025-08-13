@@ -38,8 +38,11 @@ import breakpoints from "assets/theme/base/breakpoints";
 import backgroundImage from "assets/images/illustrations/fondo2.jpg";
 import logo from "assets/images/logo-small.fw.png";
 import burceMars from "assets/images/bruce-mars.jpg";
+import team1 from "assets/images/team-1.jpg";
+import { Alert } from "@mui/material";
+import { backendUrl } from "config";
 
-function Header({ children, userData }) {
+function Header({ children, userData, imagePreview,imageError,profileImage }) {
   const [tabsOrientation, setTabsOrientation] = useState("horizontal");
   const [tabValue, setTabValue] = useState(0);
 
@@ -50,6 +53,8 @@ function Header({ children, userData }) {
         ? setTabsOrientation("vertical")
         : setTabsOrientation("horizontal");
     }
+    console.log("hola: " + profileImage);
+    console.log(profileImage);
 
     /** 
      The event listener that's calling the handleTabsOrientation function when resizing the window.
@@ -63,17 +68,19 @@ function Header({ children, userData }) {
     return () => window.removeEventListener("resize", handleTabsOrientation);
   }, [tabsOrientation]);
 
+
+
   const handleSetTabValue = (event, newValue) => setTabValue(newValue);
 
   // Generate full name from user data
   const getFullName = () => {
     if (!userData) return "Usuario";
-    
+
     const firstName = userData.firstName || "";
     const secondName = userData.secondName || "";
     const firstLastName = userData.firstLastName || "";
     const secondLastName = userData.secondLastName || "";
-    
+
     const names = [firstName, secondName, firstLastName, secondLastName].filter(Boolean);
     return names.length > 0 ? names.join(" ") : "Usuario";
   };
@@ -114,7 +121,25 @@ function Header({ children, userData }) {
       >
         <Grid container spacing={3} alignItems="center">
           <Grid item>
-            <MDAvatar src={logo} alt="profile-image" size="xl" shadow="sm" />
+            <MDBox display="flex" flexDirection="column" alignItems="center" p={2}>
+              {/* Mostrar previsualización o imagen actual */}
+              {imagePreview ? (
+                <MDAvatar src={imagePreview} alt="Previsualización" size="xl" />
+              ) : userData?.profileImage ? (
+                <MDAvatar src={profileImage} alt="Foto de perfil" size="xl" />
+              ) : (
+                <MDAvatar
+                  src={profileImage} // Imagen por defecto
+                  alt="Foto de perfil"
+                  size="xl"
+                />
+              )}
+              {imageError && (
+                <Alert severity="error" sx={{ width: "100%", mb: 2 }}>
+                  {imageError}
+                </Alert>
+              )}
+            </MDBox>
           </Grid>
           <Grid item>
             <MDBox height="100%" mt={0.5} lineHeight={1}>
@@ -137,12 +162,16 @@ function Header({ children, userData }) {
 Header.defaultProps = {
   children: "",
   userData: null,
+  imagePreview: null,
 };
 
 // Typechecking props for the Header
 Header.propTypes = {
   children: PropTypes.node,
   userData: PropTypes.object,
+  imagePreview: PropTypes.any,
+  imageError: PropTypes.string,
+  profileImage: PropTypes.any
 };
 
 export default Header;
