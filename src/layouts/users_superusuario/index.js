@@ -10,7 +10,7 @@ import Select from "@mui/material/Select";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
-import { Modal } from "@mui/material";
+import Modal from "@mui/material/Modal";
 
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
@@ -19,6 +19,7 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 
 // Columnas para la tabla de usuarios administradores
 const adminColumns = [
@@ -37,6 +38,8 @@ function UsersSuperusuario() {
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+  const [successOpen, setSuccessOpen] = React.useState(false);
+  const [successMsg, setSuccessMsg] = React.useState("");
 
   // Estado formulario
   const [form, setForm] = React.useState({
@@ -52,13 +55,47 @@ function UsersSuperusuario() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Guardar nuevo usuario (simulación)
-  const handleSave = () => {
-    // Aquí deberías validar, y hacer llamada API para guardar usuario en backend.
-    // Por ahora se simula agregar a lista local:
-    setRows((prev) => [...prev, { correo: form.correo, role_id: form.role_id, status: form.status }]);
-    setForm({ correo: "", password: "", role_id: 1, status: "activo" });
-    handleClose();
+  // Guardar nuevo usuario (llamada a backend)
+  const handleSave = async () => {
+    try {
+      const response = await fetch("http://localhost:3003/api/superusuario/crearadmin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          correo: form.correo,
+          password: form.password,
+          role_id: Number(form.role_id),
+          status: form.status
+        })
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setRows((prev) => [
+          ...prev,
+          {
+            correo: data.usuario.correo,
+            role_id: data.usuario.role_id,
+            status: data.usuario.status
+          }
+        ]);
+        setForm({ correo: "", password: "", role_id: 1, status: "activo" });
+        handleClose();
+        setSuccessMsg("¡Usuario registrado exitosamente!");
+        setSuccessOpen(true);
+        setTimeout(() => setSuccessOpen(false), 3000); // Cierra el modal después de 3 segundos
+      } else {
+        setSuccessMsg(data.error || "Error al crear usuario");
+        setSuccessOpen(true);
+        setTimeout(() => setSuccessOpen(false), 3000);
+      }
+    } catch (error) {
+      setSuccessMsg("Error de conexión");
+      setSuccessOpen(true);
+      setTimeout(() => setSuccessOpen(false), 3000);
+    }
   };
 
   const style = {
@@ -149,18 +186,7 @@ function UsersSuperusuario() {
                           </Select>
                         </FormControl>
                       </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Estado"
-                          variant="outlined"
-                          size="medium"
-                          name="status"
-                          value={form.status}
-                          onChange={handleChange}
-                          helperText='Ejemplo: "activo", "inactivo"'
-                        />
-                      </Grid>
+                      
                     </Grid>
 
                     <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 4 }}>
@@ -172,6 +198,39 @@ function UsersSuperusuario() {
                       </Button>
                     </Box>
                   </MDBox>
+                </Modal>
+                {/* Modal de éxito */}
+                <Modal
+                  open={successOpen}
+                  onClose={() => setSuccessOpen(false)}
+                  aria-labelledby="modal-success-title"
+                  aria-describedby="modal-success-description"
+                >
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: "50%",
+                      left: "50%",
+                      transform: "translate(-50%, -50%)",
+                      bgcolor: "background.paper",
+                      borderRadius: 3,
+                      boxShadow: 24,
+                      p: 4,
+                      minWidth: 350,
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: 2,
+                    }}
+                  >
+                    <CheckCircleOutlineIcon sx={{ fontSize: 60, color: "#4caf50" }} />
+                    <MDTypography id="modal-success-title" variant="h6" component="h2" color="success.main" align="center">
+                      {successMsg}
+                    </MDTypography>
+                    <Button variant="contained" color="success" onClick={() => setSuccessOpen(false)}>
+                      Cerrar
+                    </Button>
+                  </Box>
                 </Modal>
               </Stack>
 

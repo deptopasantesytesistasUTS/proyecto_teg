@@ -1,1 +1,1 @@
-export const backendUrl = "https://proyecto-teg-bakend.onrender.com/api"
+export const backendUrl = "https://proyectotegbakend-production.up.railway.app/api"

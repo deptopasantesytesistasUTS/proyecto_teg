@@ -200,18 +200,19 @@ function SubjectSideMenu({
       });
       
       // Detección para estudiantes
-      const categoriaLower = materiaCategoria.toLowerCase();
-      const nombreLower = materiaNombre.toLowerCase();
-      
-      if (categoriaLower === "tutorias" || nombreLower === "tutorias") {
-        
-        return estudianteOptionsTutorias;
-      }
+     
+    const categoriaLower = (materiaCategoria || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const nombreLower = (materiaNombre || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    
+    if (categoriaLower.includes("tutoria") || nombreLower.includes("tutoria")) {
+      return userType === "estudiante" ? estudianteOptionsTutorias : tutoriasDocenteOptions;
+    }
       
      
       return estudianteOptions;
     }
     
+   
     // Para docentes y administradores, determinar el tipo de materia
     const materiaCategoria = subject?.categoria || "";
     const materiaNombre = subject?.nombre || subject?.carrera || "";
@@ -222,26 +223,20 @@ function SubjectSideMenu({
     });
     
     // Detección simplificada y directa - buscar tanto en categoria como en nombre
-    const categoriaLower = materiaCategoria.toLowerCase();
-    const nombreLower = materiaNombre.toLowerCase();
+    const categoriaLower = (materiaCategoria || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const nombreLower = (materiaNombre || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     
+    if (categoriaLower.includes("tutoria") || nombreLower.includes("tutoria")) {
+      return tutoriasDocenteOptions;
+    }
     
-    
-    // Detección directa por categoría o nombre exacto (para docentes y administradores)
     if (nombreLower === "trabajo_especial_de_grado") {
-      
-        return trabajoEspecialDocenteOptions;
+      return trabajoEspecialDocenteOptions;
     }
     
-    if (nombreLower === "tutorias") {
-        return tutoriasDocenteOptions;
-    }
-    
-      return docenteOptions;
-  }, [subject, userType, options]);
+  return docenteOptions;
 
-  console.log("SubjectSideMenu - menuOptions final:", menuOptions);
-  
+  },[userType, subject, options]);
 
   // Título y descripción a mostrar en el header del menú
   const displayTitle = useMemo(() => {
