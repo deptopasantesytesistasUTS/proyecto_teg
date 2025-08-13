@@ -50,7 +50,8 @@ export default function data(students, onViewStudent) {
       estudiante: (
         <Estudiante name={student.nombre} id={student.cedula} image={team2} email={student.email} />
       ),
-      carrera: <Job title={student.carrera} description={student.materia} />,
+      carrera: <Job title={student.carrera} description={student.materia.map((m) => {
+        return `${m} `;})} />,
       estatus: (
         <MDBox ml={-1}>
           <MDBadge badgeContent={student.status} color="success" variant="gradient" size="sm" />

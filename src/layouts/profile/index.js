@@ -440,7 +440,7 @@ function Profile() {
       const userId = user.userId; // You might need to adjust this based on your auth system
 
       const response = await fetch(`${backendUrl}/user/password`, {
-        method: "POST",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },

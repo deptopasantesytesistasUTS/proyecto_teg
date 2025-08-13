@@ -12,6 +12,11 @@ import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import { Modal } from "@mui/material";
+import Snackbar from "@mui/material/Snackbar";
+import PhoneInput from "react-phone-number-input";
+import Alert from "@mui/material/Alert";
+import "react-phone-number-input/style.css";
+import { useState } from "react";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -57,6 +62,14 @@ function Teachers() {
     fetchTeachers();
   }, []);
 
+  const handleTelfChange = (value) => {
+    setFormData({
+      ...formData,
+      telf: value,
+    });
+    console.log(formData);
+  };
+
   const fetchTeachers = async () => {
     setLoading(true);
     setError("");
@@ -78,6 +91,54 @@ function Teachers() {
     }
   };
 
+  const [validationErrors, setValidationErrors] = useState({
+    firstName: "",
+    apellido1: "",
+    cedula: "",
+    nombre2: "",
+    apellido2: "",
+  });
+
+  // Función para validar solo letras
+  const validateLettersOnly = (value) => {
+    const lettersRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$/;
+    return lettersRegex.test(value);
+  };
+
+  const validateEmailStructure = (value) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(value);
+  };
+
+  // Función para validar solo números
+  const validateNumbersOnly = (value) => {
+    const numbersRegex = /^[0-9]*$/;
+    return numbersRegex.test(value);
+  };
+
+  // Función para validar campos obligatorios
+  const validateRequiredFields = () => {
+    const errors = {};
+
+    if (!formData.firstName.trim()) {
+      errors.firstName = "El primer nombre es obligatorio";
+    }
+
+    if (!formData.firstLastName.trim()) {
+      errors.firstLastName = "El primer apellido es obligatorio";
+    }
+
+    if (!formData.id.trim()) {
+      errors.id = "La cédula es obligatoria";
+    }
+
+    if (!formData.email.trim()) {
+      errors.email = "El Correo es obligatoria";
+    }
+
+    return errors;
+  };
+
   // Filtrar y ordenar la lista
   const getFilteredAndSortedRows = () => {
     let filteredRows = [...teachers];
@@ -86,7 +147,7 @@ function Teachers() {
       filteredRows = filteredRows.filter((teacher) => {
         console.log(teacher);
         const name = `${teacher.nombre}`.trim();
-        const id = `${teacher.cedula}`|| "";
+        const id = `${teacher.cedula}` || "";
         const email = teacher.correo || "";
         const searchLower = searchTerm.toLowerCase();
         return (
@@ -120,6 +181,31 @@ function Teachers() {
 
   // Modal: manejar cambios en el formulario
   const handleFormChange = (field, value) => {
+    let error = "";
+
+    if (
+      field === "firstName" ||
+      field === "secondName" ||
+      field === "firstLastName" ||
+      field === "secondLastName"
+    ) {
+      if (value && !validateLettersOnly(value)) {
+        error = "Solo se permiten letras";
+        return; // No actualizar el valor si no es válido
+      }
+    }
+
+    console.log(field);
+
+    if (field === "id") {
+      if (value && !validateNumbersOnly(value)) {
+        error = "Solo se permiten números";
+        return; // No actualizar el valor si no es válido
+      }
+    }
+
+    // Limpiar error si el valor es válido
+    setValidationErrors((prev) => ({ ...prev, [field]: error }));
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -128,6 +214,17 @@ function Teachers() {
     setLoading(true);
     setError("");
     try {
+      const errors = validateRequiredFields();
+
+      if (Object.keys(errors).length > 0) {
+        setValidationErrors((prev) => ({ ...prev, ...errors }));
+        setSnackbar({
+          open: true,
+          message: "Por favor, complete todos los campos obligatorios",
+          severity: "error",
+        });
+        return;
+      }
       const response = await fetch(`${backendUrl}/docentesAdmin`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -169,7 +266,7 @@ function Teachers() {
   };
 
   // Eliminar la columna de carrera de la tabla
-  const filteredColumns = columns.filter(col => col.accessor !== "carrera");
+  const filteredColumns = columns.filter((col) => col.accessor !== "carrera");
 
   return (
     <DashboardLayout>
@@ -214,9 +311,9 @@ function Teachers() {
                   <MDTypography variant="h6">Buscar al: </MDTypography>
                 </Grid>
                 <Grid item size={6} width={200}>
-                  <TextField 
-                    id="search-field" 
-                    label="Docente" 
+                  <TextField
+                    id="search-field"
+                    label="Docente"
                     variant="outlined"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -248,7 +345,7 @@ function Teachers() {
                               variant="outlined"
                               size="medium"
                               value={formData.firstName}
-                              onChange={e => handleFormChange("firstName", e.target.value)}
+                              onChange={(e) => handleFormChange("firstName", e.target.value)}
                             />
                           </Grid>
                           <Grid item xs={12} sm={6}>
@@ -258,7 +355,7 @@ function Teachers() {
                               variant="outlined"
                               size="medium"
                               value={formData.secondName}
-                              onChange={e => handleFormChange("secondName", e.target.value)}
+                              onChange={(e) => handleFormChange("secondName", e.target.value)}
                             />
                           </Grid>
                           <Grid item xs={12} sm={6}>
@@ -268,7 +365,7 @@ function Teachers() {
                               variant="outlined"
                               size="medium"
                               value={formData.firstLastName}
-                              onChange={e => handleFormChange("firstLastName", e.target.value)}
+                              onChange={(e) => handleFormChange("firstLastName", e.target.value)}
                             />
                           </Grid>
                           <Grid item xs={12} sm={6}>
@@ -278,7 +375,7 @@ function Teachers() {
                               variant="outlined"
                               size="medium"
                               value={formData.secondLastName}
-                              onChange={e => handleFormChange("secondLastName", e.target.value)}
+                              onChange={(e) => handleFormChange("secondLastName", e.target.value)}
                             />
                           </Grid>
                           <Grid item xs={12} sm={6}>
@@ -289,7 +386,7 @@ function Teachers() {
                               variant="outlined"
                               size="medium"
                               value={formData.id}
-                              onChange={e => handleFormChange("id", e.target.value)}
+                              onChange={(e) => handleFormChange("id", e.target.value)}
                             />
                           </Grid>
                           <Grid item xs={12} sm={6}>
@@ -299,22 +396,29 @@ function Teachers() {
                               variant="outlined"
                               size="medium"
                               value={formData.email}
-                              onChange={e => handleFormChange("email", e.target.value)}
+                              onChange={(e) => handleFormChange("email", e.target.value)}
                             />
                           </Grid>
-                          <Grid item xs={12} sm={6}>
-                            <TextField
-                              fullWidth
-                              label="Teléfono"
-                              variant="outlined"
-                              size="medium"
-                              value={formData.telf}
-                              onChange={e => handleFormChange("telf", e.target.value)}
-                            />
+                          <Grid item xs={12} md={6}>
+                            <FormControl variant="standard" fullWidth>
+                              <PhoneInput
+                                className="hola MuiInputBase-root  MuiInputBase-colorPrimary MuiInputBase-fullWidth MuiInputBase-formControl css-1u5lk04-MuiInputBase-root-MuiOutlinedInput-root"
+                                placeholder="Ingresar N° de Teléfono"
+                                value={formData.telf}
+                                onChange={handleTelfChange}
+                                defaultCountry="VE"
+                                numberInputProps={{
+                                  className:
+                                    "MuiInputBase-input MuiOutlinedInput-input css-5mmmz-MuiInputBase-input-MuiOutlinedInput-input",
+                                }}
+                              />
+                            </FormControl>
                           </Grid>
                         </Grid>
                         {error && (
-                          <MDTypography color="error" mt={2}>{error}</MDTypography>
+                          <MDTypography color="error" mt={2}>
+                            {error}
+                          </MDTypography>
                         )}
                         <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 4 }}>
                           <Button variant="outlined" onClick={handleClose} sx={{ minWidth: 100 }}>

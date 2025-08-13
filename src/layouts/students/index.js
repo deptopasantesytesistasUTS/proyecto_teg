@@ -37,17 +37,17 @@ import { backendUrl } from "config";
 
 function Students() {
   const navigate = useNavigate();
-  
+
   // Función helper para navegar al perfil del estudiante
   const handleViewStudent = (cedula) => {
     const validCedula = getValidStudentId(cedula);
     console.log("🔍 Students - Cédula original:", cedula);
     console.log("🔍 Students - Cédula a usar:", validCedula);
     console.log("🔍 Students - ¿Cédula fue mapeada?", wasCedulaMapped(cedula, validCedula));
-    
+
     navigate(`/estudiantes/${validCedula}`);
   };
-  
+
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const [careers, setCareers] = useState([]);
   const [sections, setSections] = useState([]);
@@ -59,8 +59,8 @@ function Students() {
   const [rows, setRows] = useState(studentsTableData(students, handleViewStudent).rows);
   const [openNewDialog, setOpenNewDialog] = useState(false);
 
-   // Close snackbar
-   const handleCloseSnackbar = () => {
+  // Close snackbar
+  const handleCloseSnackbar = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
@@ -110,7 +110,6 @@ function Students() {
     return emailRegex.test(value);
   };
 
-
   // Función para validar solo números
   const validateNumbersOnly = (value) => {
     const numbersRegex = /^[0-9]*$/;
@@ -120,15 +119,15 @@ function Students() {
   // Función para validar campos obligatorios
   const validateRequiredFields = () => {
     const errors = {};
-    
+
     if (!newStudent.nombre1.trim()) {
       errors.nombre1 = "El primer nombre es obligatorio";
     }
-    
+
     if (!newStudent.apellido1.trim()) {
       errors.apellido1 = "El primer apellido es obligatorio";
     }
-    
+
     if (!newStudent.cedula.trim()) {
       errors.cedula = "La cédula es obligatoria";
     }
@@ -136,33 +135,48 @@ function Students() {
     if (!newStudent.correo.trim()) {
       errors.correo = "El Correo es obligatoria";
     }
-    
+
+    if (!newStudent.seccion > 0) {
+      errors.seccion = "Indique una seccion";
+    }
+
+    if (!newStudent.carrera > 0) {
+      errors.carrera = "Indique una Carrera";
+    }
+
     return errors;
   };
 
   const handleNewStudentChange = (e) => {
     const { name, value } = e.target;
-    
+
     // Validaciones en tiempo real
     let error = "";
-    
+
     if (name === "nombre1" || name === "nombre2" || name === "apellido1" || name === "apellido2") {
       if (value && !validateLettersOnly(value)) {
         error = "Solo se permiten letras";
         return; // No actualizar el valor si no es válido
       }
     }
-    
+
     if (name === "cedula") {
       if (value && !validateNumbersOnly(value)) {
         error = "Solo se permiten números";
         return; // No actualizar el valor si no es válido
       }
     }
-    
+
+    if (name === "correo") {
+      if (value && !validateEmailStructure(value)) {
+        error = "Solo se permiten números";
+        return; // No actualizar el valor si no es válido
+      }
+    }
+
     // Limpiar error si el valor es válido
-    setValidationErrors(prev => ({ ...prev, [name]: error }));
-    
+    setValidationErrors((prev) => ({ ...prev, [name]: error }));
+
     setNewStudent((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -236,11 +250,11 @@ function Students() {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
-    
+
     if (response.ok) {
       const data = await response.json();
-      console.log("tutorias")
-      console.log(data)
+      console.log("tutorias");
+      console.log(data);
       setSectionsTutor(data);
       setSectionTutor(true);
     } else {
@@ -250,16 +264,15 @@ function Students() {
 
   useEffect(() => {
     // Busca la sección seleccionada en el array de sections
-    console.log(newStudent.seccion)
-    const selectedSection = sections.find(
-      (section) => section.idSeccion === newStudent.seccion
-    );
+    console.log(newStudent.seccion);
+    const selectedSection = sections.find((section) => section.idSeccion === newStudent.seccion);
 
-    if(selectedSection)
-{    console.log(selectedSection)
-    console.log(selectedSection.Materias.categoria)}
+    if (selectedSection) {
+      console.log(selectedSection);
+      console.log(selectedSection.Materias.categoria);
+    }
     if (selectedSection && selectedSection.Materias.categoria == "investigacion_II") {
-      console.log("Hola")
+      console.log("Hola");
       handleGetSectionsTutor(newStudent.carrera);
     } else {
       setSectionsTutor([]);
@@ -284,9 +297,9 @@ function Students() {
   const handleAddStudent = async () => {
     // Validar campos obligatorios
     const errors = validateRequiredFields();
-    
+
     if (Object.keys(errors).length > 0) {
-      setValidationErrors(prev => ({ ...prev, ...errors }));
+      setValidationErrors((prev) => ({ ...prev, ...errors }));
       setSnackbar({
         open: true,
         message: "Por favor, complete todos los campos obligatorios",
@@ -355,14 +368,23 @@ function Students() {
     }
     // Filtrar por materia
     if (filterMateria) {
-      filtered = filtered.filter((row) => row.materia === filterMateria);
+      filtered = filtered.filter((row) => {
+        // We use .some() to check if AT LEAST ONE materia in the array matches the filter.
+        return row.materia.some((mat) => {
+          console.log(mat)
+          // Return true if the materia (case-insensitive) includes the filter text.
+          return mat.toLowerCase().includes(filterMateria.toLowerCase());
+        });
+      });
     }
+
     // Buscar por nombre
     if (search) {
-      filtered = filtered.filter((row) => row.nombre.toLowerCase().includes(search.toLowerCase()));
-    }
-    if (search) {
-      filtered = filtered.filter((row) => `${row.cedula}`.toLowerCase().includes(search.toLowerCase()));
+      filtered = filtered.filter(
+        (row) =>
+          row.nombre.toLowerCase().includes(search.toLowerCase()) ||
+          `${row.cedula}`.toLowerCase().includes(search.toLowerCase())
+      );
     }
     // Ordenar
     if (orderBy === "Nombre") {
@@ -539,11 +561,24 @@ function Students() {
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField
+                label="Cédula"
+                name="cedula"
+                value={newStudent.cedula}
+                onChange={handleNewStudentChange}
+                fullWidth
+                error={!!validationErrors.cedula}
+                helperText={validationErrors.cedula}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
                 label="Correo"
                 name="correo"
                 value={newStudent.correo}
                 onChange={handleNewStudentChange}
                 fullWidth
+                error={!!validationErrors.correo}
+                helperText={validationErrors.correo}
               />
             </Grid>
             <Grid item xs={12} md={6}>
@@ -570,6 +605,8 @@ function Students() {
                   value={newStudent.carrera}
                   label="Carrera"
                   onChange={handleNewStudentChange}
+                  error={!!validationErrors.carrera}
+                  helperText={validationErrors.carrera}
                 >
                   <MenuItem value="">Seleccione una carrera</MenuItem>
                   {careers.map((career, index) => (
@@ -590,6 +627,8 @@ function Students() {
                   label="Sección"
                   onChange={handleNewStudentChange}
                   disabled={!section}
+                  error={!!validationErrors.seccion}
+                  helperText={validationErrors.seccion}
                 >
                   <MenuItem value="">Seleccione una sección</MenuItem>
                   {sections.map((section, index) => (
@@ -609,7 +648,7 @@ function Students() {
                   value={newStudent.seccion_tutor}
                   label="Sección"
                   onChange={handleNewStudentChange}
-                  disabled={!sectionsTutor}
+                  disabled={!sectionTutor}
                 >
                   <MenuItem value="">Seleccione una sección de tutor</MenuItem>
                   {sectionsTutor.map((section, index) => (
@@ -619,17 +658,6 @@ function Students() {
                   ))}
                 </Select>
               </FormControl>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Cédula"
-                name="cedula"
-                value={newStudent.cedula}
-                onChange={handleNewStudentChange}
-                fullWidth
-                error={!!validationErrors.cedula}
-                helperText={validationErrors.cedula}
-              />
             </Grid>
           </Grid>
         </DialogContent>
