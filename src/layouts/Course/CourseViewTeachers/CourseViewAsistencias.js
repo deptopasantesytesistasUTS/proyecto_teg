@@ -9,6 +9,8 @@ import { Download, CheckCircle, Cancel, CalendarToday } from '@mui/icons-materia
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import PropTypes from "prop-types";
+import useCursoParticipantes from "./useCursoParticipantes";
+
 
 
 
@@ -27,11 +29,6 @@ function adaptStudents(students) {
   }));
 }
 
-// ...inside CourseViewAsistencias...
-const { students: rawStudents, loading } = useCursoParticipantes(cursoId);
-const students = React.useMemo(() => adaptStudents(rawStudents), [rawStudents]);
-
-
 // Fechas de ejemplo (puedes reemplazar por las del backend)
 const fakeDates = [
   "2024-06-01",
@@ -42,7 +39,8 @@ const fakeDates = [
 ];
 
 function CourseViewAsistencias({ cursoId, materia }) {
-  const { students, loading } = useCursoParticipantes(cursoId);
+  const { students: rawStudents, loading } = useCursoParticipantes(cursoId);
+  const students = React.useMemo(() => adaptStudents(rawStudents), [rawStudents]);
 
   // Estado: { [studentId]: { [fecha]: bool } }
   const [attendance, setAttendance] = React.useState({});
