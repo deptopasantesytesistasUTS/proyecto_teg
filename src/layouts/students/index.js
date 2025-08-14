@@ -235,14 +235,17 @@ function Students() {
     });
     const data = await response.json();
 
+    console.log("API Response:", data);
     console.log(response.ok);
     if (response.ok) {
       // Si la respuesta es un array directamente
       if (Array.isArray(data)) {
+        console.log("Setting students from array:", data);
         setStudents(data);
       }
       // Si la respuesta tiene la propiedad 'estudiantes'
       else if (Array.isArray(data.estudiantes)) {
+        console.log("Setting students from data.estudiantes:", data.estudiantes);
         setStudents(data.estudiantes);
       } else {
         setStudents([]); // O maneja el error como prefieras
@@ -400,6 +403,20 @@ function Students() {
   // Función para filtrar, buscar y ordenar
   const getFilteredRows = () => {
     let filtered = [...students];
+    
+    // Eliminar estudiantes duplicados basándose en la cédula
+    const uniqueStudents = [];
+    const seenCedulas = new Set();
+    
+    filtered.forEach((student) => {
+      if (!seenCedulas.has(student.cedula)) {
+        seenCedulas.add(student.cedula);
+        uniqueStudents.push(student);
+      }
+    });
+    
+    filtered = uniqueStudents;
+    
     // Filtrar por carrera
     if (filterCarrera) {
       filtered = filtered.filter((row) => row.carrera === filterCarrera);
@@ -407,12 +424,18 @@ function Students() {
     // Filtrar por materia
     if (filterMateria) {
       filtered = filtered.filter((row) => {
-        // We use .some() to check if AT LEAST ONE materia in the array matches the filter.
-        return row.materia.some((mat) => {
-          console.log(mat)
-          // Return true if the materia (case-insensitive) includes the filter text.
-          return mat.toLowerCase().includes(filterMateria.toLowerCase());
-        });
+        // Check if materia is an array and use .some() to check if AT LEAST ONE materia matches the filter.
+        if (Array.isArray(row.materia)) {
+          return row.materia.some((mat) => {
+            console.log(mat)
+            // Return true if the materia (case-insensitive) includes the filter text.
+            return mat.toLowerCase().includes(filterMateria.toLowerCase());
+          });
+        } else {
+          // If materia is not an array, check if it's a string that matches the filter
+          return row.materia && typeof row.materia === 'string' && 
+                 row.materia.toLowerCase().includes(filterMateria.toLowerCase());
+        }
       });
     }
 

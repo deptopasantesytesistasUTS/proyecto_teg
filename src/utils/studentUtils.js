@@ -36,3 +36,4 @@ export const getValidStudentId = (cedula) => {
 export const wasCedulaMapped = (originalCedula, validCedula) => {
   return originalCedula !== validCedula;
 };
+

@@ -41,6 +41,7 @@ import Cronograma from "layouts/dashboard/components/Cronograma";
 
 // Data
 import reportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
+import { backendUrl } from "config";
 
 function Dashboard() {
   const { sales, tasks } = reportsLineChartData;
@@ -99,6 +100,7 @@ function Dashboard() {
                 <ReportsBarChart
                   color="info"
                   title="ENTRADA DE ESTUDIANTES"
+                  date="Última actualización: Hoy"
                   chart={reportsBarChartData}
                 />
               </MDBox>

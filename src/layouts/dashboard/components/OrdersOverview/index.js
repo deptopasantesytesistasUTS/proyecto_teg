@@ -118,13 +118,13 @@ function OrdersOverview() {
       <MDBox p={2}>
         {loading ? (
           <MDBox display="flex" justifyContent="center" alignItems="center" minHeight="100px">
-            <MDTypography variant="body2" color="text.secondary">
+            <MDTypography variant="body2" color="text">
               Cargando comunicados...
             </MDTypography>
           </MDBox>
         ) : comunicados.length === 0 ? (
           <MDBox display="flex" justifyContent="center" alignItems="center" minHeight="100px">
-            <MDTypography variant="body2" color="text.secondary">
+            <MDTypography variant="body2" color="text">
               No hay comunicados disponibles
             </MDTypography>
           </MDBox>
