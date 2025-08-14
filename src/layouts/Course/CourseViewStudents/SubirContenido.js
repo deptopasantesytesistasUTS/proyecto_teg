@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import { Box, Typography, List, ListItem, ListItemText, Divider, Button, TextField, Paper, Chip, Stack } from "@mui/material";
+import Alert from "@mui/material/Alert";
+import Snackbar from "@mui/material/Snackbar";
 
 // Fechas límite de entregas de borradores
 const entregas = [
-  { nombre: "Borrador 1", fechaLimite: "2024-07-01T23:59" },
-  { nombre: "Borrador 2", fechaLimite: "2024-08-01T23:59" },
-  { nombre: "Borrador Final", fechaLimite: "2024-09-01T23:59" },
-  { nombre: "Entrega Final", fechaLimite: "2024-09-15T23:59" },
+  { nombre: "Borrador 1", fechaLimite: "2025-09-01T23:59" },
+  { nombre: "Borrador 2", fechaLimite: "2025-09-01T23:59" },
+  { nombre: "Borrador Final", fechaLimite: "2025-09-01T23:59" },
+  { nombre: "Entrega Final", fechaLimite: "2025-09-15T23:59" },
 ];
 
 function SubirContenido() {
@@ -14,8 +16,9 @@ function SubirContenido() {
   const [propuestas, setPropuestas] = useState([
     "Sistema de Gestión Académica",
     "Plataforma de Tutorías Online",
-    "App de Seguimiento de Proyectos"
+    "App de Seguimiento de Proyectos",
   ]);
+
   // Mock de título aceptado
   const [tituloAceptado] = useState("Plataforma de Tutorías Online");
 
@@ -27,6 +30,7 @@ function SubirContenido() {
   // Estado para enlaces subidos por entrega
   const [enlacesEntregados, setEnlacesEntregados] = useState({}); // { nombreEntrega: enlace }
   const [enlacesIngresados, setEnlacesIngresados] = useState({}); // { nombreEntrega: string }
+  const [enlacesValidos, setEnlacesValidos] = useState({}); // { nombreEntrega: string }
 
   // Para nuevas propuestas
   const [nuevasPropuestas, setNuevasPropuestas] = useState(["", "", ""]);
@@ -38,6 +42,11 @@ function SubirContenido() {
     nuevas[idx] = value;
     setNuevasPropuestas(nuevas);
   };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
   const handleEnviarPropuestas = () => {
     setEnviando(true);
     setTimeout(() => {
@@ -50,14 +59,50 @@ function SubirContenido() {
     }, 1000);
   };
 
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+
+  const validateLinkStructure = (value) => {
+    try {
+      new URL(value);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const [validationErrors, setValidationErrors] = useState("");
+
   // Handlers para subir borradores (ahora enlaces)
   const handleEnlaceChange = (nombreEntrega, enlace) => {
+    let error = "";
+    let errorBool = false;
+
+    if (enlace && !validateLinkStructure(enlace)) {
+      error = "Enlace Invalido";
+      errorBool = true;
+    } else {
+      errorBool = false;
+    }
+
+    if (errorBool) {
+      setSnackbar({
+        open: true,
+        message: error,
+        severity: "error",
+      });
+    }
+
+    setValidationErrors((prev) => ({ ...prev, [nombreEntrega]: error }));
+
     setEnlacesIngresados((prev) => ({ ...prev, [nombreEntrega]: enlace }));
   };
   const handleSubirBorrador = (nombreEntrega) => {
     setSubiendo((prev) => ({ ...prev, [nombreEntrega]: true }));
     setTimeout(() => {
-      setEnlacesEntregados((prev) => ({ ...prev, [nombreEntrega]: enlacesIngresados[nombreEntrega] }));
+      setEnlacesEntregados((prev) => ({
+        ...prev,
+        [nombreEntrega]: enlacesIngresados[nombreEntrega],
+      }));
       setEnlacesIngresados((prev) => ({ ...prev, [nombreEntrega]: "" }));
       setSubiendo((prev) => ({ ...prev, [nombreEntrega]: false }));
     }, 1200);
@@ -72,10 +117,22 @@ function SubirContenido() {
   };
 
   return (
-    <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} gap={4}>
+    <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={4}>
       {/* Sección Títulos */}
-      <Paper sx={{ flex: 1, p: 3, borderRadius: 3, boxShadow: 3, minWidth: 320, mb: { xs: 3, md: 0 } }}>
-        <Typography variant="h5" fontWeight={700} mb={2} sx={{ color: 'rgb(25, 118, 210)' }}>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: "100%" }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+      <Paper
+        sx={{ flex: 1, p: 3, borderRadius: 3, boxShadow: 3, minWidth: 320, mb: { xs: 3, md: 0 } }}
+      >
+        <Typography variant="h5" fontWeight={700} mb={2} sx={{ color: "rgb(25, 118, 210)" }}>
           Propuestas de Título
         </Typography>
         <List>
@@ -83,7 +140,10 @@ function SubirContenido() {
             <ListItem key={idx}>
               <ListItemText
                 primary={titulo}
-                primaryTypographyProps={{ fontWeight: 500, color: titulo === tituloAceptado ? 'success.main' : 'text.primary' }}
+                primaryTypographyProps={{
+                  fontWeight: 500,
+                  color: titulo === tituloAceptado ? "success.main" : "text.primary",
+                }}
               />
               {titulo === tituloAceptado && <Chip label="Aceptado" color="success" size="small" />}
             </ListItem>
@@ -99,7 +159,7 @@ function SubirContenido() {
               key={idx}
               label={`Propuesta ${idx + 1}`}
               value={valor}
-              onChange={e => handleNuevaPropuestaChange(idx, e.target.value)}
+              onChange={(e) => handleNuevaPropuestaChange(idx, e.target.value)}
               size="small"
               fullWidth
               variant="outlined"
@@ -119,7 +179,7 @@ function SubirContenido() {
       </Paper>
       {/* Sección Borradores tipo Google Classroom */}
       <Paper sx={{ flex: 1, p: 3, borderRadius: 3, boxShadow: 3, minWidth: 340 }}>
-        <Typography variant="h5" fontWeight={700} mb={2} sx={{ color: 'rgb(25, 118, 210)' }}>
+        <Typography variant="h5" fontWeight={700} mb={2} sx={{ color: "rgb(25, 118, 210)" }}>
           Entregas de Borradores
         </Typography>
         <List>
@@ -127,29 +187,48 @@ function SubirContenido() {
             const vencida = isVencida(entrega.fechaLimite);
             const entregado = enlacesEntregados[entrega.nombre];
             return (
-              <ListItem key={entrega.nombre} alignItems="flex-start" sx={{ flexDirection: 'column', alignItems: 'stretch', mb: 2, border: '1px solid #e0e0e0', borderRadius: 2, p: 2, bgcolor: vencida && !entregado ? '#fff3f3' : 'background.paper' }}>
+              <ListItem
+                key={entrega.nombre}
+                alignItems="flex-start"
+                sx={{
+                  flexDirection: "column",
+                  alignItems: "stretch",
+                  mb: 2,
+                  border: "1px solid #e0e0e0",
+                  borderRadius: 2,
+                  p: 2,
+                  bgcolor: vencida && !entregado ? "#fff3f3" : "background.paper",
+                }}
+              >
                 <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
-                  <Typography fontWeight={600} sx={{ color: 'rgb(25, 118, 210)' }}>
+                  <Typography fontWeight={600} sx={{ color: "rgb(25, 118, 210)" }}>
                     {entrega.nombre}
                   </Typography>
                   <Chip
-                    label={vencida ? (entregado ? 'Entregado fuera de tiempo' : 'Vencida') : 'A tiempo'}
-                    color={vencida ? (entregado ? 'warning' : 'error') : 'success'}
+                    label={
+                      vencida ? (entregado ? "Entregado fuera de tiempo" : "Vencida") : "A tiempo"
+                    }
+                    color={vencida ? (entregado ? "warning" : "error") : "success"}
                     size="small"
                     sx={{ ml: 1 }}
                   />
                 </Box>
-                <Typography variant="body2" sx={{ color: 'rgb(25, 118, 210)' }} mb={1}>
+                <Typography variant="body2" sx={{ color: "rgb(25, 118, 210)" }} mb={1}>
                   Fecha límite: {formatoFecha(entrega.fechaLimite)}
                 </Typography>
                 {entregado ? (
                   <Box display="flex" alignItems="center" gap={1}>
                     <Chip label="Enlace entregado" color="info" size="small" />
-                    <a href={enlacesEntregados[entrega.nombre]} target="_blank" rel="noopener noreferrer" style={{ wordBreak: 'break-all' }}>
+                    <a
+                      href={enlacesEntregados[entrega.nombre]}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ wordBreak: "break-all" }}
+                    >
                       {enlacesEntregados[entrega.nombre]}
                     </a>
-                    <Typography variant="caption" color={vencida ? 'error.main' : 'success.main'}>
-                      {vencida ? 'Entregado fuera de tiempo' : 'Entregado a tiempo'}
+                    <Typography variant="caption" color={vencida ? "error.main" : "success.main"}>
+                      {vencida ? "Entregado fuera de tiempo" : "Entregado a tiempo"}
                     </Typography>
                   </Box>
                 ) : (
@@ -157,7 +236,7 @@ function SubirContenido() {
                     <TextField
                       label="Enlace de entrega"
                       value={enlacesIngresados[entrega.nombre] || ""}
-                      onChange={e => handleEnlaceChange(entrega.nombre, e.target.value)}
+                      onChange={(e) => handleEnlaceChange(entrega.nombre, e.target.value)}
                       placeholder="https://..."
                       size="small"
                       sx={{ flex: 1 }}
@@ -168,9 +247,16 @@ function SubirContenido() {
                       color="primary"
                       size="small"
                       onClick={() => handleSubirBorrador(entrega.nombre)}
-                      disabled={!(enlacesIngresados[entrega.nombre] && enlacesIngresados[entrega.nombre].startsWith('http')) || vencida || subiendo[entrega.nombre]}
+                      disabled={
+                        !(
+                          enlacesIngresados[entrega.nombre] &&
+                          enlacesIngresados[entrega.nombre].startsWith("http")
+                        ) ||
+                        vencida ||
+                        subiendo[entrega.nombre]
+                      }
                     >
-                      {subiendo[entrega.nombre] ? 'Subiendo...' : 'Subir'}
+                      {subiendo[entrega.nombre] ? "Subiendo..." : "Subir"}
                     </Button>
                   </Box>
                 )}
