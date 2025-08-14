@@ -204,7 +204,7 @@ function Students() {
 
     if (name === "correo") {
       if (value && !validateEmailStructure(value)) {
-        error = "Solo se permiten números";
+        error = "Correo Electronico invalido";
       }
     }
 
