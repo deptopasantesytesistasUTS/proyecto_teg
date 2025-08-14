@@ -46,12 +46,8 @@ export default function data(students, onViewStudent, onDeleteClick) {
       estudiante: (
         <Estudiante name={student.nombre} id={student.cedula} image={team2} email={student.email} />
       ),
-<<<<<<< Updated upstream
-      carrera: <Job title={student.carrera} description={student.materia.map((m) => `${m} `)} />,
-=======
       carrera: <Job title={student.carrera} description={Array.isArray(student.materia) ? student.materia.map((m) => {
         return `${m} `;}) : student.materia || ''} />,
->>>>>>> Stashed changes
       estatus: (
         <MDBox ml={-1}>
           <MDBadge badgeContent={student.status} color="success" variant="gradient" size="sm" />

@@ -11,7 +11,7 @@ import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import PropTypes from "prop-types";
 import { useParams } from 'react-router-dom';
-// No necesitamos importar backendUrl, usaremos la variable de entorno directamente
+
 
 const fakeDates = [
   "2024-06-01",
@@ -69,7 +69,7 @@ function CourseViewAsistencias ({ students, materia }) {
     try {
       setLoading(true);
       // Usar la URL correcta del backend (misma lógica que index.js)
-      const url = `${process.env.REACT_APP_API_URL || "https://proyecto-teg-bakend.onrender.com/api"}/secciones/${idSeccion}/participantes`;
+      const url = `${process.env.REACT_APP_API_URL || "https://proyectotegbakend-production.up.railway.app/api"}/secciones/${idSeccion}/participantes`;
       console.log("🌐 Solicitando:", url);
 
       const res = await fetch(url);
