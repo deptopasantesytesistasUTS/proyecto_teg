@@ -205,7 +205,6 @@ function Students() {
     if (name === "correo") {
       if (value && !validateEmailStructure(value)) {
         error = "Solo se permiten números";
-        return; // No actualizar el valor si no es válido
       }
     }
 
