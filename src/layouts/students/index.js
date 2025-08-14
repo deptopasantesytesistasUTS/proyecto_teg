@@ -41,12 +41,7 @@ function Students() {
 
   // Función helper para navegar al perfil del estudiante
   const handleViewStudent = (cedula) => {
-    const validCedula = getValidStudentId(cedula);
-    console.log("🔍 Students - Cédula original:", cedula);
-    console.log("🔍 Students - Cédula a usar:", validCedula);
-    console.log("🔍 Students - ¿Cédula fue mapeada?", wasCedulaMapped(cedula, validCedula));
-
-    navigate(`/estudiantes/${validCedula}`);
+    navigate(`/estudiantes/${cedula}`);
   };
 
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
