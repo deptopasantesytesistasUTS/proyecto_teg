@@ -1,1 +1,9 @@
-/*    /index.html   200 
+# Redirecciones para Netlify
+# Maneja las rutas de SPA (Single Page Application)
+
+# Redirige todas las rutas a index.html para que React Router las maneje
+/*    /index.html   200
+
+# Redirecciones específicas para el aula virtual
+/aula-virtual/*    /index.html   200
+/materia/*         /index.html   200 

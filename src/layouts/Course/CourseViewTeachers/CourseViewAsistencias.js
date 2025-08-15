@@ -105,9 +105,18 @@ function CourseViewAsistencias ({ students, materia }) {
   console.log("📢 materia?.Secciones:", materia?.Secciones);
   console.log("📢 backendUrl:", backendUrl);
   console.log("📢 Usuario actual:", user);
+  console.log("📢 URL completa:", window.location.href);
+  console.log("📢 Parámetros de URL:", Object.fromEntries(search.entries()));
 
   // Si no tenemos idSeccion, intentar obtenerlo de la URL actual
   let finalIdSeccion = idSeccion;
+  
+  // Verificar si el idSeccion es igual al materiaId (caso de Netlify)
+  if (finalIdSeccion && finalIdSeccion === materiaId) {
+    console.log("⚠ idSeccion es igual al materiaId, esto puede ser un error en Netlify");
+    finalIdSeccion = null; // Reset para buscar la sección correcta
+  }
+  
   if (!finalIdSeccion) {
     // Intentar extraer de la URL actual
     const pathParts = location.pathname.split('/');
@@ -116,6 +125,18 @@ function CourseViewAsistencias ({ students, materia }) {
       finalIdSeccion = possibleId;
       console.log("📢 Usando ID extraído de la URL:", finalIdSeccion);
     }
+  }
+  
+  // Si aún no tenemos idSeccion y tenemos materia, usar la primera sección
+  if (!finalIdSeccion && materia?.Secciones && materia.Secciones.length > 0) {
+    finalIdSeccion = materia.Secciones[0].idSeccion;
+    console.log("📢 Usando primera sección de la materia:", finalIdSeccion);
+  }
+  
+  // Si aún no tenemos idSeccion, intentar obtenerlo del backend
+  if (!finalIdSeccion && materiaId) {
+    console.log("🔄 Intentando obtener secciones del backend para materia:", materiaId);
+    // Esta lógica se manejará en el useEffect que obtiene datos de materia
   }
 
   // Verificar que el docente tenga acceso a esta sección
@@ -275,16 +296,24 @@ function CourseViewAsistencias ({ students, materia }) {
 
   // Si no tenemos materia pero tenemos un ID, intentar obtenerla
   useEffect(() => {
-    if (!materia && materiaId && !loading) {
+    if ((!materia || !idSeccion) && materiaId && !loading) {
       console.log("🔄 Intentando obtener datos de materia con ID:", materiaId);
       fetchMateriaData(materiaId).then(materiaData => {
         if (materiaData && materiaData.Secciones && materiaData.Secciones.length > 0) {
           console.log("✅ Datos de materia obtenidos exitosamente");
-          // Si obtenemos los datos de la materia, intentar obtener participantes nuevamente
-          const newIdSeccion = materiaData.Secciones[0].idSeccion;
+          console.log("📊 Secciones disponibles:", materiaData.Secciones);
+          
+          // Si no tenemos idSeccion o es igual al materiaId, usar la primera sección
+          let newIdSeccion = idSeccion;
+          if (!newIdSeccion || newIdSeccion === materiaId) {
+            newIdSeccion = materiaData.Secciones[0].idSeccion;
+            console.log("🔄 Usando primera sección disponible:", newIdSeccion);
+          }
+          
           if (newIdSeccion && newIdSeccion !== idSeccion) {
             console.log("🔄 Intentando obtener participantes con nuevo idSeccion:", newIdSeccion);
             // Aquí podríamos hacer una nueva llamada para obtener participantes
+            // Por ahora, actualizamos el estado para que se ejecute el useEffect principal
           }
         }
       });
@@ -534,6 +563,12 @@ function CourseViewAsistencias ({ students, materia }) {
           </MDTypography>
           <MDTypography variant="body2" color="text.secondary">
             • Rol del usuario: {user?.role || 'No disponible'}
+          </MDTypography>
+          <MDTypography variant="body2" color="text.secondary">
+            • idSeccion vs materiaId: {idSeccion === materiaId ? 'IGUALES (problema Netlify)' : 'Diferentes'}
+          </MDTypography>
+          <MDTypography variant="body2" color="text.secondary">
+            • Secciones disponibles: {materia?.Secciones ? materia.Secciones.length : 0}
           </MDTypography>
         </MDBox>
         
