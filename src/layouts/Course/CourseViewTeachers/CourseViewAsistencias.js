@@ -10,7 +10,9 @@ import { Download, CheckCircle, Cancel, CalendarToday } from '@mui/icons-materia
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import PropTypes from "prop-types";
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
+import { backendUrl } from "config";
+import { useAuth } from "context/AuthContext";
 
 
 const fakeDates = [
@@ -40,27 +42,107 @@ function adaptStudents(students) {
 }
 
 function CourseViewAsistencias ({ students, materia }) {
-  // Obtener el idSeccion de la materia o de los parámetros de URL
-  const { id } = useParams();
-  const idSeccion = materia?.Secciones?.[0]?.idSeccion || id;
+  // Obtener el idSeccion de múltiples fuentes posibles
+  const { id, idMateria } = useParams();
+  const location = useLocation();
+  const search = new URLSearchParams(location.search);
+  const seccionParam = search.get('idSeccion');
+  const { user } = useAuth();
+  
+  // Prioridad: 1. Parámetro de URL, 2. Sección de la materia, 3. ID de la materia (ambos formatos)
+  const materiaId = id || idMateria;
+  const idSeccion = seccionParam || materia?.Secciones?.[0]?.idSeccion || materiaId;
   
   const [docente, setDocente] = useState(null);
   const [estudiantes, setEstudiantes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [docenteCedula, setDocenteCedula] = useState(null);
 
   // Estas faltaban
   const [adaptedStudents, setAdaptedStudents] = useState([]);
   const [attendance, setAttendance] = useState({});
 
+ // Obtener la cédula del docente si es necesario
  useEffect(() => {
+   const fetchDocenteCedula = async () => {
+     if (user && user.userId && (user.role === 2 || user.role === "2")) {
+       try {
+         const url = `${backendUrl}/cedula-personal?userId=${user.userId}`;
+         console.log("🌐 Obteniendo cédula del docente desde:", url);
+         
+         const res = await fetch(url, {
+           method: 'GET',
+           headers: {
+             'Content-Type': 'application/json',
+           },
+           signal: AbortSignal.timeout(10000)
+         });
+         
+         if (res.ok) {
+           const data = await res.json();
+           console.log("📦 Cédula del docente obtenida:", data.cedula);
+           setDocenteCedula(data.cedula);
+         }
+       } catch (err) {
+         console.error("🚨 Error obteniendo cédula del docente:", err.message);
+       }
+     }
+   };
+
+   fetchDocenteCedula();
+ }, [user]);
+
+ useEffect(() => {
+  console.log("📢 CourseViewAsistencias - Debug info:");
   console.log("📢 idSeccion recibido:", idSeccion);
   console.log("📢 materia recibida:", materia);
   console.log("📢 students recibidos:", students);
+  console.log("📢 seccionParam:", seccionParam);
+  console.log("📢 id from useParams:", id);
+  console.log("📢 idMateria from useParams:", idMateria);
+  console.log("📢 materiaId calculado:", materiaId);
+  console.log("📢 materia?.Secciones:", materia?.Secciones);
+  console.log("📢 backendUrl:", backendUrl);
+  console.log("📢 Usuario actual:", user);
 
-  if (!idSeccion) {
-    console.warn("⚠ No se recibió idSeccion");
-    setError("No se pudo obtener el ID de la sección. Verifica que la materia tenga secciones configuradas.");
+  // Si no tenemos idSeccion, intentar obtenerlo de la URL actual
+  let finalIdSeccion = idSeccion;
+  if (!finalIdSeccion) {
+    // Intentar extraer de la URL actual
+    const pathParts = location.pathname.split('/');
+    const possibleId = pathParts[pathParts.length - 1];
+    if (possibleId && !isNaN(possibleId)) {
+      finalIdSeccion = possibleId;
+      console.log("📢 Usando ID extraído de la URL:", finalIdSeccion);
+    }
+  }
+
+  // Verificar que el docente tenga acceso a esta sección
+  const verificarAccesoDocente = () => {
+    if (!docenteCedula || !materia?.Secciones) return true; // Si no tenemos datos, permitir acceso
+    
+    const seccionAccesible = materia.Secciones.find(seccion => 
+      seccion.idDocente === docenteCedula && seccion.idSeccion === finalIdSeccion
+    );
+    
+    if (!seccionAccesible) {
+      console.warn("⚠ El docente no tiene acceso a esta sección");
+      return false;
+    }
+    
+    return true;
+  };
+
+  if (!finalIdSeccion) {
+    console.warn("⚠ No se pudo obtener idSeccion de ninguna fuente");
+    setError("No se pudo obtener el ID de la sección. Verifica que la materia tenga secciones configuradas o que la URL sea correcta.");
+    setLoading(false);
+    return;
+  }
+
+  if (!verificarAccesoDocente()) {
+    setError("No tienes acceso a esta sección. Solo puedes ver las secciones que impartes.");
     setLoading(false);
     return;
   }
@@ -68,14 +150,23 @@ function CourseViewAsistencias ({ students, materia }) {
   const fetchParticipantes = async () => {
     try {
       setLoading(true);
-      // Usar la URL correcta del backend (misma lógica que index.js)
-      const url = `${process.env.REACT_APP_API_URL || "https://proyectotegbakend-production.up.railway.app/api"}/secciones/${idSeccion}/participantes`;
-      console.log("🌐 Solicitando:", url);
+      setError(null);
+      
+      // Usar la URL del archivo config.js
+      const url = `${backendUrl}/secciones/${finalIdSeccion}/participantes`;
+      console.log("🌐 Solicitando participantes desde:", url);
 
-      const res = await fetch(url);
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // Agregar timeout para evitar esperas infinitas
+        signal: AbortSignal.timeout(10000) // 10 segundos
+      });
 
       if (!res.ok) {
-        throw new Error(`Error del servidor: ${res.status}`);
+        throw new Error(`Error del servidor: ${res.status} - ${res.statusText}`);
       }
 
       const data = await res.json();
@@ -84,13 +175,10 @@ function CourseViewAsistencias ({ students, materia }) {
       setDocente(data.docente || null);
       setEstudiantes(Array.isArray(data.estudiantes) ? data.estudiantes : []);
 
-      // Usar la función helper para adaptar estudiantes
-      const adaptados = adaptStudents(data.estudiantes || []).map(s => ({
-        ...s,
-        idCarrera: s.perfil?.carrera || "",
-        idUsuario: s.perfil?.usuario || "",
-        promedio: s.perfil?.promedio || 0
-      }));
+      // Usar la función helper para adaptar estudiantes (igual que en ParticipantesList)
+      const adaptados = adaptStudents(data.estudiantes || []);
+      console.log("📊 Estudiantes adaptados:", adaptados);
+      
       setAdaptedStudents(adaptados);
 
       const initAttendance = {};
@@ -107,12 +195,9 @@ function CourseViewAsistencias ({ students, materia }) {
       // Si el fetch falla, intentar usar los estudiantes que vienen como props
       if (students && students.length > 0) {
         console.log("🔄 Usando estudiantes de props como fallback");
-        const adaptados = adaptStudents(students).map(s => ({
-          ...s,
-          idCarrera: s.perfil?.carrera || "",
-          idUsuario: s.perfil?.usuario || "",
-          promedio: s.perfil?.promedio || 0
-        }));
+        const adaptados = adaptStudents(students);
+        console.log("📊 Estudiantes de props adaptados:", adaptados);
+        
         setAdaptedStudents(adaptados);
         setEstudiantes(students);
         
@@ -124,7 +209,7 @@ function CourseViewAsistencias ({ students, materia }) {
         setAttendance(initAttendance);
         setError(null);
       } else {
-        setError("No se pudieron cargar los participantes.");
+        setError(`No se pudieron cargar los participantes. Error: ${err.message}`);
         setDocente(null);
         setEstudiantes([]);
       }
@@ -134,7 +219,77 @@ function CourseViewAsistencias ({ students, materia }) {
   };
 
   fetchParticipantes();
-}, [idSeccion]);
+}, [idSeccion, materia, students, seccionParam, materiaId, location.pathname, docenteCedula]);
+
+  // Función para obtener solo las secciones que imparte el docente
+  const obtenerSeccionesDelDocente = (materiaData, cedulaDocente) => {
+    if (!materiaData?.Secciones || !cedulaDocente) return materiaData?.Secciones || [];
+    
+    const seccionesDelDocente = materiaData.Secciones.filter(seccion => 
+      seccion.idDocente === cedulaDocente
+    );
+    
+    console.log("📊 Secciones del docente:", seccionesDelDocente);
+    console.log("📊 Total de secciones en la materia:", materiaData.Secciones.length);
+    console.log("📊 Secciones filtradas:", seccionesDelDocente.length);
+    
+    return seccionesDelDocente;
+  };
+
+  // Función para intentar obtener datos de la materia si no están disponibles
+  const fetchMateriaData = async (materiaId) => {
+    try {
+      const url = `${backendUrl}/materias-aulavirtual/${materiaId}`;
+      console.log("🌐 Intentando obtener datos de materia desde:", url);
+      
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        signal: AbortSignal.timeout(10000) // 10 segundos
+      });
+      
+      if (res.ok) {
+        const materiaData = await res.json();
+        console.log("📦 Datos de materia obtenidos:", materiaData);
+        
+        // Si tenemos la cédula del docente, filtrar las secciones
+        if (docenteCedula) {
+          const seccionesFiltradas = obtenerSeccionesDelDocente(materiaData, docenteCedula);
+          if (seccionesFiltradas.length > 0) {
+            return {
+              ...materiaData,
+              Secciones: seccionesFiltradas
+            };
+          }
+        }
+        
+        return materiaData;
+      }
+    } catch (err) {
+      console.error("🚨 Error obteniendo datos de materia:", err.message);
+    }
+    return null;
+  };
+
+  // Si no tenemos materia pero tenemos un ID, intentar obtenerla
+  useEffect(() => {
+    if (!materia && materiaId && !loading) {
+      console.log("🔄 Intentando obtener datos de materia con ID:", materiaId);
+      fetchMateriaData(materiaId).then(materiaData => {
+        if (materiaData && materiaData.Secciones && materiaData.Secciones.length > 0) {
+          console.log("✅ Datos de materia obtenidos exitosamente");
+          // Si obtenemos los datos de la materia, intentar obtener participantes nuevamente
+          const newIdSeccion = materiaData.Secciones[0].idSeccion;
+          if (newIdSeccion && newIdSeccion !== idSeccion) {
+            console.log("🔄 Intentando obtener participantes con nuevo idSeccion:", newIdSeccion);
+            // Aquí podríamos hacer una nueva llamada para obtener participantes
+          }
+        }
+      });
+    }
+  }, [materia, materiaId, loading, idSeccion, docenteCedula]);
 
   const [selectedDateForStats, setSelectedDateForStats] = useState(fakeDates[0]);
 
@@ -351,6 +506,67 @@ function CourseViewAsistencias ({ students, materia }) {
         <MDTypography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
           No se pudieron cargar los estudiantes de la sección. Verifica la conexión con el backend.
         </MDTypography>
+        
+        <MDBox sx={{ mt: 2, p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
+          <MDTypography variant="body2" color="text.secondary">
+            <strong>Información de debug:</strong>
+          </MDTypography>
+          <MDTypography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            • ID de la materia: {materiaId || 'No disponible'}
+          </MDTypography>
+          <MDTypography variant="body2" color="text.secondary">
+            • ID de sección: {idSeccion || 'No disponible'}
+          </MDTypography>
+          <MDTypography variant="body2" color="text.secondary">
+            • Materia recibida: {materia ? 'Sí' : 'No'}
+          </MDTypography>
+          <MDTypography variant="body2" color="text.secondary">
+            • Estudiantes recibidos: {students ? students.length : 0}
+          </MDTypography>
+          <MDTypography variant="body2" color="text.secondary">
+            • URL actual: {location.pathname}
+          </MDTypography>
+          <MDTypography variant="body2" color="text.secondary">
+            • Backend URL: {backendUrl}
+          </MDTypography>
+          <MDTypography variant="body2" color="text.secondary">
+            • Cédula del docente: {docenteCedula || 'No disponible'}
+          </MDTypography>
+          <MDTypography variant="body2" color="text.secondary">
+            • Rol del usuario: {user?.role || 'No disponible'}
+          </MDTypography>
+        </MDBox>
+        
+        <MDBox sx={{ mt: 2, display: 'flex', gap: 2 }}>
+          <MDButton 
+            variant="contained" 
+            color="primary" 
+            onClick={() => {
+              setLoading(true);
+              setError(null);
+              // Forzar una nueva carga
+              setTimeout(() => {
+                window.location.reload();
+              }, 100);
+            }}
+          >
+            Reintentar
+          </MDButton>
+          <MDButton 
+            variant="outlined" 
+            color="secondary" 
+            onClick={() => {
+              console.log("📢 Información completa de debug:");
+              console.log("📢 URL completa:", window.location.href);
+              console.log("📢 Parámetros de URL:", Object.fromEntries(search.entries()));
+              console.log("📢 Pathname:", location.pathname);
+              console.log("📢 Search:", location.search);
+              console.log("📢 Backend URL:", backendUrl);
+            }}
+          >
+            Ver más debug
+          </MDButton>
+        </MDBox>
       </MDBox>
     );
   }
