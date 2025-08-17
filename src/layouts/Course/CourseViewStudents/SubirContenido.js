@@ -671,7 +671,7 @@ function SubirContenido({ idMateria }) {
                   />
 
                   <TextField
-                    label="Línea de investigación"
+                    label="Lugar"
                     value={proposal.placeName}
                     onChange={(e) => handleProposalChange(index, "placeName", e.target.value)}
                     fullWidth
@@ -680,27 +680,27 @@ function SubirContenido({ idMateria }) {
                   />
 
                   <TextField
-                    label="Línea de investigación"
+                    label="DIreccion del lugar"
                     value={proposal.placeAddress}
-                    onChange={(e) => handleProposalChange(index, "researchLine", e.target.value)}
+                    onChange={(e) => handleProposalChange(index, "placeAddress", e.target.value)}
                     fullWidth
                     margin="normal"
                     required
                   />
 
                   <TextField
-                    label="Línea de investigación"
+                    label="Telefono:"
                     value={proposal.placePhone}
-                    onChange={(e) => handleProposalChange(index, "researchLine", e.target.value)}
+                    onChange={(e) => handleProposalChange(index, "placePhone", e.target.value)}
                     fullWidth
                     margin="normal"
                     required
                   />
 
                   <TextField
-                    label="Línea de investigación"
+                    label="Telefono Movil"
                     value={proposal.placeMobile}
-                    onChange={(e) => handleProposalChange(index, "researchLine", e.target.value)}
+                    onChange={(e) => handleProposalChange(index, "placeMobile", e.target.value)}
                     fullWidth
                     margin="normal"
                     required
