@@ -180,11 +180,30 @@ function CourseView() {
         >
           {console.log("🔍 CourseViewStudents - userType que se pasa:", "estudiante")}
           {console.log("🔍 CourseViewStudents - materia:", materia)}
-          {console.log("🔍 CourseViewStudents - subject que se pasa:", materia ? { nombre: `${materia.categoria}${materia.Carreras?.nombre ? ' - ' + materia.Carreras.nombre : ''}`, descripcion: `ID: ${materia.idMateria}` } : { nombre: `Materia #${materiaId}`, descripcion: "" })}
+          {console.log(
+            "🔍 CourseViewStudents - subject que se pasa:",
+            materia
+              ? {
+                  nombre: `${materia.categoria}${
+                    materia.Carreras?.nombre ? " - " + materia.Carreras.nombre : ""
+                  }`,
+                  descripcion: `ID: ${materia.idMateria}`,
+                }
+              : { nombre: `Materia #${materiaId}`, descripcion: "" }
+          )}
           <SubjectSideMenu
             open={true}
             onClose={() => {}}
-            subject={materia ? { nombre: `${materia.categoria}${materia.Carreras?.nombre ? ' - ' + materia.Carreras.nombre : ''}`, descripcion: `ID: ${materia.idMateria}` } : { nombre: `Materia #${materiaId}`, descripcion: "" }}
+            subject={
+              materia
+                ? {
+                    nombre: `${materia.categoria}${
+                      materia.Carreras?.nombre ? " - " + materia.Carreras.nombre : ""
+                    }`,
+                    descripcion: `ID: ${materia.idMateria}`,
+                  }
+                : { nombre: `Materia #${materiaId}`, descripcion: "" }
+            }
             userType="estudiante"
             onOptionClick={handleMenuOptionClick}
             selectedKey={selectedMenuKey}
@@ -206,47 +225,65 @@ function CourseView() {
             overflow: "auto",
           }}
         >
-      <MDBox pt={6} pb={3}>
-        <Grid container spacing={6}>
-          <Grid item xs={12}>
-                <Card sx={{ boxShadow: 'none', border: 'none', background: 'transparent' }}>
-              <MDBox
-                mx={2}
-                mt={-3}
-                py={3}
-                px={2}
-                variant="gradient"
-                bgColor="info"
-                borderRadius="lg"
-                coloredShadow="info"
-              >
-                <MDTypography variant="h4" color="white" textAlign="center">
-                  Aula Virtual
-                </MDTypography>
-                <MDTypography variant="h6" color="white" textAlign="center">
-                  {loadingMateria ? "Cargando..." : errorMateria ? "Error al cargar materia" : materia?.categoria ? `${materia.categoria} - ${materia.idMateria}` : "Materia"}
-                </MDTypography>
-                <MDTypography variant="h6" color="white" textAlign="center">
-                  {loadingMateria ? "" : errorMateria ? errorMateria : materia?.Carreras?.nombre || ""}
-                </MDTypography>
-              </MDBox>
+          <MDBox pt={6} pb={3}>
+            <Grid container spacing={6}>
+              <Grid item xs={12}>
+                <Card sx={{ boxShadow: "none", border: "none", background: "transparent" }}>
+                  <MDBox
+                    mx={2}
+                    mt={-3}
+                    py={3}
+                    px={2}
+                    variant="gradient"
+                    bgColor="info"
+                    borderRadius="lg"
+                    coloredShadow="info"
+                  >
+                    <MDTypography variant="h4" color="white" textAlign="center">
+                      Aula Virtual
+                    </MDTypography>
+                    <MDTypography variant="h6" color="white" textAlign="center">
+                      {loadingMateria
+                        ? "Cargando..."
+                        : errorMateria
+                        ? "Error al cargar materia"
+                        : materia?.categoria
+                        ? `${materia.categoria} - ${materia.idMateria}`
+                        : "Materia"}
+                    </MDTypography>
+                    <MDTypography variant="h6" color="white" textAlign="center">
+                      {loadingMateria
+                        ? ""
+                        : errorMateria
+                        ? errorMateria
+                        : materia?.Carreras?.nombre || ""}
+                    </MDTypography>
+                  </MDBox>
                   {/* Renderizado condicional */}
                   {selectedMenuKey === "inicio" && (
-                    <TabPanel value={tabValue} index={0}><InicioMateria /></TabPanel>
+                    <TabPanel value={tabValue} index={0}>
+                      <InicioMateria />
+                    </TabPanel>
                   )}
                   {selectedMenuKey === "cronograma" && (
-                    <TabPanel value={tabValue} index={1}><Cronograma /></TabPanel>
+                    <TabPanel value={tabValue} index={1}>
+                      <Cronograma />
+                    </TabPanel>
                   )}
                   {selectedMenuKey === "recursos" && (
-                    <TabPanel value={tabValue} index={2}><Recursos /></TabPanel>
+                    <TabPanel value={tabValue} index={2}>
+                      <Recursos />
+                    </TabPanel>
                   )}
                   {selectedMenuKey === "subir" && (
-                    <TabPanel value={tabValue} index={3}><SubirContenido /> </TabPanel>
+                    <TabPanel value={tabValue} index={3}>
+                      <SubirContenido idMateria={materiaId} />{" "}
+                    </TabPanel>
                   )}
-                          </Card>
-                        </Grid>
-                    </Grid>
-                  </MDBox>
+                </Card>
+              </Grid>
+            </Grid>
+          </MDBox>
         </Box>
       </Box>
       <Footer />
