@@ -1,4 +1,5 @@
 import React from "react";
+import { useState, useEffect } from "react";
 import {
   Document,
   Page,
@@ -203,18 +204,14 @@ const ProtocoloInvestigacionPDF = ({ data }) => (
       <Text style={styles.sectionTitle}>
         INFORMACIÓN SOBRE EL LUGAR DONDE SE DESARROLLARÁ LA INVESTIGACIÓN
       </Text>
+      <Text style={styles.text}>Nombre del lugar o área: {data.placeName}</Text>
       <Text style={styles.text}>
-        Nombre del lugar o área: _______________________________________________________
+        Tutor(a) Empresarial (si aplica): _________________________________
       </Text>
-      <Text style={styles.text}>
-        Tutor(a) Empresarial (si aplica): _______________________________________________________
-      </Text>
-      <Text style={styles.text}>
-        Dirección: _______________________________________________________
-      </Text>
+      <Text style={styles.text}>Dirección: {data.placeAddress}</Text>
       <View style={styles.row}>
-        <Text style={styles.text}>Teléfonos: ___________________________</Text>
-        <Text style={styles.text}>Móvil: _______________________________</Text>
+        <Text style={styles.text}>Teléfonos: {data.placePhone}</Text>
+        <Text style={styles.text}>Móvil: {data.placeMobile}</Text>
       </View>
       <Text style={styles.signatureLine}>
         Firma del Estudiante:_______________________________________________________
@@ -280,63 +277,97 @@ ProtocoloInvestigacionPDF.propTypes = {
     researchLine: PropTypes.string,
     researchPurpose: PropTypes.string,
     placeName: PropTypes.string,
-    businessTutor: PropTypes.string,
     placeAddress: PropTypes.string,
     placePhone: PropTypes.string,
     placeMobile: PropTypes.string,
-    assignedTutor: PropTypes.string,
-    tutorPhone: PropTypes.string,
-    tutorEmail: PropTypes.string,
-    tutorAcceptanceName: PropTypes.string,
-    tutorAcceptanceCI: PropTypes.string,
   }).isRequired,
 };
 
+const FechaActual = () => {
+  const [fechaFormateada, setFechaFormateada] = useState("");
+
+  useEffect(() => {
+    const obtenerFecha = () => {
+      const fecha = new Date();
+      const opciones = { weekday: "long", year: "numeric", month: "2-digit", day: "2-digit" };
+      const fechaString = fecha.toLocaleDateString("es-ES", opciones);
+
+      // toLocaleDateString devuelve "Jueves, 17/08/2025"
+      // Eliminamos la coma para que quede "Jueves 17/08/2025"
+      const fechaSinComa = fechaString.replace(",", "");
+
+      setFechaFormateada(fechaSinComa);
+    };
+
+    obtenerFecha();
+  }, []);
+
+  return fechaFormateada;
+};
+
 // Componente para generar y descargar el PDF
-const ProtocoloGenerator = () => {
+const ProtocoloGenerator = ({studentData, titleInfo, numero}) => {
   // Datos de ejemplo para la planilla.
   // Puedes reemplazar estos datos con información real de tu aplicación.
-  const protocolData = {
+  const [protocolData,setProtocolData] = useState({
     extension: "X",
-    lapsoAcademico: "2025 - 1",
-    studentName: "LYNERKEN LEANDRO MORA ORTEGA",
-    studentCI: "V-30.523.215",
-    studentPhone: "0414-1234567",
-    studentEmail: "estudiantejdhdhdjjdjdjdjdjdjdjdjdjjdjdjdjdjdjjdjd@email.com",
-    studentCareer: "INGENIERÍA EN SISTEMAS",
-    teacherName: "Laura Santander Parra",
-    section: "A",
-    date: "Jueves 10 /10 / 2024",
-    tentativeTitle:
-      "Desarrollo de sistema web para el control de los procesos administrativos del departamento de investigación y pasantías UTS",
-    researchLine: "Desarrollo de Software",
-    researchPurpose:
-      "Desarrollar un sistema web para el control de los procesos administrativos del departamento de investigación y pasantías UTS.",
-    placeName: "Instituto Universitario de Tecnología 'Antonio José de Sucre'",
-    businessTutor: "N/A",
-    placeAddress: "Av. Principal, Edificio Central, San Cristóbal",
-    placePhone: "0276-1234567",
-    placeMobile: "0412-7654321",
-    assignedTutor: "Mayerling Siloé Vesga Contreras",
-    tutorPhone: "0424-7654321",
-    tutorEmail: "tutor@email.com",
-    tutorAcceptanceName: "Mayerling Siloé Vesga Contreras",
-    tutorAcceptanceCI: "V-15.502.565",
-  };
+    lapsoAcademico: "2025-2",
+    studentName: studentData.apellido2,
+    studentCI: studentData.cedula,
+    studentPhone: studentData.telf,
+    studentEmail: studentData.correo,
+    studentCareer: studentData.carrera,
+    teacherName: studentData.docente,
+    section: studentData.seccion,
+    date: FechaActual(),
+    tentativeTitle: titleInfo.title,
+    researchLine: titleInfo.researchLine,
+    researchPurpose: titleInfo.purpose,
+    placeName: titleInfo.placeName,
+    placeAddress: titleInfo.placeAddress,
+    placePhone: titleInfo.placePhone,
+    placeMobile: titleInfo.placeMobile,
+  });
 
   return (
-    <Button variant="contained" color="primary">
+    <Button variant="outlined" color="primary">
       <PDFDownloadLink
         document={<ProtocoloInvestigacionPDF data={protocolData} />}
-        fileName="Protocolo_Investigacion.pdf"
-        color="white"
+        fileName={`Protocolo_Investigacion ${numero}.pdf`}
       >
         {({ blob, url, loading, error }) =>
-          loading ? "Generando PDF..." : "Descargar Protocolo de Investigación"
+          loading ? "Generando PDF..." : "Descargar Protocolo de Investigación " + numero
         }
       </PDFDownloadLink>
     </Button>
   );
+};
+
+
+ProtocoloGenerator.propTypes = {
+  studentData: PropTypes.shape({
+    apellido1: PropTypes.string,
+    apellido2: PropTypes.string,
+    nombre1: PropTypes.string,
+    nombre2: PropTypes.string,
+    cedula: PropTypes.string,
+    telf: PropTypes.string,
+    correo: PropTypes.string,
+    carrera: PropTypes.string,
+    docente: PropTypes.string,
+    seccion: PropTypes.string,
+  }).isRequired,
+  titleInfo: PropTypes.shape({
+    apellido1: PropTypes.string,
+    title: PropTypes.string,
+    researchLine: PropTypes.string,
+    purpose: PropTypes.string,
+    placeName: PropTypes.string,
+    placeAddress: PropTypes.string,
+    placePhone: PropTypes.string,
+    placeMobile: PropTypes.string,
+  }).isRequired,
+  numero: PropTypes.number
 };
 
 export default ProtocoloGenerator;

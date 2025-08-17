@@ -359,7 +359,7 @@ const ControlTutoriasGenerator = () => {
   };
 
   return (
-    <Button variant="contained" color="primary">
+    <Button variant="outlined" color="primary">
       <PDFDownloadLink
         document={<ControlTutoriasPDF data={tutoringData} />}
         fileName="Control_Tutorias.pdf"
