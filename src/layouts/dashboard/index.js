@@ -38,6 +38,7 @@ import reportsBarChartData from "layouts/dashboard/data/reportsBarChartData";
 // Dashboard components
 import OrdersOverview from "layouts/dashboard/components/OrdersOverview";
 import Cronograma from "layouts/dashboard/components/Cronograma";
+import ConnectedUsers from "layouts/dashboard/components/ConnectedUsers";
 
 // Data
 import reportsLineChartData from "layouts/dashboard/data/reportsLineChartData";
@@ -46,15 +47,6 @@ import { backendUrl } from "config";
 function Dashboard() {
   const { sales, tasks } = reportsLineChartData;
   const [dashboardEvents, setDashboardEvents] = useState([]);
-
-
-  // Lista simulada de conectados
-  const [connectedUsers, setConnectedUsers] = useState([
-    { id: 1, name: "Luis Cárdenas", role: "Administrador", avatar: "https://i.pravatar.cc/40?img=1" },
-    { id: 2, name: "Ismael Sánchez", role: "Docente", avatar: "https://i.pravatar.cc/40?img=2" },
-    { id: 3, name: "Kevin Sanabria", role: "Estudiante", avatar: "https://i.pravatar.cc/40?img=3" },
-    { id: 4, name: "Oriana Durán", role: "Coordinadora", avatar: "https://i.pravatar.cc/40?img=4" }
-  ]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -79,8 +71,14 @@ function Dashboard() {
       <MDBox py={3}>
         <MDBox mt={4.5}>
           <Grid container spacing={3}>
-            {/* Cronograma */}
-            <Grid item xs={12} lg={8}>
+            
+            {/* Comunicados - 4 columnas */}
+            <Grid item xs={6} lg={3} >
+              <OrdersOverview />
+            </Grid>
+
+            {/* Cronograma - 4 columnas */}
+            <Grid item xs={12} lg={6}>
               <MDBox mb={3}>
                 <Cronograma 
                   events={dashboardEvents}
@@ -89,21 +87,13 @@ function Dashboard() {
               </MDBox>
             </Grid>
 
-            {/* Comunicados */}
-            <Grid item xs={12} lg={4}>
-              <MDBox mb={3}>
-                <OrdersOverview />
-              </MDBox>
-              </Grid>
+            {/* Usuarios Conectados - 4 columnas */}
+            <Grid item xs={6} lg={3}>
+              <ConnectedUsers />
+            </Grid>
 
-             <MDBox mb={6}>
-                <ReportsBarChart
-                  color="info"
-                  title="ENTRADA DE ESTUDIANTES"
-                  date="Última actualización: Hoy"
-                  chart={reportsBarChartData}
-                />
-              </MDBox>
+            
+            
           </Grid>
         </MDBox>
       </MDBox>

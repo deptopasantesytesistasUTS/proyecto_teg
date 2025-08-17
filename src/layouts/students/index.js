@@ -21,6 +21,8 @@ import Alert from "@mui/material/Alert";
 import Snackbar from "@mui/material/Snackbar";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
+import * as XLSX from 'xlsx';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -51,6 +53,7 @@ function Students() {
   const [section, setSection] = useState(false);
   const [sectionTutor, setSectionTutor] = useState(false);
   const [students, setStudents] = useState([]);
+  const [tutors, setTutors] = useState([]);
   const [columns, setColumns] = useState(
     studentsTableData(students, handleViewStudent).columns
   );
@@ -297,6 +300,24 @@ function Students() {
     }
   };
 
+  const handleGetTutors = async () => {
+    try {
+      const response = await fetch(`${backendUrl}/profesoresUnidades`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setTutors(data.profesores || []);
+      } else {
+        console.error("Failed to fetch tutors");
+      }
+    } catch (error) {
+      console.error("Error fetching tutors:", error);
+    }
+  };
+
   useEffect(() => {
     // Busca la sección seleccionada en el array de sections
     console.log(newStudent.seccion);
@@ -319,6 +340,7 @@ function Students() {
   useEffect(() => {
     handleGetCareers();
     handleGetStudents();
+    handleGetTutors();
   }, []);
 
   useEffect(() => {
@@ -393,6 +415,189 @@ function Students() {
   const [filterCarrera, setFilterCarrera] = useState("");
   const [filterMateria, setFilterMateria] = useState("");
   const [search, setSearch] = useState("");
+
+  // Función para exportar a Excel
+  const handleExportToExcel = () => {
+    try {
+      // Obtener los datos filtrados
+      let filtered = [...students];
+      
+      // Eliminar estudiantes duplicados basándose en la cédula
+      const uniqueStudents = [];
+      const seenCedulas = new Set();
+      
+      filtered.forEach((student) => {
+        if (!seenCedulas.has(student.cedula)) {
+          seenCedulas.add(student.cedula);
+          uniqueStudents.push(student);
+        }
+      });
+      
+      filtered = uniqueStudents;
+      
+      // Filtrar por carrera
+      if (filterCarrera) {
+        filtered = filtered.filter((row) => row.carrera === filterCarrera);
+      }
+      // Filtrar por materia
+      if (filterMateria) {
+        filtered = filtered.filter((row) => {
+          if (Array.isArray(row.materia)) {
+            return row.materia.some((mat) => {
+              return mat.toLowerCase().includes(filterMateria.toLowerCase());
+            });
+          } else {
+            return row.materia && typeof row.materia === 'string' && 
+                   row.materia.toLowerCase().includes(filterMateria.toLowerCase());
+          }
+        });
+      }
+
+      // Buscar por nombre
+      if (search) {
+        filtered = filtered.filter(
+          (row) =>
+            row.nombre.toLowerCase().includes(search.toLowerCase()) ||
+            `${row.cedula}`.toLowerCase().includes(search.toLowerCase())
+        );
+      }
+
+      // Crear workbook
+      const wb = XLSX.utils.book_new();
+      
+      // Crear hoja TITULOS con el formato específico
+      const wsTitulos = XLSX.utils.aoa_to_sheet([
+        // Fila 1: Título principal (células E1:J1 fusionadas)
+        ['', '', '', '', 'LISTADO ESTUDIANTES TRABAJO DE GRADO - PASANTÍAS 2025-1', '', '', '', '', ''],
+        // Fila 2: Encabezados
+        ['Condición', 'No.', 'Especialidad', 'Cedula', 'Apellidos y Nombres Estudiante', 'TITULOS', 'TUTOR', 'JURADO 1', 'JURADO 2', 'JURADO 3'],
+        // Filas de datos
+        ...filtered.map((student, index) => [
+          '', // Condición
+          index + 1, // No.
+          student.carrera || '', // Especialidad
+          student.cedula || '', // Cedula
+          student.nombre || '', // Apellidos y Nombres Estudiante
+          '', // TITULOS
+          '', // TUTOR
+          '', // JURADO 1
+          '', // JURADO 2
+          '', // JURADO 3
+        ])
+      ]);
+
+      // Configurar fusiones de celdas
+      wsTitulos['!merges'] = [
+        { s: { r: 0, c: 4 }, e: { r: 0, c: 9 } } // E1:J1 fusionadas
+      ];
+
+      // Configurar estilos y formato
+      wsTitulos['!cols'] = [
+        { wch: 12 }, // A - Condición
+        { wch: 8 },  // B - No.
+        { wch: 20 }, // C - Especialidad
+        { wch: 15 }, // D - Cedula
+        { wch: 35 }, // E - Apellidos y Nombres Estudiante
+        { wch: 40 }, // F - TITULOS
+        { wch: 25 }, // G - TUTOR
+        { wch: 25 }, // H - JURADO 1
+        { wch: 25 }, // I - JURADO 2
+        { wch: 25 }  // J - JURADO 3
+      ];
+
+      // Aplicar estilos a las celdas
+      // Título principal (E1:J1)
+      for (let col = 4; col <= 9; col++) {
+        const cellRef = XLSX.utils.encode_cell({ r: 0, c: col });
+        if (!wsTitulos[cellRef]) {
+          wsTitulos[cellRef] = { v: '', t: 's' };
+        }
+        wsTitulos[cellRef].s = {
+          fill: { fgColor: { rgb: "1F4E79" } }, // Fondo azul oscuro
+          font: { color: { rgb: "FFFFFF" }, bold: true }, // Texto blanco y negrita
+          alignment: { horizontal: "center", vertical: "center" }
+        };
+      }
+
+      // Encabezados (fila 2)
+      for (let col = 0; col <= 9; col++) {
+        const cellRef = XLSX.utils.encode_cell({ r: 1, c: col });
+        if (wsTitulos[cellRef]) {
+          wsTitulos[cellRef].s = {
+            font: { bold: true },
+            alignment: { horizontal: "center", vertical: "center" },
+            fill: { fgColor: { rgb: col === 5 ? "B8CCE4" : "FFFFFF" } } // F2 con fondo azul claro, resto blanco
+          };
+        }
+      }
+
+      // Datos (filas 3 en adelante)
+      for (let row = 2; row < filtered.length + 2; row++) {
+        for (let col = 0; col <= 9; col++) {
+          const cellRef = XLSX.utils.encode_cell({ r: row, c: col });
+          if (wsTitulos[cellRef]) {
+            wsTitulos[cellRef].s = {
+              alignment: { horizontal: "center", vertical: "center" },
+              border: {
+                top: { style: "thin" },
+                bottom: { style: "thin" },
+                left: { style: "thin" },
+                right: { style: "thin" }
+              }
+            };
+          }
+        }
+      }
+
+      // Agregar la hoja al workbook
+      XLSX.utils.book_append_sheet(wb, wsTitulos, 'TITULOS');
+
+      // Crear hoja para tutores (mantener la funcionalidad original)
+      const tutorsData = tutors.map((tutor) => ({
+        'ID': tutor.idProfesor,
+        'Nombre Completo': tutor.nombre,
+        'Email': tutor.email || '',
+        'Teléfono': tutor.telefono || '',
+        'Carrera': tutor.carrera || '',
+        'Especialidad': tutor.especialidad || '',
+        'Estatus': tutor.estatus || 'Activo'
+      }));
+
+      const wsTutors = XLSX.utils.json_to_sheet(tutorsData);
+      XLSX.utils.book_append_sheet(wb, wsTutors, 'Tutores');
+
+      // Ajustar ancho de columnas para tutores
+      const colWidthsTutors = [
+        { wch: 10 }, // ID
+        { wch: 30 }, // Nombre Completo
+        { wch: 25 }, // Email
+        { wch: 15 }, // Teléfono
+        { wch: 20 }, // Carrera
+        { wch: 25 }, // Especialidad
+        { wch: 15 }  // Estatus
+      ];
+      wsTutors['!cols'] = colWidthsTutors;
+
+      // Generar nombre del archivo
+      const fileName = `Titulos_Listado_de_TEG_2025-1_para_sistema.xlsx`;
+
+      // Descargar archivo
+      XLSX.writeFile(wb, fileName);
+
+      setSnackbar({
+        open: true,
+        message: `Archivo Excel generado exitosamente con ${filtered.length} estudiantes y ${tutors.length} tutores: ${fileName}`,
+        severity: "success",
+      });
+    } catch (error) {
+      console.error('Error al generar Excel:', error);
+      setSnackbar({
+        open: true,
+        message: "Error al generar el archivo Excel",
+        severity: "error",
+      });
+    }
+  };
 
   // Función para filtrar, buscar y ordenar
   const getFilteredRows = () => {
@@ -548,6 +753,14 @@ function Students() {
                   <Stack spacing={2} direction="row">
                     <Button variant="contained" onClick={handleOpenAdd}>
                       Agregar Estudiante
+                    </Button>
+                    <Button 
+                      variant="outlined" 
+                      onClick={handleExportToExcel}
+                      startIcon={<FileDownloadIcon />}
+                      color="success"
+                    >
+                      Exportar Listado Jueces
                     </Button>
                   </Stack>
                 </Grid>
