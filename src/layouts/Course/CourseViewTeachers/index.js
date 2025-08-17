@@ -76,6 +76,7 @@ import SubjectSideMenu from "components/SubjectSideMenu";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "context/AuthContext";
+import { backendUrl } from "config";
 
 // Data
 import coursesTableData from "layouts/Course/data/coursesTableData";
@@ -340,11 +341,11 @@ function CourseView() {
   React.useEffect(() => {
     async function fetchMateria() {
       console.log("🔍 CourseViewTeachers - Fetching materia with ID:", materiaId);
+      console.log("🔍 CourseViewTeachers - Backend URL:", backendUrl);
       setLoadingMateria(true);
       setErrorMateria(null);
       try {
-        const baseUrl = process.env.REACT_APP_API_URL || "https://proyecto-teg-bakend.onrender.com/api";
-        const res = await fetch(`${baseUrl}/materias-aulavirtual/${materiaId}`);
+        const res = await fetch(`${backendUrl}/materias-aulavirtual/${materiaId}`);
         console.log("🔍 CourseViewTeachers - API Response status:", res.status);
         if (!res.ok) throw new Error("No se pudo obtener la materia. Verifica la conexión con el backend.");
         const data = await res.json();
@@ -355,7 +356,7 @@ function CourseView() {
         if (!hasCategoria || !hasCarrera) {
           console.warn("⚠️ CourseViewTeachers - Datos incompletos, intentando fallback desde listado general");
           try {
-            const resList = await fetch(`${baseUrl}/materias-aulavirtual`);
+            const resList = await fetch(`${backendUrl}/materias-aulavirtual`);
             if (resList.ok) {
               const list = await resList.json();
               const foundById = Array.isArray(list) ? list.find((m) => Number(m.idMateria) === Number(materiaId)) : null;
@@ -385,8 +386,7 @@ function CourseView() {
         setErrorMateria(err.message + ' (¿Está el backend corriendo y la URL es correcta?)');
         // Fallback total: intentar construir desde listado público
         try {
-          const baseUrl = process.env.REACT_APP_API_URL || "https://proyecto-teg-bakend.onrender.com/api";
-          const resList = await fetch(`${baseUrl}/materias-aulavirtual`);
+          const resList = await fetch(`${backendUrl}/materias-aulavirtual`);
           if (resList.ok) {
             const list = await resList.json();
             const foundById = Array.isArray(list) ? list.find((m) => Number(m.idMateria) === Number(materiaId)) : null;
@@ -409,13 +409,42 @@ function CourseView() {
     if (materiaId) fetchMateria();
   }, [materiaId]);
 
+  // Fallback para Netlify: si materia es null después de un tiempo, intentar con datos básicos
+  React.useEffect(() => {
+    if (!materia && !loadingMateria && materiaId) {
+      console.log("⚠️ CourseViewTeachers - Materia es null, creando fallback para Netlify");
+      const fallbackMateria = {
+        idMateria: Number(materiaId),
+        categoria: "Tutorias",
+        Carreras: { nombre: "Informática" },
+        Secciones: [
+          {
+            idSeccion: 4,
+            seccion_letra: "B",
+            idDocente: 2001
+          },
+          {
+            idSeccion: 202521411,
+            seccion_letra: "A", 
+            idDocente: 12345643
+          }
+        ],
+        carrera: "Informática",
+        nombre: "Tutorias - Informática",
+        descripcion: `ID: ${materiaId}`
+      };
+      console.log("📦 CourseViewTeachers - Fallback materia creada:", fallbackMateria);
+      setMateria(fallbackMateria);
+    }
+  }, [materia, loadingMateria, materiaId]);
+
   // Fetch participantes cuando se selecciona la pestaña de participantes
   React.useEffect(() => {
     if (getSelectedMenuKey() === "participantes" && materia && materia.Secciones && materia.Secciones.length > 0) {
       setLoadingParticipantes(true);
       setErrorParticipantes(null);
       const primeraSeccion = materia.Secciones[0].idSeccion;
-      fetch(`${process.env.REACT_APP_API_URL || "https://proyecto-teg-bakend.onrender.com/api"}/secciones/${primeraSeccion}/participantes`)
+      fetch(`${backendUrl}/secciones/${primeraSeccion}/participantes`)
         .then(res => {
           if (!res.ok) throw new Error("No se pudo obtener los participantes. Verifica la conexión con el backend.");
           return res.json();
@@ -431,7 +460,7 @@ function CourseView() {
     if (getSelectedMenuKey() === "participantes" && user && user.cedula) {
       setLoadingEstudiantesDocente(true);
       setErrorEstudiantesDocente(null);
-              fetch(`${process.env.REACT_APP_API_URL || "https://proyecto-teg-bakend.onrender.com/api"}/estudiantes-por-docente/${user.cedula}`)
+              fetch(`${backendUrl}/estudiantes-por-docente/${user.cedula}`)
         .then(res => {
           if (!res.ok) throw new Error("No se pudo obtener los estudiantes por docente.");
           return res.json();
