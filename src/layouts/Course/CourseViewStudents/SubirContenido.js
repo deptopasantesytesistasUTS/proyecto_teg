@@ -150,6 +150,8 @@ function SubirContenido({ idMateria, categoria }) {
         fetchUserData();
       }, []);
 
+      
+
   const handleGetCurrentSemester = async () => {
     const today = new Date();
     const currentDate = today.toISOString().split("T")[0];
@@ -179,6 +181,7 @@ function SubirContenido({ idMateria, categoria }) {
         tutInicio: data.semester.tutInicio,
         tutFinal: data.semester.tutFinal,
         urlCronograma: data.semester.urlCronograma,
+        fechaInstrumentos: data.semester.fechaEntInst,
       });
 
       console.log(categoria)
@@ -194,11 +197,10 @@ function SubirContenido({ idMateria, categoria }) {
            { nombre: "Capitulo 3", fechaLimite: data.semester.inv2Borrador3 },
            { nombre: "Instrumentos de Investigaccion", fechaLimite: data.semester.inv2Borrador4 },
          ]);
-       }
-       else if (categoria === "Trabajo_Especial_de_Grado") {
+       } else if (categoria === "Trabajo_Especial_de_Grado") {
          setEntregas([
-           { nombre: "Entrega Instrumento 1", fechaLimite: data.semester.titleDeliveryDate },
-           { nombre: "Entrega Instrumento 2", fechaLimite: data.semester.titleDeliveryDate },
+           { nombre: "Entrega Instrumento 1", fechaLimite: data.semester.fechaEntInst },
+           { nombre: "Entrega Instrumento 2", fechaLimite: data.semester.fechaEntInst },
            { nombre: "Entrega de Propuesta", fechaLimite: data.semester.firstDraftDate },
            {
              nombre: "Informe Completo",
@@ -265,7 +267,11 @@ function SubirContenido({ idMateria, categoria }) {
   const isVencida = (fechaLimite) => new Date(fechaLimite) < now;
   const formatoFecha = (fechaLimite) => {
     const fecha = new Date(fechaLimite);
-    return fecha.toLocaleString("es-VE", { dateStyle: "medium", timeStyle: "short" });
+    return fecha.toLocaleString("es-VE", {
+      dateStyle: "medium",
+      timeStyle: "short",
+      timeZone: "UTC",
+    });
   };
 
   // State for URL submission
@@ -320,6 +326,48 @@ function SubirContenido({ idMateria, categoria }) {
 
     loadData();
   }, []);
+
+  const validateLinkStructure = (value) => {
+    try {
+      new URL(value);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const [errors, setErrors] = useState({});
+
+  const handleEnlaceChange = (nombreEntrega, enlace) => {
+    let error = "";
+    let errorBool = false;
+
+    if (enlace && !validateLinkStructure(enlace)) {
+      error = "Enlace Invalido";
+      errorBool = true;
+    } else {
+      errorBool = false;
+    }
+
+    if (errorBool) {
+      setSnackbar({
+        open: true,
+        message: error,
+        severity: "error",
+      });
+    }
+
+    setErrors((prev) => ({ ...prev, [nombreEntrega]: error }));
+
+    handleFormChange(nombreEntrega, enlace);
+  };
+
+  const handleFormChange = (field, value) => {
+      setEnlacesIngresados((prev) => ({ ...prev, [field]: value }));
+
+  };
+
+
 
   // Handlers for proposal form
   const handleProposalChange = (index, field, value) => {
@@ -447,8 +495,8 @@ function SubirContenido({ idMateria, categoria }) {
   };
 
 
-    const handleSubmitEnlaces = () => {
-      if (!validateProposals()) {
+    const handleSubmitEnlaces = (enlace,nombre) => {
+      if (!validateLinkStructure(enlace)) {
         setSnackbar({
           open: true,
           message: "Todos los campos deben estar completos",
@@ -461,7 +509,7 @@ function SubirContenido({ idMateria, categoria }) {
         open: true,
         title: "Confirmar envío de propuestas",
         content:
-          "¿Está seguro que desea enviar estas propuestas? Una vez enviadas no podrán ser modificadas.",
+          "¿Está seguro que desea enviar este enlace",
         onConfirm: async () => {
           setConfirmDialog((prev) => ({ ...prev, open: false }));
           setLoading((prev) => ({ ...prev, submitting: true }));
@@ -478,11 +526,12 @@ function SubirContenido({ idMateria, categoria }) {
             }
             console.log(user.userId);
             const userId = user.userId; // You might need to adjust this based on your auth system
-            const response = await fetch(`${backendUrl}/estudiante/titulos`, {
+            const response = await fetch(`${backendUrl}/estudiante/archivos`, {
               method: "PUT",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                info: enlacesIngresados,
+                nombre: nombre,
+                enlace: enlacesIngresados[nombre],
                 user: userId,
                 idMateria: idMateria,
               }),
@@ -898,12 +947,14 @@ function SubirContenido({ idMateria, categoria }) {
                       size="small"
                       sx={{ flex: 1 }}
                       disabled={vencida || subiendo[entrega.nombre]}
+                      error={!!errors[entrega.nombre]}
+                      helperText={errors[entrega.nombre]}
                     />
                     <Button
                       variant="outlined"
                       color="primary"
                       size="small"
-                      onClick={() => handleSubmitEnlaces}
+                      onClick={() => handleSubmitEnlaces(enlacesIngresados[entrega.nombre],entrega.nombre)}
                       disabled={
                         !(
                           enlacesIngresados[entrega.nombre] &&
