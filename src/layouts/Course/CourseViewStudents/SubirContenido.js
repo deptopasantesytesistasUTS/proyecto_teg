@@ -75,17 +75,15 @@ const mockBackend = {
 
  
 
-function SubirContenido({ idMateria }) {
+function SubirContenido({ idMateria, categoria }) {
   const [userData, setUserData] = useState({});
   const [error, setError] = useState({});
   const [currentSemester, setCurrentSemester] = useState(null);
   const [entregas, setEntregas] = useState([
-    { nombre: "Protocolo de Investigación", fechaLimite: "" },
-    { nombre: "Capitulo 1", fechaLimite: "" },
-    { nombre: "Carta Empresarial", fechaLimite: "" },
-    { nombre: "Capitulo 2", fechaLimite: "" },
-    { nombre: "Capitulo 3", fechaLimite: "" },
-    { nombre: "Instrumentos de Investigaccion", fechaLimite: "" },
+    { nombre: "1", fechaLimite: "" },
+    { nombre: "2", fechaLimite: "" },
+    { nombre: "3", fechaLimite: "" },
+    { nombre: "4", fechaLimite: "" },
   ]);
 
     const fetchUserData = async () => {
@@ -103,7 +101,7 @@ function SubirContenido({ idMateria }) {
         console.log(user.userId);
         const userId = user.userId; // You might need to adjust this based on your auth system
   
-        const response = await fetch(`${backendUrl}/estudiante/profile/${userId}`, {
+        const response = await fetch(`${backendUrl}/estudiante/profile/${userId}/${idMateria}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -162,6 +160,7 @@ function SubirContenido({ idMateria }) {
 
     if (response.ok) {
       const data = await response.json();
+     
       setCurrentSemester({
         id: data.semester.id,
         startDate: data.semester.startDate,
@@ -181,14 +180,38 @@ function SubirContenido({ idMateria }) {
         tutFinal: data.semester.tutFinal,
         urlCronograma: data.semester.urlCronograma,
       });
-      setEntregas([
-        { nombre: "Protocolo de Investigación", fechaLimite: data.semester.titleDeliveryDate },
-        { nombre: "Capitulo 1", fechaLimite: data.semester.inv2Borrador1 },
-        { nombre: "Carta Empresarial", fechaLimite: data.semester.cartaDate },
-        { nombre: "Capitulo 2", fechaLimite: data.semester.inv2Borrador2 },
-        { nombre: "Capitulo 3", fechaLimite: data.semester.inv2Borrador3 },
-        { nombre: "Instrumentos de Investigaccion", fechaLimite: data.semester.inv2Borrador4 },
-      ]);
+
+      console.log(categoria)
+
+       if (categoria === "investigacion_II") {
+         setEntregas([
+           { nombre: "Protocolo de Investigación 1", fechaLimite: data.semester.titleDeliveryDate },
+           { nombre: "Protocolo de Investigación 2", fechaLimite: data.semester.titleDeliveryDate },
+           { nombre: "Protocolo de Investigación 3", fechaLimite: data.semester.titleDeliveryDate },
+           { nombre: "Capitulo 1", fechaLimite: data.semester.inv2Borrador1 },
+           { nombre: "Carta Empresarial", fechaLimite: data.semester.cartaDate },
+           { nombre: "Capitulo 2", fechaLimite: data.semester.inv2Borrador2 },
+           { nombre: "Capitulo 3", fechaLimite: data.semester.inv2Borrador3 },
+           { nombre: "Instrumentos de Investigaccion", fechaLimite: data.semester.inv2Borrador4 },
+         ]);
+       }
+       else if (categoria === "Trabajo_Especial_de_Grado") {
+         setEntregas([
+           { nombre: "Entrega Instrumento 1", fechaLimite: data.semester.titleDeliveryDate },
+           { nombre: "Entrega Instrumento 2", fechaLimite: data.semester.titleDeliveryDate },
+           { nombre: "Entrega de Propuesta", fechaLimite: data.semester.firstDraftDate },
+           {
+             nombre: "Informe Completo",
+             fechaLimite: data.semester.secondDraftDate,
+           },
+           {
+             nombre: "Tomo Completo (Correciones Predefensa)",
+             fechaLimite: data.semester.thirdDraftDate,
+           },
+           { nombre: "Entrega de Diapositivas", fechaLimite: data.semester.finalDraftDate },
+         ]);
+       }
+      
     }
   };
 
@@ -423,6 +446,74 @@ function SubirContenido({ idMateria }) {
     });
   };
 
+
+    const handleSubmitEnlaces = () => {
+      if (!validateProposals()) {
+        setSnackbar({
+          open: true,
+          message: "Todos los campos deben estar completos",
+          severity: "error",
+        });
+        return;
+      }
+
+      setConfirmDialog({
+        open: true,
+        title: "Confirmar envío de propuestas",
+        content:
+          "¿Está seguro que desea enviar estas propuestas? Una vez enviadas no podrán ser modificadas.",
+        onConfirm: async () => {
+          setConfirmDialog((prev) => ({ ...prev, open: false }));
+          setLoading((prev) => ({ ...prev, submitting: true }));
+
+          try {
+            let user = null;
+            try {
+              const userStr = localStorage.getItem("user");
+              if (userStr) {
+                user = JSON.parse(userStr);
+              }
+            } catch (e) {
+              user = null;
+            }
+            console.log(user.userId);
+            const userId = user.userId; // You might need to adjust this based on your auth system
+            const response = await fetch(`${backendUrl}/estudiante/titulos`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                info: enlacesIngresados,
+                user: userId,
+                idMateria: idMateria,
+              }),
+            });
+            console.log(response);
+            const data = await response.json();
+
+            console.log("API Response:", data);
+            console.log(response.ok);
+            if (response.ok) {
+              // Si la respuesta es un array directamente
+              setSnackbar({
+                open: true,
+                message: "Archivos subidos",
+                severity: "success",
+              });
+            }
+          } catch (error) {
+            console.error(error);
+            setSnackbar({
+              open: true,
+              message: "Error al enviar los enlaces",
+              severity: "error",
+            });
+          } finally {
+            setLoading((prev) => ({ ...prev, submitting: false }));
+          }
+        },
+      });
+    };
+
   // Handlers for URL submission
   const validateUrl = (url) => {
     try {
@@ -514,92 +605,105 @@ function SubirContenido({ idMateria }) {
       </Snackbar>
 
       {/* Title Proposals Section */}
-      <Paper sx={{ flex: 1, p: 3, borderRadius: 3, boxShadow: 3, minWidth: 320 }}>
-        <Typography variant="h5" fontWeight={700} mb={2} sx={{ color: "rgb(25, 118, 210)" }}>
-          Propuestas de Título
-        </Typography>
-
-        {loading.selectedTitle ? (
-          <Typography>Cargando...</Typography>
-        ) : selectedTitle ? (
-          <>
-            <Typography variant="subtitle1" mb={2}>
-              Título seleccionado:
+      {
+        categoria !== "Trabajo_Especial_de_Grado" ? (
+          <Paper sx={{ flex: 1, p: 3, borderRadius: 3, boxShadow: 3, minWidth: 320 }}>
+            <Typography variant="h5" fontWeight={700} mb={2} sx={{ color: "rgb(25, 118, 210)" }}>
+              Propuestas de Título
             </Typography>
-            <Box display="flex" alignItems="center" gap={1}>
-              <Typography fontWeight={600}>{selectedTitle}</Typography>
-              <Chip label="Aceptado" color="success" size="small" />
-            </Box>
-          </>
-        ) : proposalsSubmitted ? (
-          <>
-            <Typography variant="subtitle1" mb={2}>
-              Ya has enviado tus 3 propuestas de título. Espera la selección.
-            </Typography>
-            <ProtocoloGenerator
-              studentData={{
-                nombre1: userData.firstName,
-                nombre2: userData.secondName,
-                apellido1: userData.firstLastName,
-                apellido2: userData.secondLastName,
-                cedula: userData.id,
-                telf: userData.telf,
-                correo: userData.correo,
-              }}
-              numero={1}
-              titleInfo={proposalsSubmitted}
-            ></ProtocoloGenerator>
-            <ProtocoloGenerator
-              studentData={{
-                nombre1: userData.firstName,
-                nombre2: userData.secondName,
-                apellido1: userData.firstLastName,
-                apellido2: userData.secondLastName,
-                cedula: userData.id,
-                telf: userData.telf,
-                correo: userData.correo,
-              }}
-              numero={2}
-              titleInfo={proposalsSubmitted}
-            ></ProtocoloGenerator>
-            <ProtocoloGenerator
-              studentData={{
-                nombre1: userData.firstName,
-                nombre2: userData.secondName,
-                apellido1: userData.firstLastName,
-                apellido2: userData.secondLastName,
-                cedula: userData.id,
-                telf: userData.telf,
-                correo: userData.correo,
-              }}
-              numero={3}
-              titleInfo={proposalsSubmitted}
-            ></ProtocoloGenerator>
 
-            {/* URL Submission Section */}
-            <Divider sx={{ my: 2 }} />
-
-            {proposalUrl ? (
-              <Box mb={2}>
-                <Typography variant="body1" mb={1}>
-                  Documento actual:
+            {loading.selectedTitle ? (
+              <Typography>Cargando...</Typography>
+            ) : selectedTitle ? (
+              <>
+                <Typography variant="subtitle1" mb={2}>
+                  Título seleccionado:
                 </Typography>
                 <Box display="flex" alignItems="center" gap={1}>
-                  <a href={proposalUrl} target="_blank" rel="noopener noreferrer">
-                    {proposalUrl}
-                  </a>
+                  <Typography fontWeight={600}>{selectedTitle}</Typography>
+                  <Chip label="Aceptado" color="success" size="small" />
                 </Box>
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  sx={{ mt: 2 }}
-                  onClick={() => setProposalUrl(null)}
-                >
-                  Cambiar documento
-                </Button>
-              </Box>
-            ) : (
-              /*(
+              </>
+            ) : proposalsSubmitted ? (
+              <>
+                <Typography variant="subtitle1" mb={2}>
+                  Ya has enviado tus 3 propuestas de título. Espera la selección.
+                </Typography>
+                <Stack mt={2} px={5} spacing={3}>
+                  <ProtocoloGenerator
+                    studentData={{
+                      nombre1: userData.nombre1,
+                      nombre2: userData.nombre2,
+                      apellido1: userData.apellido1,
+                      apellido2: userData.apellido2,
+                      cedula: userData.cedula,
+                      telf: userData.telf,
+                      correo: userData.correo,
+                      docente: userData.docente,
+                      carrera: userData.carrera,
+                      lapso: userData.lapso,
+                    }}
+                    numero={1}
+                    titleInfo={proposalsSubmitted[0]}
+                  ></ProtocoloGenerator>
+                  <ProtocoloGenerator
+                    studentData={{
+                      nombre1: userData.nombre1,
+                      nombre2: userData.nombre2,
+                      apellido1: userData.apellido1,
+                      apellido2: userData.apellido2,
+                      cedula: userData.cedula,
+                      telf: userData.telf,
+                      correo: userData.correo,
+                      docente: userData.docente,
+                      carrera: userData.carrera,
+                      lapso: userData.lapso,
+                    }}
+                    numero={2}
+                    titleInfo={proposalsSubmitted[1]}
+                  ></ProtocoloGenerator>
+                  <ProtocoloGenerator
+                    studentData={{
+                      nombre1: userData.nombre1,
+                      nombre2: userData.nombre2,
+                      apellido1: userData.apellido1,
+                      apellido2: userData.apellido2,
+                      cedula: userData.cedula,
+                      telf: userData.telf,
+                      correo: userData.correo,
+                      docente: userData.docente,
+                      carrera: userData.carrera,
+                      lapso: userData.lapso,
+                    }}
+                    numero={3}
+                    titleInfo={proposalsSubmitted[2]}
+                  ></ProtocoloGenerator>
+                </Stack>
+
+                {/* URL Submission Section */}
+                <Divider sx={{ my: 2 }} />
+
+                {proposalUrl ? (
+                  <Box mb={2}>
+                    <Typography variant="body1" mb={1}>
+                      Documento actual:
+                    </Typography>
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <a href={proposalUrl} target="_blank" rel="noopener noreferrer">
+                        {proposalUrl}
+                      </a>
+                    </Box>
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      sx={{ mt: 2 }}
+                      onClick={() => setProposalUrl(null)}
+                    >
+                      Cambiar documento
+                    </Button>
+                  </Box>
+                ) : (
+                  /*(
               <Box>
                 <TextField
                   label="URL del documento"
@@ -621,106 +725,114 @@ function SubirContenido({ idMateria }) {
                 </Button>
               </Box>
             )*/ <></>
+                )}
+              </>
+            ) : (
+              <>
+                <Typography variant="subtitle1" mb={3}>
+                  Ingresa 3 propuestas de título con su respectiva línea de investigación y
+                  propósito.
+                </Typography>
+
+                <Stack spacing={3}>
+                  {proposals.map((proposal, index) => (
+                    <Paper key={index} elevation={2} sx={{ p: 2 }}>
+                      <Typography
+                        variant="subtitle2"
+                        mb={2}
+                        fontWeight={600}
+                        sx={{ color: "rgb(25, 118, 210)" }}
+                      >
+                        Propuesta {index + 1}
+                      </Typography>
+
+                      <TextField
+                        label="Título tentativo"
+                        value={proposal.title}
+                        onChange={(e) => handleProposalChange(index, "title", e.target.value)}
+                        fullWidth
+                        margin="normal"
+                        required
+                      />
+
+                      <TextField
+                        label="Línea de investigación"
+                        value={proposal.researchLine}
+                        onChange={(e) =>
+                          handleProposalChange(index, "researchLine", e.target.value)
+                        }
+                        fullWidth
+                        margin="normal"
+                        required
+                      />
+
+                      <TextField
+                        label="Propósito de la investigación"
+                        value={proposal.purpose}
+                        onChange={(e) => handleProposalChange(index, "purpose", e.target.value)}
+                        fullWidth
+                        margin="normal"
+                        multiline
+                        rows={3}
+                        required
+                      />
+
+                      <TextField
+                        label="Lugar"
+                        value={proposal.placeName}
+                        onChange={(e) => handleProposalChange(index, "placeName", e.target.value)}
+                        fullWidth
+                        margin="normal"
+                        required
+                      />
+
+                      <TextField
+                        label="DIreccion del lugar"
+                        value={proposal.placeAddress}
+                        onChange={(e) =>
+                          handleProposalChange(index, "placeAddress", e.target.value)
+                        }
+                        fullWidth
+                        margin="normal"
+                        required
+                      />
+
+                      <TextField
+                        label="Telefono:"
+                        value={proposal.placePhone}
+                        onChange={(e) => handleProposalChange(index, "placePhone", e.target.value)}
+                        fullWidth
+                        margin="normal"
+                        required
+                      />
+
+                      <TextField
+                        label="Telefono Movil"
+                        value={proposal.placeMobile}
+                        onChange={(e) => handleProposalChange(index, "placeMobile", e.target.value)}
+                        fullWidth
+                        margin="normal"
+                        required
+                      />
+                    </Paper>
+                  ))}
+                </Stack>
+
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleSubmitProposals}
+                  disabled={!validateProposals() || loading.submitting}
+                  sx={{ mt: 3 }}
+                >
+                  {loading.submitting ? "Enviando..." : "Enviar Propuestas"}
+                </Button>
+              </>
             )}
-          </>
-        ) : (
-          <>
-            <Typography variant="subtitle1" mb={3}>
-              Ingresa 3 propuestas de título con su respectiva línea de investigación y propósito.
-            </Typography>
+          </Paper>
+        ) : null // O puedes usar <></>
+      }
 
-            <Stack spacing={3}>
-              {proposals.map((proposal, index) => (
-                <Paper key={index} elevation={2} sx={{ p: 2 }}>
-                  <Typography
-                    variant="subtitle2"
-                    mb={2}
-                    fontWeight={600}
-                    sx={{ color: "rgb(25, 118, 210)" }}
-                  >
-                    Propuesta {index + 1}
-                  </Typography>
-
-                  <TextField
-                    label="Título tentativo"
-                    value={proposal.title}
-                    onChange={(e) => handleProposalChange(index, "title", e.target.value)}
-                    fullWidth
-                    margin="normal"
-                    required
-                  />
-
-                  <TextField
-                    label="Línea de investigación"
-                    value={proposal.researchLine}
-                    onChange={(e) => handleProposalChange(index, "researchLine", e.target.value)}
-                    fullWidth
-                    margin="normal"
-                    required
-                  />
-
-                  <TextField
-                    label="Propósito de la investigación"
-                    value={proposal.purpose}
-                    onChange={(e) => handleProposalChange(index, "purpose", e.target.value)}
-                    fullWidth
-                    margin="normal"
-                    multiline
-                    rows={3}
-                    required
-                  />
-
-                  <TextField
-                    label="Lugar"
-                    value={proposal.placeName}
-                    onChange={(e) => handleProposalChange(index, "placeName", e.target.value)}
-                    fullWidth
-                    margin="normal"
-                    required
-                  />
-
-                  <TextField
-                    label="DIreccion del lugar"
-                    value={proposal.placeAddress}
-                    onChange={(e) => handleProposalChange(index, "placeAddress", e.target.value)}
-                    fullWidth
-                    margin="normal"
-                    required
-                  />
-
-                  <TextField
-                    label="Telefono:"
-                    value={proposal.placePhone}
-                    onChange={(e) => handleProposalChange(index, "placePhone", e.target.value)}
-                    fullWidth
-                    margin="normal"
-                    required
-                  />
-
-                  <TextField
-                    label="Telefono Movil"
-                    value={proposal.placeMobile}
-                    onChange={(e) => handleProposalChange(index, "placeMobile", e.target.value)}
-                    fullWidth
-                    margin="normal"
-                    required
-                  />
-                </Paper>
-              ))}
-            </Stack>
-
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={handleSubmitProposals}
-              disabled={!validateProposals() || loading.submitting}
-              sx={{ mt: 3 }}
-            >
-              {loading.submitting ? "Enviando..." : "Enviar Propuestas"}
-            </Button>
-          </>
-        )}
-      </Paper>
       {/* Sección Borradores tipo Google Classroom */}
 
       <Paper sx={{ flex: 1, p: 3, borderRadius: 3, boxShadow: 3, minWidth: 340 }}>
@@ -791,7 +903,7 @@ function SubirContenido({ idMateria }) {
                       variant="outlined"
                       color="primary"
                       size="small"
-                      onClick={() => handleSubirBorrador(entrega.nombre)}
+                      onClick={() => handleSubmitEnlaces}
                       disabled={
                         !(
                           enlacesIngresados[entrega.nombre] &&
@@ -815,7 +927,8 @@ function SubirContenido({ idMateria }) {
 }
 
 SubirContenido.propTypes = {
-  idMateria: PropTypes.any
+  idMateria: PropTypes.any,
+  categoria: PropTypes.any
 };
 
 export default SubirContenido;

@@ -68,6 +68,7 @@ import team3 from "assets/images/team-3.jpg";
 import team4 from "assets/images/team-4.jpg";
 import ProtocoloGenerator from "../data/generateTitlesPDF";
 import ControlTutoriasGenerator from "../data/generateTutoriasPDF";
+import BusinessLetterGenerator from "../data/generateBusinessLetter";
 
 const style = {
   position: "absolute",
@@ -437,7 +438,7 @@ function Overview() {
                     <MDTypography>
                       Materia Actual:{" "}
                       {studentData.matricula.map((mat) => {
-                        return mat.Secciones.Materias.categoria.replace("_"," ") + " ";
+                        return mat.Secciones.Materias.categoria.replace("_", " ") + " ";
                       })}
                     </MDTypography>
                     <MDTypography>Estado: Cursando</MDTypography>
@@ -523,6 +524,12 @@ function Overview() {
 
                       <ProtocoloGenerator></ProtocoloGenerator>
                       <ControlTutoriasGenerator></ControlTutoriasGenerator>
+                      <BusinessLetterGenerator
+                        studentId={studentData?.estudiante.cedula}
+                        studentName={`${studentData?.estudiante.nombre1} ${studentData?.estudiante.nombre2} ${studentData?.estudiante.apellido1} ${studentData?.estudiante.apellido2}`}
+                        career={`${studentData.estudiante.Carreras.nombre}`}
+                        
+                      ></BusinessLetterGenerator>
 
                       <Button variant="contained" onClick={handleOpen}>
                         Cambiar Correo Electrónico

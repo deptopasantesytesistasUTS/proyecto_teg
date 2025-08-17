@@ -183,7 +183,7 @@ const ProtocoloInvestigacionPDF = ({ data }) => (
           Sección: <Text style={styles.field}>{data.section}</Text>
         </Text>
         <Text style={styles.text}>
-          Fecha: <Text style={styles.field}>____ / ____ / ____</Text>
+          Fecha: <Text style={styles.field}>{data.date}</Text>
         </Text>
       </View>
 
@@ -309,10 +309,18 @@ const FechaActual = () => {
 const ProtocoloGenerator = ({studentData, titleInfo, numero}) => {
   // Datos de ejemplo para la planilla.
   // Puedes reemplazar estos datos con información real de tu aplicación.
-  const [protocolData,setProtocolData] = useState({
+  const protocolData = {
     extension: "X",
-    lapsoAcademico: "2025-2",
-    studentName: studentData.apellido2,
+    lapsoAcademico:
+      studentData?.lapso?.toString().slice(0, 4) + "-" + studentData?.lapso?.toString().slice(4) || " ",
+    studentName:
+      studentData.apellido1 +
+      " " +
+      studentData.apellido2 +
+      " " +
+      studentData.nombre1 +
+      " " +
+      studentData.nombre2,
     studentCI: studentData.cedula,
     studentPhone: studentData.telf,
     studentEmail: studentData.correo,
@@ -327,7 +335,13 @@ const ProtocoloGenerator = ({studentData, titleInfo, numero}) => {
     placeAddress: titleInfo.placeAddress,
     placePhone: titleInfo.placePhone,
     placeMobile: titleInfo.placeMobile,
-  });
+  };
+
+
+  console.log(protocolData);
+  console.log(studentData);
+
+  console.log("hola: ",protocolData);
 
   return (
     <Button variant="outlined" color="primary">
@@ -356,6 +370,7 @@ ProtocoloGenerator.propTypes = {
     carrera: PropTypes.string,
     docente: PropTypes.string,
     seccion: PropTypes.string,
+    lapso: PropTypes.string,
   }).isRequired,
   titleInfo: PropTypes.shape({
     apellido1: PropTypes.string,

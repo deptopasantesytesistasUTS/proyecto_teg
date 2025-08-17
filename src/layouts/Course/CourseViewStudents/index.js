@@ -77,6 +77,7 @@ import DashboardMateria from './DashboardMateria';
 import Recursos from './Recursos';
 import SubirContenido from './SubirContenido';
 import InicioMateria from './InicioMateria';
+import { backendUrl } from "config";
 
 const style = {
   position: "absolute",
@@ -138,7 +139,7 @@ function CourseView() {
       setLoadingMateria(true);
       setErrorMateria(null);
       try {
-        const res = await fetch(`${process.env.REACT_APP_API_URL || "https://proyecto-teg-bakend.onrender.com/api"}/materias-aulavirtual/${materiaId}`);
+        const res = await fetch(`${backendUrl || "https://proyecto-teg-bakend.onrender.com/api"}/materias-aulavirtual/${materiaId}`);
         if (!res.ok) throw new Error("No se pudo obtener la materia");
         const data = await res.json();
         setMateria(data);
@@ -184,7 +185,7 @@ function CourseView() {
             "🔍 CourseViewStudents - subject que se pasa:",
             materia
               ? {
-                  nombre: `${materia.categoria}${
+                  nombre: `${materia.categoria.replace("_", " ")}${
                     materia.Carreras?.nombre ? " - " + materia.Carreras.nombre : ""
                   }`,
                   descripcion: `ID: ${materia.idMateria}`,
@@ -277,7 +278,7 @@ function CourseView() {
                   )}
                   {selectedMenuKey === "subir" && (
                     <TabPanel value={tabValue} index={3}>
-                      <SubirContenido idMateria={materiaId} />{" "}
+                      <SubirContenido idMateria={materiaId} categoria={materia?.categoria} />{" "}
                     </TabPanel>
                   )}
                 </Card>
