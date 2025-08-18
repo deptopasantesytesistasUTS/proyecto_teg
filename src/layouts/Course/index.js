@@ -202,18 +202,18 @@ function Course() {
                 coloredShadow="info"
               >
                 <MDTypography variant="h6" color="white">
-                  Gestión de Materias
+                  Gestión de Áreas
                 </MDTypography>
               </MDBox>
               <br></br>
               <Grid container columns={4} spacing={3} px={2} py={1}>
                 <Grid item size={6} width={200}>
                   <FormControl variant="standard" fullWidth>
-                    <InputLabel id="materia-select-label">Unidad</InputLabel>
+                    <InputLabel id="materia-select-label">Área</InputLabel>
                     <Select
                       labelId="materia-select-label"
                       id="materia-select"
-                      label="Unidad"
+                      label="Área"
                       value={filterMateria}
                       onChange={(e) => setFilterMateria(e.target.value)}
                     >
@@ -265,7 +265,7 @@ function Course() {
                 <Grid item>
                   <Stack spacing={2} direction="row">
                     <Button variant="contained" onClick={() => setOpenNewDialog(true)}>
-                      Agregar Unidad
+                      Agregar Área
                     </Button>
                   </Stack>
                 </Grid>
@@ -284,16 +284,16 @@ function Course() {
         </Grid>
       </MDBox>
       <Dialog open={openNewDialog} onClose={() => setOpenNewDialog(false)}>
-        <DialogTitle>Agregar Unidad</DialogTitle>
+        <DialogTitle>Agregar Area</DialogTitle>
         <DialogContent>
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel id="nombre-materia-label">Nombre de la Unidad</InputLabel>
+              <FormControl variant="standard" fullWidth>
+                <InputLabel id="nombre-materia-label">Nombre del Area</InputLabel>
                 <Select
                   labelId="nombre-materia-label"
                   value={newCourse.nombre}
-                  label="Nombre de la Unidad"
+                  label="Nombre del Área"
                   onChange={(e) => handleFormChange("nombre", e.target.value)}
                 >
                   <MenuItem value="Trabajo Especial de Grado">Trabajo de Grado</MenuItem>
@@ -303,7 +303,7 @@ function Course() {
               </FormControl>
             </Grid>
             <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
+              <FormControl variant="standard" fullWidth>
                 <InputLabel id="carrera-materia-label">Carrera</InputLabel>
                 <Select
                   labelId="carrera-materia-label"
@@ -320,39 +320,31 @@ function Course() {
               </FormControl>
             </Grid>
             <Grid item xs={12}>
-              <FormControl fullWidth>
+              <FormControl variant="standard" fullWidth>
                 <InputLabel id="profesores-materia-label">Profesores</InputLabel>
                 <Select
                   labelId="profesores-materia-label"
-                  multiple
                   value={newCourse.profesores}
                   onChange={(e) => handleFormChange("profesores", e.target.value)}
-                  input={<OutlinedInput label="Profesores" />}
-                  renderValue={(selected) =>
-                    professors
-                      .filter((p) => selected.includes(p.idProfesor))
-                      .map((p) => p.nombre)
-                      .join(", ")
-                  }
+                  label="Profesores"
                 >
                   {professors.map((prof) => (
                     <MenuItem key={prof.idProfesor} value={prof.idProfesor}>
-                      <Checkbox checked={newCourse.profesores.indexOf(prof.idProfesor) > -1} />
-                      <ListItemText primary={prof.nombre} />
+                      {prof.idProfesor+ ") " + prof.nombre}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
             </Grid>
             <Grid item xs={12}>
-              <FormControl fullWidth>
+              <FormControl variant="standard" fullWidth>
                 <TextField
-              label="Letra de Sección"
-              name="letraSeccion"
-              value={newCourse.letraSeccion}
-              onChange={(e) => handleFormChange("letraSeccion", e.target.value)}
-              fullWidth
-              />
+                  label="Letra de Sección"
+                  name="letraSeccion"
+                  value={newCourse.letraSeccion}
+                  onChange={(e) => handleFormChange("letraSeccion", e.target.value)}
+                  fullWidth
+                />
               </FormControl>
             </Grid>
           </Grid>

@@ -277,16 +277,16 @@ function Overview() {
               cedula: data.estudiante.cedula,
               nombre1:
                 data.estudiante.nombre1.charAt(0).toUpperCase() +
-                  data.estudiante.nombre1.slice(1) || "",
+                  data.estudiante?.nombre1.slice(1) || " ",
               nombre2:
                 data.estudiante.nombre2.charAt(0).toUpperCase() +
-                  data.estudiante.nombre2.slice(1) || "",
+                  data.estudiante?.nombre2.slice(1) || " ",
               apellido1:
                 data.estudiante.apellido1.charAt(0).toUpperCase() +
-                  data.estudiante.apellido1.slice(1) || "",
+                  data.estudiante?.apellido1.slice(1) || " ",
               apellido2:
                 data.estudiante.apellido2.charAt(0).toUpperCase() +
-                  data.estudiante.apellido2.slice(1) || "",
+                  data.estudiante?.apellido2.slice(1) || "",
               telf: data.estudiante.telf || "",
               Carreras: {
                 nombre: data.estudiante.Carreras.nombre || "",
@@ -522,13 +522,11 @@ function Overview() {
                         </Box>
                       </Modal>
 
-                      <ProtocoloGenerator></ProtocoloGenerator>
                       <ControlTutoriasGenerator></ControlTutoriasGenerator>
                       <BusinessLetterGenerator
                         studentId={studentData?.estudiante.cedula}
                         studentName={`${studentData?.estudiante.nombre1} ${studentData?.estudiante.nombre2} ${studentData?.estudiante.apellido1} ${studentData?.estudiante.apellido2}`}
                         career={`${studentData.estudiante.Carreras.nombre}`}
-                        
                       ></BusinessLetterGenerator>
 
                       <Button variant="contained" onClick={handleOpen}>

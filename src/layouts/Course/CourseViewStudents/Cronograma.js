@@ -42,7 +42,7 @@ const VisuallyHiddenInput = styled('input')({
   width: 1,
 });
 
-function Cronograma({categoria}) {
+function Cronograma({categoria, idMateria}) {
   const [archivo, setArchivo] = useState(null);
   const [subiendo, setSubiendo] = useState(false);
   const [archivoSubido, setArchivoSubido] = useState(null);
@@ -65,17 +65,46 @@ function Cronograma({categoria}) {
     };
 
 
-  const handleSubir = () => {
-    if (!archivo) return;
-    setSubiendo(true);
-    setTimeout(() => {
-      setArchivoSubido(archivo.name);
-      setDescripcionSubida(descripcion);
-      setArchivo(null);
-      setDescripcion("");
-      setSubiendo(false);
-    }, 1200);
-  };
+  const handleGetLinks = async () => {
+      try {
+        let user = null;
+        try {
+          const userStr = localStorage.getItem("user");
+          if (userStr) {
+            user = JSON.parse(userStr);
+          }
+        } catch (e) {
+          user = null;
+        }
+        console.log(user.userId);
+        const userId = user.userId; // You might need to adjust this based on your auth system
+        const response = await fetch(`${backendUrl}/estudiante/archivos/${userId}/${idMateria}`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        });
+        console.log(response);
+        const data = await response.json();
+  
+        console.log("API Response Enlaces:", data);
+        console.log(response.ok);
+        if (response.ok) {
+          setEnlacesEntregados(data);
+          const objetoEnlace = enlacesEntregados?.find((enlace) => enlace["Carga Academica"]);
+          setArchivoCargaSubido(objetoEnlace ? objetoEnlace["Carga Academica"] : undefined);
+          // Si la respuesta es un array directamente
+          console.log(objetoEnlace);
+          console.log(archivoCarga)
+        }
+      } catch (error) {
+        console.error(error);
+        setSnackbar({
+          open: true,
+          message: "Error en la conexion para archivos",
+          severity: "error",
+        });
+      } finally {
+      }
+    };
 
   const pdfUrl = "/ruta/al/cronograma.pdf"; // Cambia esto por la ruta real
 
@@ -97,79 +126,6 @@ function Cronograma({categoria}) {
       severity: "success",
     });
 
-
-  const handleSubirCarga = (enlace,nombre) => {
-  
-    
-    console.log("1")
-    if (!validateLinkStructure(enlace)) {
-      console.log("2");
-      setSnackbar({
-        open: true,
-        message: "Todos los campos deben estar completos",
-        severity: "error",
-      });
-      console.log("3");
-      return;
-    }
-    console.log("4");
-  
-    setConfirmDialog({
-      open: true,
-      title: "Confirmar envío de propuestas",
-      content: "¿Está seguro que desea enviar este enlace",
-      onConfirm: async () => {
-        console.log("5")
-        setConfirmDialog((prev) => ({ ...prev, open: false }));
-        
-        try {
-          let user = null;
-          try {
-            const userStr = localStorage.getItem("user");
-            if (userStr) {
-              user = JSON.parse(userStr);
-            }
-          } catch (e) {
-            user = null;
-          }
-          console.log(user.userId);
-          const userId = user.userId; // You might need to adjust this based on your auth system
-          const response = await fetch(`${backendUrl}/estudiante/archivos`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              nombre: nombre,
-              enlace: enlacesIngresados[nombre],
-              user: userId,
-              idMateria: idMateria,
-            }),
-          });
-          console.log(response);
-          const data = await response.json();
-
-          console.log("API Response:", data);
-          console.log(response.ok);
-          if (response.ok) {
-            // Si la respuesta es un array directamente
-            setSnackbar({
-              open: true,
-              message: "Archivos subidos",
-              severity: "success",
-            });
-          }
-        } catch (error) {
-          console.error(error);
-          setSnackbar({
-            open: true,
-            message: "Error al enviar los enlaces",
-            severity: "error",
-          });
-        } finally {
-          setSubiendoCarga(false);
-        }
-      },
-    });
-  };
 
   // Define la fecha límite para carga académica
   const fechaLimiteCarga = "2026-06-05T23:59";
@@ -237,6 +193,7 @@ function Cronograma({categoria}) {
 
     useEffect(() => {
         handleGetCurrentSemester();
+        handleGetLinks();
       }, []);
 
 
@@ -282,7 +239,74 @@ function Cronograma({categoria}) {
 
     const [enlacesEntregados, setEnlacesEntregados] = useState({}); // { nombreEntrega: enlace }
       const [enlacesIngresados, setEnlacesIngresados] = useState({}); // { nombreEntrega: string }
-  
+
+
+    const handleSubmitEnlaces = (enlace,nombre) => {
+      if (!validateLinkStructure(enlace)) {
+              setSnackbar({
+                open: true,
+                message: "Todos los campos deben estar completos",
+                severity: "error",
+              });
+              return;
+            }
+      
+            setConfirmDialog({
+              open: true,
+              title: "Confirmar envío de propuestas",
+              content:
+                "¿Está seguro que desea enviar este enlace",
+              onConfirm: async () => {
+                setConfirmDialog((prev) => ({ ...prev, open: false }));
+                setSubiendo(true)
+                try {
+                  let user = null;
+                  try {
+                    const userStr = localStorage.getItem("user");
+                    if (userStr) {
+                      user = JSON.parse(userStr);
+                    }
+                  } catch (e) {
+                    user = null;
+                  }
+                  console.log(user.userId);
+                  const userId = user.userId; // You might need to adjust this based on your auth system
+                  const response = await fetch(`${backendUrl}/estudiante/archivos`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      nombre: nombre,
+                      enlace: enlacesIngresados[nombre],
+                      user: userId,
+                      idMateria: idMateria,
+                    }),
+                  });
+                  console.log(response);
+                  const data = await response.json();
+      
+                  console.log("API Response:", data);
+                  console.log(response.ok);
+                  if (response.ok) {
+                    // Si la respuesta es un array directamente
+                    setSnackbar({
+                      open: true,
+                      message: "Archivos subidos",
+                      severity: "success",
+                    });
+                  }
+                } catch (error) {
+                  console.error(error);
+                  setSnackbar({
+                    open: true,
+                    message: "Error al enviar los enlaces",
+                    severity: "error",
+                  });
+                } finally {
+                  setSubiendo(false);
+                }
+              },
+            });
+    }
 
   return (
     <Box
@@ -345,10 +369,9 @@ function Cronograma({categoria}) {
                   variant="outlined"
                   color="primary"
                   size="small"
-                  onClick={handleSubirCarga(
-                    enlacesIngresados["Carga Academica"],
-                    "Carga Academica"
-                  )}
+                  onClick={() =>
+                    handleSubmitEnlaces(enlacesIngresados["Carga Academica"], "Carga Academica")
+                  }
                   disabled={
                     !(
                       enlacesIngresados["Carga Academica"] &&
@@ -363,7 +386,10 @@ function Cronograma({categoria}) {
               </Box>
               {archivoCargaSubido && (
                 <Box display="flex" alignItems="center" gap={1} mb={2}>
-                  <Chip label={archivoCargaSubido} color="info" size="small" />
+                  <Button variant="outlined" href={archivoCargaSubido}>
+                    {" "}
+                    Ver Archivo
+                  </Button>
                   <Typography variant="caption" color="success.main">
                     Entregado
                   </Typography>

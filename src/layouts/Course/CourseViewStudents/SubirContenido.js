@@ -196,8 +196,48 @@ function SubirContenido({ idMateria, categoria }) {
     }
   };
 
+
+  const handleGetLinks = async () => {
+    try {
+      let user = null;
+      try {
+        const userStr = localStorage.getItem("user");
+        if (userStr) {
+          user = JSON.parse(userStr);
+        }
+      } catch (e) {
+        user = null;
+      }
+      console.log(user.userId);
+      const userId = user.userId; // You might need to adjust this based on your auth system
+      const response = await fetch(`${backendUrl}/estudiante/archivos/${userId}/${idMateria}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+      console.log(response);
+      const data = await response.json();
+
+      console.log("API Response Enlaces:", data);
+      console.log(response.ok);
+      if (response.ok) {
+        setEnlacesEntregados(data);
+        // Si la respuesta es un array directamente
+      }
+    } catch (error) {
+      console.error(error);
+      setSnackbar({
+        open: true,
+        message: "Error en la conexion para archivos",
+        severity: "error",
+      });
+    } finally {
+      setLoading((prev) => ({ ...prev, submitting: false }));
+    }
+  };
+
   useEffect(() => {
     handleGetCurrentSemester();
+    handleGetLinks();
   }, []);
 
   // State for title proposals
@@ -237,8 +277,8 @@ function SubirContenido({ idMateria, categoria }) {
   ]);
 
   // Estado para enlaces subidos por entrega
-  const [enlacesEntregados, setEnlacesEntregados] = useState({}); // { nombreEntrega: enlace }
-  const [enlacesIngresados, setEnlacesIngresados] = useState({}); // { nombreEntrega: string }
+  const [enlacesEntregados, setEnlacesEntregados] = useState([]); // { nombreEntrega: enlace }
+  const [enlacesIngresados, setEnlacesIngresados] = useState([]); // { nombreEntrega: string }
   const [enlacesValidos, setEnlacesValidos] = useState({}); // { nombreEntrega: string }
   const [subiendo, setSubiendo] = useState({}); // { nombreEntrega: boolean }
 
@@ -343,7 +383,7 @@ function SubirContenido({ idMateria, categoria }) {
 
   const handleFormChange = (field, value) => {
       setEnlacesIngresados((prev) => ({ ...prev, [field]: value }));
-
+      
   };
 
 
@@ -473,6 +513,19 @@ function SubirContenido({ idMateria, categoria }) {
     });
   };
 
+  const handleEdit = (nombreDelEnlace) => {
+    if(loading){console.log("hola")
+    // El estado 'enlacesEntregados' es un array de objetos
+    // Usamos filter para crear un nuevo array sin el objeto que queremos borrar
+    const updatedEnlaces = enlacesEntregados.filter((enlace) => {
+      // Comprueba si el objeto actual NO tiene la clave que queremos borrar
+      return !enlace.hasOwnProperty(nombreDelEnlace);
+    });
+
+    // Actualiza el estado de React con el nuevo array
+    setEnlacesEntregados(updatedEnlaces);}
+  };
+
 
     const handleSubmitEnlaces = (enlace,nombre) => {
       if (!validateLinkStructure(enlace)) {
@@ -563,37 +616,6 @@ function SubirContenido({ idMateria, categoria }) {
     }
   };
 
-  const handleSubmitUrl = async () => {
-    if (urlError || !urlInput) {
-      setSnackbar({
-        open: true,
-        message: "Por favor ingrese una URL válida",
-        severity: "error",
-      });
-      return;
-    }
-
-    setLoading((prev) => ({ ...prev, submittingUrl: true }));
-
-    try {
-      await mockBackend.submitProposalUrl(urlInput);
-      setProposalUrl(urlInput);
-      setUrlInput("");
-      setSnackbar({
-        open: true,
-        message: "URL enviada correctamente",
-        severity: "success",
-      });
-    } catch (error) {
-      setSnackbar({
-        open: true,
-        message: "Error al enviar la URL",
-        severity: "error",
-      });
-    } finally {
-      setLoading((prev) => ({ ...prev, submittingUrl: false }));
-    }
-  };
 
   const handleCloseSnackbar = () => {
     setSnackbar((prev) => ({ ...prev, open: false }));
@@ -869,8 +891,10 @@ function SubirContenido({ idMateria, categoria }) {
         </Typography>
         <List>
           {entregas.map((entrega, idx) => {
+            let editar = false
             const vencida = isVencida(entrega.fechaLimite);
-            const entregado = enlacesEntregados[entrega.nombre];
+            const objetoEnlace = enlacesEntregados.find((enlace) => enlace[entrega.nombre]);
+            const entregado = objetoEnlace ? objetoEnlace[entrega.nombre] : undefined;
             return (
               <ListItem
                 key={entrega.nombre}
@@ -901,7 +925,7 @@ function SubirContenido({ idMateria, categoria }) {
                 <Typography variant="body2" sx={{ color: "rgb(25, 118, 210)" }} mb={1}>
                   Fecha límite: {formatoFecha(entrega.fechaLimite)}
                 </Typography>
-                {entregado ? (
+                {entregado && !editar ? (
                   <Box display="flex" alignItems="center" gap={1}>
                     <Chip label="Enlace entregado" color="info" size="small" />
                     <a
@@ -915,6 +939,14 @@ function SubirContenido({ idMateria, categoria }) {
                     <Typography variant="caption" color={vencida ? "error.main" : "success.main"}>
                       {vencida ? "Entregado fuera de tiempo" : "Entregado a tiempo"}
                     </Typography>
+                    <Button variant="outlined" href={entregado}>
+                      {" "}
+                      Ver Archivo
+                    </Button>
+                    <Button variant="outlined" onClick={() => handleEdit(entrega.nombre)}>
+                      {" "}
+                      Editar
+                    </Button>
                   </Box>
                 ) : (
                   <Box display="flex" alignItems="center" gap={2}>
@@ -933,7 +965,9 @@ function SubirContenido({ idMateria, categoria }) {
                       variant="outlined"
                       color="primary"
                       size="small"
-                      onClick={() => handleSubmitEnlaces(enlacesIngresados[entrega.nombre],entrega.nombre)}
+                      onClick={() =>
+                        handleSubmitEnlaces(enlacesIngresados[entrega.nombre], entrega.nombre)
+                      }
                       disabled={
                         !(
                           enlacesIngresados[entrega.nombre] &&

@@ -103,10 +103,10 @@ const routes = [
   },
   {
     type: "collapse",
-    name: "Unidades",
-    key: "Unidades",
+    name: "Áreas",
+    key: "Áreas",
     icon: <Icon fontSize="small">receipt_long</Icon>,
-    route: "/materias",
+    route: "/areas",
     component: <Courses />,
     allowedRoles: [1],
   },
