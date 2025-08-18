@@ -162,27 +162,6 @@ function SubirContenido({ idMateria, categoria }) {
 
     if (response.ok) {
       const data = await response.json();
-     
-      setCurrentSemester({
-        id: data.semester.id,
-        startDate: data.semester.startDate,
-        endDate: data.semester.endDate,
-        titleDeliveryDate: data.semester.titleDeliveryDate,
-        firstDraftDate: data.semester.firstDraftDate,
-        secondDraftDate: data.semester.secondDraftDate,
-        thirdDraftDate: data.semester.thirdDraftDate,
-        finalDraftDate: data.semester.finalDraftDate,
-        cartaDate: data.semester.cartaDate,
-        inv2Borrador1: data.semester.inv2Borrador1,
-        inv2Borrador2: data.semester.inv2Borrador2,
-        inv2Borrador3: data.semester.inv2Borrador3,
-        inv2Borrador4: data.semester.inv2Borrador4,
-        inv2BorradorFinal: data.semester.inv2BorradorFinal,
-        tutInicio: data.semester.tutInicio,
-        tutFinal: data.semester.tutFinal,
-        urlCronograma: data.semester.urlCronograma,
-        fechaInstrumentos: data.semester.fechaEntInst,
-      });
 
       console.log(categoria)
 

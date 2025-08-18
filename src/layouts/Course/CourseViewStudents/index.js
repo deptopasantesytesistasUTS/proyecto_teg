@@ -268,7 +268,7 @@ function CourseView() {
                   )}
                   {selectedMenuKey === "cronograma" && (
                     <TabPanel value={tabValue} index={1}>
-                      <Cronograma />
+                      <Cronograma idMateria={materiaId}  categoria={materia?.categoria} />
                     </TabPanel>
                   )}
                   {selectedMenuKey === "recursos" && (

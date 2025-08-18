@@ -1,5 +1,8 @@
 import React from 'react';
 import { Page, Document, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
+import PropTypes from "prop-types";7
+import { Button } from '@mui/material';
+import { PDFDownloadLink } from '@react-pdf/renderer';
 
 // Register fonts if needed (optional)
 // Font.register({ family: 'Arial', src: '/path/to/arial.ttf' });
@@ -75,8 +78,12 @@ const BusinessLetter = ({
   <Document>
     <Page size="A4" style={styles.page}>
       <View style={styles.header}>
-        <Text style={styles.instituteName}>Instituto Universitario de Tecnología "Antonio José de Sucre"</Text>
-        <Text style={styles.date}>{city}, {letterDate}</Text>
+        <Text style={styles.instituteName}>
+          Instituto Universitario de Tecnología {'"'}Antonio José de Sucre{'"'}
+        </Text>
+        <Text style={styles.date}>
+          {city}, {letterDate}
+        </Text>
         <Text style={styles.reference}>{reference}</Text>
       </View>
       <View>
@@ -86,13 +93,18 @@ const BusinessLetter = ({
         <Text style={styles.reference}>Ref. Investigación II (Trabajo Especial de Grado)</Text>
       </View>
       <View>
-        <Text style={styles.salutation}>Ante todo, reciba un cordial saludo. La presente tiene como propósito presentar ante</Text>
+        <Text style={styles.salutation}>
+          Ante todo, reciba un cordial saludo. La presente tiene como propósito presentar ante
+        </Text>
         <Text style={styles.bodyText}>
-          usted y postular muy respetuosamente al bachiller {studentName} de la cédula de identidad N° {studentId} cursante
-          del <Text style={styles.bold}>VI Semestre de la Carrera</Text> <Text style={styles.bold}>{career} en el</Text> <Text style={styles.bold}>Instituto Universitario de
-          Tecnología "Antonio José de Sucre" {extension}</Text>; estudiante que solicita sea
-          permitido desarrollar su período de Investigación de Trabajo Especial de Grado en tan
-          prestigiosa organización que usted representa.
+          usted y postular muy respetuosamente al bachiller {studentName} de la cédula de identidad
+          N° {studentId} cursante del <Text style={styles.bold}>VI Semestre de la Carrera</Text>{" "}
+          <Text style={styles.bold}>{career} en el</Text>{" "}
+          <Text style={styles.bold}>
+            Instituto Universitario de Tecnología {'"'}Antonio José de Sucre{'"'} {extension}
+          </Text>
+          ; estudiante que solicita sea permitido desarrollar su período de Investigación de Trabajo
+          Especial de Grado en tan prestigiosa organización que usted representa.
         </Text>
         <Text style={styles.bodyText}>
           Solicitamos ante su despacho, la posibilidad de realizar su Proyecto de Investigación y
@@ -100,16 +112,19 @@ const BusinessLetter = ({
           Universitario
         </Text>
         <Text style={styles.bodyText}>
-          Dicha Fase, tiene como propósito que el estudiante, mediante la realización de un
-          conjunto de actividades de carácter investigativa, entre en contacto con el campo académico
-          y aplique los conocimientos, las habilidades, las actitudes y valores logrados durante el
-          proceso formativo cumplido en el <Text style={styles.bold}>INSTITUTO UNIVERSITARIO DE TECNOLOGÍA
-          "ANTONIO JOSÉ DE SUCRE"</Text> a casos concretos relacionados con la carrera y mención
-          que cursa, en la elaboración del Trabajo Especial de Grado.
+          Dicha Fase, tiene como propósito que el estudiante, mediante la realización de un conjunto
+          de actividades de carácter investigativa, entre en contacto con el campo académico y
+          aplique los conocimientos, las habilidades, las actitudes y valores logrados durante el
+          proceso formativo cumplido en el{" "}
+          <Text style={styles.bold}>
+            INSTITUTO UNIVERSITARIO DE TECNOLOGÍA {'"'}ANTONIO JOSÉ DE SUCRE{'"'}
+          </Text>{" "}
+          a casos concretos relacionados con la carrera y mención que cursa, en la elaboración del
+          Trabajo Especial de Grado.
         </Text>
         <Text style={styles.bodyText}>
-          Sin más a que hacer referencia, deseando una pronta y positiva respuesta se despide
-          de Usted.
+          Sin más a que hacer referencia, deseando una pronta y positiva respuesta se despide de
+          Usted.
         </Text>
       </View>
       <View style={styles.signature}>
@@ -119,7 +134,10 @@ const BusinessLetter = ({
         <Text style={styles.bold}>{jefeCargo}</Text>
       </View>
       <View style={styles.footer}>
-        <Text>Carrera 17 entre calles 9 y 10, Edificio Doña María, San Cristóbal, Estado Táchira. Telf. (0276) 3551168, 3556640</Text>
+        <Text>
+          Carrera 17 entre calles 9 y 10, Edificio Doña María, San Cristóbal, Estado Táchira. Telf.
+          (0276) 3551168, 3556640
+        </Text>
         <Text>J-07025041-0</Text>
         <Text>Correo Institucional: coordinacion.academica@utsancristobal.edu.ve</Text>
       </View>
@@ -167,6 +185,34 @@ const BusinessLetterGenerator = ({
       </PDFDownloadLink>
     </Button>
   );
+};
+
+BusinessLetterGenerator.propTypes = {
+  studentName: PropTypes.string,
+  studentId: PropTypes.string,
+  career: PropTypes.string,
+  letterDate: PropTypes.string,
+  reference: PropTypes.string,
+  directorName: PropTypes.string,
+  directorTitle: PropTypes.string,
+  city: PropTypes.string,
+  extension: PropTypes.string,
+  jefeNombre: PropTypes.string,
+  jefeCargo: PropTypes.string,
+};
+
+BusinessLetter.propTypes = {
+  studentName: PropTypes.string,
+  studentId: PropTypes.string,
+  career: PropTypes.string,
+  letterDate: PropTypes.string,
+  reference: PropTypes.string,
+  directorName: PropTypes.string,
+  directorTitle: PropTypes.string,
+  city: PropTypes.string,
+  extension: PropTypes.string,
+  jefeNombre: PropTypes.string,
+  jefeCargo: PropTypes.string,
 };
 
 export default BusinessLetterGenerator;

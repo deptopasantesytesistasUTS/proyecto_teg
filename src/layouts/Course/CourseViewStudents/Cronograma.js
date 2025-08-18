@@ -1,18 +1,33 @@
 import React, { useState } from "react";
-import { Box, Typography, Paper, Button, Chip, List, ListItem, ListItemText, Stack, useMediaQuery, TextField, Divider } from "@mui/material";
+import {
+  Box,
+  Typography,
+  Paper,
+  Button,
+  Chip,
+  List,
+  ListItem,
+  ListItemText,
+  Stack,
+  useMediaQuery,
+  TextField,
+  Divider,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+} from "@mui/material";
 import { useTheme } from '@mui/material/styles';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import DownloadIcon from '@mui/icons-material/Download';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { styled } from '@mui/material/styles';
-
-const entregas = [
-  { fecha: "2024-06-10", descripcion: "Entrega de Título" },
-  { fecha: "2024-07-01", descripcion: "Borrador 1" },
-  { fecha: "2024-08-01", descripcion: "Borrador 2" },
-  { fecha: "2024-09-01", descripcion: "Borrador Final" },
-  { fecha: "2024-09-15", descripcion: "Entrega Final y Defensa" },
-];
+import { useEffect } from "react";
+import { backendUrl } from "config";
+import PropTypes from "prop-types";
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
 
 // Declaración de VisuallyHiddenInput fuera de la función y con sintaxis válida
 const VisuallyHiddenInput = styled('input')({
@@ -27,7 +42,7 @@ const VisuallyHiddenInput = styled('input')({
   width: 1,
 });
 
-function Cronograma() {
+function Cronograma({categoria}) {
   const [archivo, setArchivo] = useState(null);
   const [subiendo, setSubiendo] = useState(false);
   const [archivoSubido, setArchivoSubido] = useState(null);
@@ -36,11 +51,19 @@ function Cronograma() {
   const theme = useTheme();
   const isMdUp = useMediaQuery(theme.breakpoints.up('md'));
 
-  const handleArchivoChange = (e) => {
-    if (e.target.files[0]) {
-      setArchivo(e.target.files[0]);
-    }
-  };
+  const [entregas, setEntregas] = useState([
+      { nombre: "1", fechaLimite: "" },
+      { nombre: "2", fechaLimite: "" },
+      { nombre: "3", fechaLimite: "" },
+      { nombre: "4", fechaLimite: "" },
+    ]);
+
+    
+
+    const handleCloseSnackbar = () => {
+      setSnackbar((prev) => ({ ...prev, open: false }));
+    };
+
 
   const handleSubir = () => {
     if (!archivo) return;
@@ -61,25 +84,205 @@ function Cronograma() {
   const [archivoCargaSubido, setArchivoCargaSubido] = React.useState(null);
   const [subiendoCarga, setSubiendoCarga] = React.useState(false);
 
-  const handleArchivoCargaChange = (e) => {
-    setArchivoCarga(e.target.files[0]);
-  };
-  const handleSubirCarga = () => {
-    setSubiendoCarga(true);
-    setTimeout(() => {
-      setArchivoCargaSubido(archivoCarga.name);
-      setArchivoCarga(null);
-      setSubiendoCarga(false);
-    }, 1200);
+    const [confirmDialog, setConfirmDialog] = useState({
+      open: false,
+      title: "",
+      content: "",
+      onConfirm: () => {},
+    });
+
+    const [snackbar, setSnackbar] = useState({
+      open: false,
+      message: "",
+      severity: "success",
+    });
+
+
+  const handleSubirCarga = (enlace,nombre) => {
+  
+    
+    console.log("1")
+    if (!validateLinkStructure(enlace)) {
+      console.log("2");
+      setSnackbar({
+        open: true,
+        message: "Todos los campos deben estar completos",
+        severity: "error",
+      });
+      console.log("3");
+      return;
+    }
+    console.log("4");
+  
+    setConfirmDialog({
+      open: true,
+      title: "Confirmar envío de propuestas",
+      content: "¿Está seguro que desea enviar este enlace",
+      onConfirm: async () => {
+        console.log("5")
+        setConfirmDialog((prev) => ({ ...prev, open: false }));
+        
+        try {
+          let user = null;
+          try {
+            const userStr = localStorage.getItem("user");
+            if (userStr) {
+              user = JSON.parse(userStr);
+            }
+          } catch (e) {
+            user = null;
+          }
+          console.log(user.userId);
+          const userId = user.userId; // You might need to adjust this based on your auth system
+          const response = await fetch(`${backendUrl}/estudiante/archivos`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              nombre: nombre,
+              enlace: enlacesIngresados[nombre],
+              user: userId,
+              idMateria: idMateria,
+            }),
+          });
+          console.log(response);
+          const data = await response.json();
+
+          console.log("API Response:", data);
+          console.log(response.ok);
+          if (response.ok) {
+            // Si la respuesta es un array directamente
+            setSnackbar({
+              open: true,
+              message: "Archivos subidos",
+              severity: "success",
+            });
+          }
+        } catch (error) {
+          console.error(error);
+          setSnackbar({
+            open: true,
+            message: "Error al enviar los enlaces",
+            severity: "error",
+          });
+        } finally {
+          setSubiendoCarga(false);
+        }
+      },
+    });
   };
 
   // Define la fecha límite para carga académica
   const fechaLimiteCarga = "2026-06-05T23:59";
   const formatoFecha = (fechaLimite) => {
     const fecha = new Date(fechaLimite);
-    return fecha.toLocaleString("es-VE", { dateStyle: "medium", timeStyle: "short" });
+    return fecha.toLocaleString("es-VE", { dateStyle: "medium", timeStyle: "short" , timeZone:"UTC"});
   };
   const vencidaCarga = new Date(fechaLimiteCarga) < new Date();
+
+  const handleGetCurrentSemester = async () => {
+      const today = new Date();
+      const currentDate = today.toISOString().split("T")[0];
+      const response = await fetch(`${backendUrl}/actLapso/${currentDate}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+  
+        console.log(categoria)
+  
+         if (categoria === "investigacion_II") {
+           setEntregas([
+             {
+               descripcion: "Protocolo de Investigación 1",
+               fechaLimite: data.semester.titleDeliveryDate,
+             },
+             {
+               descripcion: "Protocolo de Investigación 2",
+               fechaLimite: data.semester.titleDeliveryDate,
+             },
+             {
+               descripcion: "Protocolo de Investigación 3",
+               fechaLimite: data.semester.titleDeliveryDate,
+             },
+             { descripcion: "Capitulo 1", fechaLimite: data.semester.inv2Borrador1 },
+             { descripcion: "Carta Empresarial", fechaLimite: data.semester.cartaDate },
+             { descripcion: "Capitulo 2", fechaLimite: data.semester.inv2Borrador2 },
+             { descripcion: "Capitulo 3", fechaLimite: data.semester.inv2Borrador3 },
+             {
+               descripcion: "Instrumentos de Investigaccion",
+               fechaLimite: data.semester.inv2Borrador4,
+             },
+           ]);
+         } else if (categoria === "Trabajo_Especial_de_Grado") {
+           setEntregas([
+             { descripcion: "Entrega Instrumento 1", fechaLimite: data.semester.fechaEntInst },
+             { descripcion: "Entrega Instrumento 2", fechaLimite: data.semester.fechaEntInst },
+             { descripcion: "Entrega de Propuesta", fechaLimite: data.semester.firstDraftDate },
+             {
+               descripcion: "Informe Completo",
+               fechaLimite: data.semester.secondDraftDate,
+             },
+             {
+               descripcion: "Tomo Completo (Correciones Predefensa)",
+               fechaLimite: data.semester.thirdDraftDate,
+             },
+             { descripcion: "Entrega de Diapositivas", fechaLimite: data.semester.finalDraftDate },
+           ]);
+         }
+        
+      }
+    };
+
+    useEffect(() => {
+        handleGetCurrentSemester();
+      }, []);
+
+
+    const validateLinkStructure = (value) => {
+      try {
+        new URL(value);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    };
+  
+    const [errors, setErrors] = useState({});
+  
+    const handleEnlaceChange = (nombreEntrega, enlace) => {
+      let error = "";
+      let errorBool = false;
+  
+      if (enlace && !validateLinkStructure(enlace)) {
+        error = "Enlace Invalido";
+        errorBool = true;
+      } else {
+        errorBool = false;
+      }
+  
+      if (errorBool) {
+        setSnackbar({
+          open: true,
+          message: error,
+          severity: "error",
+        });
+      }
+  
+      setErrors((prev) => ({ ...prev, [nombreEntrega]: error }));
+  
+      handleFormChange(nombreEntrega, enlace);
+    };
+  
+    const handleFormChange = (field, value) => {
+        setEnlacesIngresados((prev) => ({ ...prev, [field]: value }));
+  
+    };
+
+    const [enlacesEntregados, setEnlacesEntregados] = useState({}); // { nombreEntrega: enlace }
+      const [enlacesIngresados, setEnlacesIngresados] = useState({}); // { nombreEntrega: string }
+  
 
   return (
     <Box
@@ -88,59 +291,74 @@ function Cronograma() {
       py={{ xs: 2, md: 4 }}
       px={{ xs: 1, md: 2 }}
       sx={{
-        background: '#fff',
+        background: "#fff",
         borderRadius: { xs: 0, md: 4 },
-        boxShadow: { xs: 'none', md: '0 4px 24px 0 rgba(31, 38, 135, 0.08)' },
+        boxShadow: { xs: "none", md: "0 4px 24px 0 rgba(31, 38, 135, 0.08)" },
         minHeight: 400,
       }}
     >
-     <Paper>
+      <Paper>
         <Stack
-          direction={isMdUp ? 'row' : 'column'}
+          direction={isMdUp ? "row" : "column"}
           spacing={4}
-          alignItems={isMdUp ? 'stretch' : 'center'}
+          alignItems={isMdUp ? "stretch" : "center"}
           justifyContent="center"
-          sx={{ width: '100%' }}
+          sx={{ width: "100%" }}
         >
           {/* Stack vertical para subir y descargar cronograma */}
           <Stack direction="column" spacing={3} sx={{ minWidth: 340, flex: 1 }}>
             {/* Caja: Subir carga académica */}
-            <Paper sx={{ p: 3, borderRadius: 3, boxShadow: 3, minWidth: 100, bgcolor: vencidaCarga && !archivoCargaSubido ? '#fff3f3' : 'background.paper' }}>
-              <Typography variant="h5" fontWeight={700} mb={2} sx={{ color: 'rgb(25, 118, 210)' }} align="center">
+            <Paper
+              sx={{
+                p: 3,
+                borderRadius: 3,
+                boxShadow: 3,
+                minWidth: 100,
+                bgcolor: vencidaCarga && !archivoCargaSubido ? "#fff3f3" : "background.paper",
+              }}
+            >
+              <Typography
+                variant="h5"
+                fontWeight={700}
+                mb={2}
+                sx={{ color: "rgb(25, 118, 210)" }}
+                align="center"
+              >
                 Subir carga académica
               </Typography>
-              <Typography variant="body2" sx={{ color: 'rgb(25, 118, 210)' }} mb={1}>
+              <Typography variant="body2" sx={{ color: "rgb(25, 118, 210)" }} mb={1}>
                 Fecha límite: {formatoFecha(fechaLimiteCarga)}
               </Typography>
               <Box display="flex" alignItems="center" gap={2} mb={2}>
-                <Button
-                  variant="contained"
-                  component="label"
-                  size="small"
-                  disabled={subiendoCarga}
-                >
-                  Seleccionar Archivo
-                  <input
-                    type="file"
-                    hidden
-                    onChange={handleArchivoCargaChange}
-                  />
-                </Button>
                 <TextField
-                  value={archivoCarga?.name || ""}
-                  placeholder="Ningún archivo seleccionado"
+                  label="Enlace de entrega"
+                  value={enlacesIngresados["Carga Academica"] || ""}
+                  onChange={(e) => handleEnlaceChange("Carga Academica", e.target.value)}
+                  placeholder="https://..."
                   size="small"
-                  InputProps={{ readOnly: true }}
                   sx={{ flex: 1 }}
+                  disabled={vencidaCarga || subiendoCarga}
+                  error={!!errors["Carga Academica"]}
+                  helperText={errors["Carga Academica"]}
                 />
                 <Button
                   variant="outlined"
                   color="primary"
                   size="small"
-                  onClick={handleSubirCarga}
-                  disabled={!archivoCarga || subiendoCarga}
+                  onClick={handleSubirCarga(
+                    enlacesIngresados["Carga Academica"],
+                    "Carga Academica"
+                  )}
+                  disabled={
+                    !(
+                      enlacesIngresados["Carga Academica"] &&
+                      enlacesIngresados["Carga Academica"].startsWith("http")
+                    ) ||
+                    vencidaCarga ||
+                    subiendoCarga
+                  }
                 >
-                  {subiendoCarga ? 'Subiendo...' : 'Subir'}
+                  {subiendoCarga ? "Subiendo..." : "Subir"}
                 </Button>
               </Box>
               {archivoCargaSubido && (
@@ -153,20 +371,28 @@ function Cronograma() {
               )}
             </Paper>
             {/* Caja: Descargar cronograma (PDF) */}
-            <Paper sx={{
-              p: 3,
-              mt: 10,
-              minWidth: 180,
-              maxWidth: 260,
-              boxShadow: 'none',
-              bgcolor: 'background.paper',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <Typography variant="h5" fontWeight={700} mb={2} sx={{ color: 'rgb(25, 118, 210)' }} align="center">
-                Descargar cronograma 
+            <Paper
+              sx={{
+                p: 3,
+                mt: 10,
+                minWidth: 180,
+                maxWidth: 260,
+                boxShadow: "none",
+                bgcolor: "background.paper",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Typography
+                variant="h5"
+                fontWeight={700}
+                mb={2}
+                sx={{ color: "rgb(25, 118, 210)" }}
+                align="center"
+              >
+                Descargar cronograma
               </Typography>
               <Button
                 component="a"
@@ -175,7 +401,7 @@ function Cronograma() {
                 rel="noopener noreferrer"
                 variant="contained"
                 startIcon={<CloudUploadIcon />}
-                sx={{ mt: 1 , width: '100%' , height: '150%'}}
+                sx={{ mt: 1, width: "100%", height: "150%" }}
               >
                 (PDF)
               </Button>
@@ -187,30 +413,45 @@ function Cronograma() {
             sx={{
               p: { xs: 3, md: 5 },
               borderRadius: 3,
-              boxShadow: '0 2px 12px 0 rgba(25, 118, 210, 0.08)',
+              boxShadow: "0 2px 12px 0 rgba(25, 118, 210, 0.08)",
               minWidth: 340,
-              width: '100%',
+              width: "100%",
               maxWidth: 500,
               flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
               minHeight: { xs: 320, md: 420 },
             }}
           >
-            <Typography variant="h5" fontWeight={700} mb={2} sx={{ color: 'rgb(25, 118, 210)' }} align="center">
+            <Typography
+              variant="h5"
+              fontWeight={700}
+              mb={2}
+              sx={{ color: "rgb(25, 118, 210)" }}
+              align="center"
+            >
               Entregas y Fechas
             </Typography>
-            <Divider sx={{ my: 2, bgcolor: 'primary.main', height: 3, borderRadius: 2, width: '80%' }} />
-            <List sx={{ bgcolor: 'background.paper', borderRadius: 2, boxShadow: 1, width: '100%' }}>
+            <Divider
+              sx={{ my: 2, bgcolor: "primary.main", height: 3, borderRadius: 2, width: "80%" }}
+            />
+            <List
+              sx={{ bgcolor: "background.paper", borderRadius: 2, boxShadow: 1, width: "100%" }}
+            >
               {entregas.map((e, idx) => (
                 <ListItem key={idx} divider={idx < entregas.length - 1} sx={{ py: 2 }}>
                   <ListItemText
-                    primary={<b style={{ color: 'rgb(25, 118, 210)' }}>{e.fecha}</b>}
+                    primary={
+                      <b style={{ color: "rgb(25, 118, 210)" }}>
+                        {" "}
+                        Fecha límite: {formatoFecha(e.fechaLimite)}
+                      </b>
+                    }
                     secondary={e.descripcion}
                     primaryTypographyProps={{ fontWeight: 600, fontSize: 18 }}
-                    secondaryTypographyProps={{ color: 'text.secondary', fontSize: 16 }}
+                    secondaryTypographyProps={{ color: "text.secondary", fontSize: 16 }}
                   />
                 </ListItem>
               ))}
@@ -218,8 +459,43 @@ function Cronograma() {
           </Paper>
         </Stack>
       </Paper>
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: "100%" }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog((prev) => ({ ...prev, open: false }))}
+      >
+        <DialogTitle>{confirmDialog.title}</DialogTitle>
+        <DialogContent>
+          <DialogContentText>{confirmDialog.content}</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDialog((prev) => ({ ...prev, open: false }))}>
+            Cancelar
+          </Button>
+          <Button onClick={confirmDialog.onConfirm} color="primary" autoFocus>
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
+
+Cronograma.propTypes = {
+  idMateria: PropTypes.any,
+  categoria: PropTypes.any
+};
 
 export default Cronograma; 
