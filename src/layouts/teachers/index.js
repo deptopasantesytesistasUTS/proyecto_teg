@@ -17,6 +17,8 @@ import PhoneInput from "react-phone-number-input";
 import Alert from "@mui/material/Alert";
 import "react-phone-number-input/style.css";
 import { useState } from "react";
+import * as XLSX from 'xlsx';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -188,6 +190,91 @@ function Teachers() {
 
   const filteredRows = getFilteredAndSortedRows();
 
+  // Función para exportar a Excel
+  const handleExportToExcel = () => {
+    try {
+      // Obtener los datos filtrados
+      let filtered = [...filteredRows];
+      
+      // Crear workbook
+      const wb = XLSX.utils.book_new();
+      
+      // Crear hoja con estructura: n | carrera | ci | nombre y apellido
+      const wsTeachers = XLSX.utils.aoa_to_sheet([
+        // Fila 1: Encabezados
+        ['N°', 'Carrera', 'CI', 'Nombre y Apellido'],
+        // Filas de datos
+        ...filtered.map((teacher, index) => [
+          index + 1, // N°
+          teacher.carrera || '', // Carrera
+          teacher.cedula || '', // CI
+          teacher.nombre || '', // Nombre y Apellido
+        ])
+      ]);
+
+      // Configurar ancho de columnas
+      wsTeachers['!cols'] = [
+        { wch: 8 },  // N°
+        { wch: 25 }, // Carrera
+        { wch: 15 }, // CI
+        { wch: 40 }, // Nombre y Apellido
+      ];
+
+      // Aplicar estilos a los encabezados
+      for (let col = 0; col <= 3; col++) {
+        const cellRef = XLSX.utils.encode_cell({ r: 0, c: col });
+        if (wsTeachers[cellRef]) {
+          wsTeachers[cellRef].s = {
+            font: { bold: true },
+            alignment: { horizontal: "center", vertical: "center" },
+            fill: { fgColor: { rgb: "4472C4" } }, // Fondo azul
+            font: { color: { rgb: "FFFFFF" }, bold: true } // Texto blanco y negrita
+          };
+        }
+      }
+
+      // Aplicar estilos a los datos
+      for (let row = 1; row < filtered.length + 1; row++) {
+        for (let col = 0; col <= 3; col++) {
+          const cellRef = XLSX.utils.encode_cell({ r: row, c: col });
+          if (wsTeachers[cellRef]) {
+            wsTeachers[cellRef].s = {
+              alignment: { horizontal: "center", vertical: "center" },
+              border: {
+                top: { style: "thin" },
+                bottom: { style: "thin" },
+                left: { style: "thin" },
+                right: { style: "thin" }
+              }
+            };
+          }
+        }
+      }
+
+      // Agregar la hoja al workbook
+      XLSX.utils.book_append_sheet(wb, wsTeachers, 'Listado_Docentes');
+
+      // Generar nombre del archivo
+      const fileName = `Listado_Docentes_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+      // Descargar archivo
+      XLSX.writeFile(wb, fileName);
+
+      setSnackbar({
+        open: true,
+        message: `Archivo Excel generado exitosamente con ${filtered.length} docentes: ${fileName}`,
+        severity: "success",
+      });
+    } catch (error) {
+      console.error('Error al generar Excel:', error);
+      setSnackbar({
+        open: true,
+        message: "Error al generar el archivo Excel",
+        severity: "error",
+      });
+    }
+  };
+
   // Modal: manejar cambios en el formulario
   const handleFormChange = (field, value) => {
     let error = "";
@@ -344,6 +431,14 @@ function Teachers() {
                   <Stack spacing={2} direction="row">
                     <Button onClick={handleOpen} variant="contained">
                       Agregar Docente
+                    </Button>
+                    <Button 
+                      variant="outlined" 
+                      onClick={handleExportToExcel}
+                      startIcon={<FileDownloadIcon />}
+                      color="primary"
+                    >
+                      Exportar Listado
                     </Button>
 
                     <Modal

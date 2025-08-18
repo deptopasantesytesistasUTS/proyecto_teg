@@ -416,7 +416,7 @@ function Students() {
   const [filterMateria, setFilterMateria] = useState("");
   const [search, setSearch] = useState("");
 
-  // Función para exportar a Excel
+  // Función para exportar a Excel (Listado de Jueces)
   const handleExportToExcel = () => {
     try {
       // Obtener los datos filtrados
@@ -599,6 +599,131 @@ function Students() {
     }
   };
 
+  // Función para exportar a Excel (Listado Simple)
+  const handleExportToExcelSimple = () => {
+    try {
+      // Obtener los datos filtrados
+      let filtered = [...students];
+      
+      // Eliminar estudiantes duplicados basándose en la cédula
+      const uniqueStudents = [];
+      const seenCedulas = new Set();
+      
+      filtered.forEach((student) => {
+        if (!seenCedulas.has(student.cedula)) {
+          seenCedulas.add(student.cedula);
+          uniqueStudents.push(student);
+        }
+      });
+      
+      filtered = uniqueStudents;
+      
+      // Filtrar por carrera
+      if (filterCarrera) {
+        filtered = filtered.filter((row) => row.carrera === filterCarrera);
+      }
+      // Filtrar por materia
+      if (filterMateria) {
+        filtered = filtered.filter((row) => {
+          if (Array.isArray(row.materia)) {
+            return row.materia.some((mat) => {
+              return mat.toLowerCase().includes(filterMateria.toLowerCase());
+            });
+          } else {
+            return row.materia && typeof row.materia === 'string' && 
+                   row.materia.toLowerCase().includes(filterMateria.toLowerCase());
+          }
+        });
+      }
+
+      // Buscar por nombre
+      if (search) {
+        filtered = filtered.filter(
+          (row) =>
+            row.nombre.toLowerCase().includes(search.toLowerCase()) ||
+            `${row.cedula}`.toLowerCase().includes(search.toLowerCase())
+        );
+      }
+
+      // Crear workbook
+      const wb = XLSX.utils.book_new();
+      
+      // Crear hoja con estructura simple: n | carrera | ci | nombre y apellido
+      const wsSimple = XLSX.utils.aoa_to_sheet([
+        // Fila 1: Encabezados
+        ['N°', 'Carrera', 'CI', 'Nombre y Apellido'],
+        // Filas de datos
+        ...filtered.map((student, index) => [
+          index + 1, // N°
+          student.carrera || '', // Carrera
+          student.cedula || '', // CI
+          student.nombre || '', // Nombre y Apellido
+        ])
+      ]);
+
+      // Configurar ancho de columnas
+      wsSimple['!cols'] = [
+        { wch: 8 },  // N°
+        { wch: 25 }, // Carrera
+        { wch: 15 }, // CI
+        { wch: 40 }, // Nombre y Apellido
+      ];
+
+      // Aplicar estilos a los encabezados
+      for (let col = 0; col <= 3; col++) {
+        const cellRef = XLSX.utils.encode_cell({ r: 0, c: col });
+        if (wsSimple[cellRef]) {
+          wsSimple[cellRef].s = {
+            font: { bold: true },
+            alignment: { horizontal: "center", vertical: "center" },
+            fill: { fgColor: { rgb: "4472C4" } }, // Fondo azul
+            font: { color: { rgb: "FFFFFF" }, bold: true } // Texto blanco y negrita
+          };
+        }
+      }
+
+      // Aplicar estilos a los datos
+      for (let row = 1; row < filtered.length + 1; row++) {
+        for (let col = 0; col <= 3; col++) {
+          const cellRef = XLSX.utils.encode_cell({ r: row, c: col });
+          if (wsSimple[cellRef]) {
+            wsSimple[cellRef].s = {
+              alignment: { horizontal: "center", vertical: "center" },
+              border: {
+                top: { style: "thin" },
+                bottom: { style: "thin" },
+                left: { style: "thin" },
+                right: { style: "thin" }
+              }
+            };
+          }
+        }
+      }
+
+      // Agregar la hoja al workbook
+      XLSX.utils.book_append_sheet(wb, wsSimple, 'Listado_Estudiantes');
+
+      // Generar nombre del archivo
+      const fileName = `Listado_Estudiantes_Simple_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+      // Descargar archivo
+      XLSX.writeFile(wb, fileName);
+
+      setSnackbar({
+        open: true,
+        message: `Archivo Excel simple generado exitosamente con ${filtered.length} estudiantes: ${fileName}`,
+        severity: "success",
+      });
+    } catch (error) {
+      console.error('Error al generar Excel simple:', error);
+      setSnackbar({
+        open: true,
+        message: "Error al generar el archivo Excel simple",
+        severity: "error",
+      });
+    }
+  };
+
   // Función para filtrar, buscar y ordenar
   const getFilteredRows = () => {
     let filtered = [...students];
@@ -761,6 +886,14 @@ function Students() {
                       color="success"
                     >
                       Exportar Listado Jueces
+                    </Button>
+                    <Button 
+                      variant="outlined" 
+                      onClick={handleExportToExcelSimple}
+                      startIcon={<FileDownloadIcon />}
+                      color="primary"
+                    >
+                      Exportar Listado Simple
                     </Button>
                   </Stack>
                 </Grid>

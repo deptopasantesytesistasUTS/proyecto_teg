@@ -31,6 +31,11 @@ const Cronograma = ({ events = [], onEventClick }) => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
 
+  // Debug: mostrar eventos en consola
+  useEffect(() => {
+    console.log('Cronograma recibió eventos:', events);
+  }, [events]);
+
   // Función para obtener el color del evento según su tipo
   const getEventColor = (type) => {
     const colors = {
@@ -222,24 +227,41 @@ sx={{
     })()}
   </Box>
 
+            {/* Mensaje cuando no hay eventos */}
+            {events.length === 0 && (
+              <Box sx={{ mt: 2, textAlign: 'center', py: 2 }}>
+                <Typography variant="body2" color="text.secondary">
+                  No hay eventos programados para este mes
+                </Typography>
+                <Typography variant="caption" color="text.secondary" display="block">
+                  Los eventos aparecerán aquí cuando se agreguen comunicados o fechas importantes
+                </Typography>
+                <Typography variant="caption" color="primary" display="block" sx={{ mt: 1 }}>
+                  Verifica la consola del navegador para más información de debug
+                </Typography>
+              </Box>
+            )}
+
             {/* Leyenda de eventos */}
-            <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              <Typography variant="body2" sx={{ mr: 1, fontWeight: 'bold' }}>
-                Leyenda:
-              </Typography>
-              {['clase', 'examen', 'tarea', 'proyecto', 'reunion'].map((type) => (
-                <Chip
-                  key={type}
-                  label={type.charAt(0).toUpperCase() + type.slice(1)}
-                  size="small"
-                  sx={{
-                    backgroundColor: `${getEventColor(type)}20`,
-                    color: getEventColor(type),
-                    border: `1px solid ${getEventColor(type)}`,
-                  }}
-                />
-              ))}
-  </Box>
+            {events.length > 0 && (
+              <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                <Typography variant="body2" sx={{ mr: 1, fontWeight: 'bold' }}>
+                  Leyenda:
+                </Typography>
+                {['clase', 'examen', 'tarea', 'proyecto', 'reunion'].map((type) => (
+                  <Chip
+                    key={type}
+                    label={type.charAt(0).toUpperCase() + type.slice(1)}
+                    size="small"
+                    sx={{
+                      backgroundColor: `${getEventColor(type)}20`,
+                      color: getEventColor(type),
+                      border: `1px solid ${getEventColor(type)}`,
+                    }}
+                  />
+                ))}
+              </Box>
+            )}
 </CardContent>
 </Card>
 </Grid>
