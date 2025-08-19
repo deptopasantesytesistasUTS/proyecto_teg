@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
@@ -9,29 +9,44 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import AnnouncementIcon from "@mui/icons-material/Announcement";
 import Divider from "@mui/material/Divider";
+import { backendUrl } from "config";
+import PropTypes from "prop-types";
 
-const dummyAnnouncements = [
-  {
-    id: 1,
-    title: "Bienvenida al semestre",
-    description: "¡Bienvenidos al nuevo semestre académico! Les deseamos mucho éxito en sus estudios.",
-    date: "2024-12-01",
-  },
-  {
-    id: 2,
-    title: "Primera clase",
-    description: "La primera clase será el 6 de enero a las 8:00 am en el aula virtual.",
-    date: "2024-12-15",
-  },
-  {
-    id: 3,
-    title: "Entrega de proyecto",
-    description: "Recuerden que la entrega del proyecto final es el 15 de diciembre.",
-    date: "2024-12-10",
-  },
-];
+export default function InicioMateria({ seccionId }) {
+  const [announcements, setAnnouncements] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-export default function InicioMateria() {
+  useEffect(() => {
+    const fetchAnnouncements = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const url = seccionId
+          ? `${backendUrl}/comunicados?seccionId=${seccionId}&limit=10`
+          : `${backendUrl}/comunicados?limit=10`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("No se pudieron obtener los anuncios");
+        const data = await res.json();
+        setAnnouncements(
+          Array.isArray(data)
+            ? data.map((c) => ({
+                id: c.idComunicado || c.id || Math.random(),
+                title: c.titulo || "(Sin título)",
+                description: c.texto || "",
+                date: c.created_At ? new Date(c.created_At).toLocaleDateString() : "",
+              }))
+            : []
+        );
+      } catch (err) {
+        setError(err.message || "Error cargando anuncios");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAnnouncements();
+  }, [seccionId]);
+
   return (
     <Box>
       <Card sx={{ mb: 4, boxShadow: 2 }}>
@@ -52,32 +67,40 @@ export default function InicioMateria() {
           <Typography variant="h6" sx={{ color: 'rgb(25, 118, 210)' }} gutterBottom>
             Anuncios recientes
           </Typography>
-          <List>
-            {dummyAnnouncements.map((a, idx) => (
-              <React.Fragment key={a.id}>
-                <ListItem alignItems="flex-start">
-                  <ListItemIcon>
-                    <AnnouncementIcon color="info" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={a.title}
-                    secondary={
-                      <>
-                        <Typography component="span" variant="body2" color="text.primary">
-                          {a.description}
-                        </Typography>
-                        <br />
-                        <Typography component="span" variant="caption" color="text.secondary">
-                          {a.date}
-                        </Typography>
-                      </>
-                    }
-                  />
-                </ListItem>
-                {idx < dummyAnnouncements.length - 1 && <Divider component="li" />}
-              </React.Fragment>
-            ))}
-          </List>
+          {loading ? (
+            <Typography variant="body2">Cargando...</Typography>
+          ) : error ? (
+            <Typography variant="body2" color="error">{error}</Typography>
+          ) : announcements.length === 0 ? (
+            <Typography variant="body2">No hay anuncios disponibles.</Typography>
+          ) : (
+            <List>
+              {announcements.map((a, idx) => (
+                <React.Fragment key={a.id}>
+                  <ListItem alignItems="flex-start">
+                    <ListItemIcon>
+                      <AnnouncementIcon color="info" />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={a.title}
+                      secondary={
+                        <>
+                          <Typography component="span" variant="body2" color="text.primary">
+                            {a.description}
+                          </Typography>
+                          <br />
+                          <Typography component="span" variant="caption" color="text.secondary">
+                            {a.date}
+                          </Typography>
+                        </>
+                      }
+                    />
+                  </ListItem>
+                  {idx < announcements.length - 1 && <Divider component="li" />}
+                </React.Fragment>
+              ))}
+            </List>
+          )}
         </CardContent>
       </Card>
       <Card sx={{ boxShadow: 1 }}>
@@ -92,4 +115,8 @@ export default function InicioMateria() {
       </Card>
     </Box>
   );
-} 
+}
+
+InicioMateria.propTypes = {
+  seccionId: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+}; 

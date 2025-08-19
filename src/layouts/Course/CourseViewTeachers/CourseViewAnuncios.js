@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 import Button from "@mui/material/Button";
@@ -21,6 +21,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import Hidden from "@mui/material/Hidden";
+import { backendUrl } from "config";
 
 const style = {
   position: "absolute",
@@ -36,28 +37,6 @@ const style = {
   overflow: "auto",
 };
 
-// Ejemplo de anuncios
-const exampleAnnouncements = [
-  {
-    title: "Entrega de Proyecto Final",
-    description: "Recuerden que la entrega del proyecto final es el 15 de junio.",
-    date: "2024-06-07",
-    author: "Prof. Carlos Rodríguez",
-  },
-  {
-    title: "Reunión Extraordinaria",
-    description: "Habrá una reunión extraordinaria el viernes a las 10:00 am.",
-    date: "2024-06-05",
-    author: "Dr. María González",
-  },
-  {
-    title: "Nuevo Recurso Disponible",
-    description: "Se ha subido la guía de estilo para tesis en la sección de recursos.",
-    date: "2024-06-03",
-    author: "Prof. Carlos Rodríguez",
-  },
-];
-
 function CourseViewAnuncios({
   titleProposals,
   handleTitleProposalChange,
@@ -65,21 +44,62 @@ function CourseViewAnuncios({
   openTitleModal,
   handleCloseTitleModal,
   handleSubmitTitleProposals,
+  seccionId,
+  userId,
 }) {
-  // Estado para el modal del formulario
   const [openFormModal, setOpenFormModal] = useState(false);
+  const [announcements, setAnnouncements] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Puedes reemplazar exampleAnnouncements por props o estado real
-  const announcements = exampleAnnouncements;
-
-  // Handlers de ejemplo para editar y eliminar
-  const handleEdit = (idx) => {
-    alert(`Editar comunicado #${idx + 1}`);
-  };
-  const handleDelete = (idx) => {
-    if (window.confirm("¿Seguro que deseas eliminar este comunicado?")) {
-      alert(`Eliminar comunicado #${idx + 1}`);
+  const fetchAnnouncements = async () => {
+    setLoading(true);
+    try {
+      const url = seccionId
+        ? `${backendUrl}/comunicados?seccionId=${seccionId}&limit=50`
+        : `${backendUrl}/comunicados?limit=50`;
+      const res = await fetch(url);
+      const data = await res.json();
+      setAnnouncements(Array.isArray(data) ? data : []);
+    } catch (e) {
+      setAnnouncements([]);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    fetchAnnouncements();
+  }, [seccionId]);
+
+  const handleCreate = async () => {
+    try {
+      const [titulo, texto] = titleProposals;
+      const body = {
+        titulo,
+        texto,
+        idUsuario: userId || null,
+        seccionesIds: seccionId ? [seccionId] : [],
+      };
+      const res = await fetch(`${backendUrl}/comunicados`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        setOpenFormModal(false);
+        fetchAnnouncements();
+      }
+    } catch (e) {}
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("¿Seguro que deseas eliminar este comunicado?")) return;
+    try {
+      const res = await fetch(`${backendUrl}/comunicados/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) fetchAnnouncements();
+    } catch (e) {}
   };
 
   return (
@@ -96,7 +116,6 @@ function CourseViewAnuncios({
       >
         Nuevo Anuncio
       </Button>
-      {/* Modal para crear anuncio */}
       <Modal
         open={openFormModal}
         onClose={() => setOpenFormModal(false)}
@@ -132,7 +151,7 @@ function CourseViewAnuncios({
             <Button
               variant="contained"
               color="primary"
-              onClick={handleSubmitTitleProposals}
+              onClick={handleCreate}
               disabled={!titleProposals.some((proposal) => proposal.trim() !== "")}
               startIcon={<SendIcon />}
             >
@@ -141,7 +160,7 @@ function CourseViewAnuncios({
           </Box>
         </Box>
       </Modal>
-      {/* Tabla de anuncios */}
+
       <MDTypography variant="h6" fontWeight="bold" color="primary" mb={2} mt={4}>
         Lista de Anuncios
       </MDTypography>
@@ -149,46 +168,27 @@ function CourseViewAnuncios({
         <Table sx={{ tableLayout: "fixed" }}>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ width: 160, fontWeight: "bold", color: "primary.main", py: 2.5, fontSize: 16, letterSpacing: 1, textAlign: 'left', pl: 10 }}>
-                Título
-              </TableCell>
-              <TableCell sx={{ width: 300, fontWeight: "bold", color: "primary.main", py: 2.5, fontSize: 16, letterSpacing: 1, textAlign: 'left', pl: 15 }}>
-                Descripción
-              </TableCell>
-              <TableCell sx={{ width: 100, fontWeight: "bold", color: "primary.main", py: 2.5, fontSize: 16, letterSpacing: 1, textAlign: 'left', pl: 15 }}>
-                Fecha
-              </TableCell>
-              <TableCell sx={{ width: 100, fontWeight: "bold", color: "primary.main", py: 2.5, fontSize: 16, letterSpacing: 1, textAlign: 'left', pl: 25 }}>
-                Autor
-              </TableCell>
-              <TableCell sx={{ width: 100, fontWeight: "bold", color: "primary.main", py: 2.5, fontSize: 16, letterSpacing: 1, textAlign: 'center', pl: 25 }}>
-                Acciones
-              </TableCell>
+              <TableCell sx={{ width: 80, fontWeight: "bold" }}>ID</TableCell>
+              <TableCell sx={{ width: 220, fontWeight: "bold" }}>Título</TableCell>
+              <TableCell sx={{ width: 360, fontWeight: "bold" }}>Descripción</TableCell>
+              <TableCell sx={{ width: 140, fontWeight: "bold" }}>Fecha</TableCell>
+              <TableCell sx={{ width: 120, fontWeight: "bold", textAlign: 'center' }}>Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {announcements.map((a, idx) => (
-              <TableRow key={idx} hover sx={{ verticalAlign: 'top' }}>
-                <TableCell sx={{ width: 160, whiteSpace: 'pre-line', wordBreak: 'break-word', verticalAlign: 'top', textAlign: 'left', py: 1 }}>
-                  {a.title}
-                </TableCell>
-                <TableCell sx={{ width: 320, whiteSpace: 'pre-line', wordBreak: 'break-word', verticalAlign: 'top', textAlign: 'left', py: 1 }}>
-                  {a.description}
-                </TableCell>
-                <TableCell sx={{ width: 100, verticalAlign: 'top', textAlign: 'left', py: 1 }}>
-                  {a.date}
-                </TableCell>
-                <TableCell sx={{ width: 100, verticalAlign: 'top', textAlign: 'left', py: 1 }}>
-                  {a.author}
-                </TableCell>
-                <TableCell sx={{ width: 100, verticalAlign: 'top', textAlign: 'center', py: 1 }}>
-                  <Tooltip title="Editar" arrow>
-                    <IconButton size="small" color="primary" onClick={() => handleEdit(idx)}>
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
+            {loading ? (
+              <TableRow><TableCell colSpan={5}>Cargando...</TableCell></TableRow>
+            ) : announcements.length === 0 ? (
+              <TableRow><TableCell colSpan={5}>Sin anuncios</TableCell></TableRow>
+            ) : announcements.map((a, idx) => (
+              <TableRow key={a.idComunicado || idx} hover sx={{ verticalAlign: 'top' }}>
+                <TableCell>{a.idComunicado}</TableCell>
+                <TableCell>{a.titulo}</TableCell>
+                <TableCell sx={{ whiteSpace: 'pre-line' }}>{a.texto}</TableCell>
+                <TableCell>{a.created_At ? new Date(a.created_At).toLocaleString() : ''}</TableCell>
+                <TableCell sx={{ textAlign: 'center' }}>
                   <Tooltip title="Eliminar" arrow>
-                    <IconButton size="small" color="error" onClick={() => handleDelete(idx)}>
+                    <IconButton size="small" color="error" onClick={() => handleDelete(a.idComunicado)}>
                       <DeleteIcon fontSize="small" />
                     </IconButton>
                   </Tooltip>
@@ -207,8 +207,10 @@ CourseViewAnuncios.propTypes = {
   handleTitleProposalChange: PropTypes.func.isRequired,
   handleOpenTitleModal: PropTypes.func.isRequired,
   openTitleModal: PropTypes.bool.isRequired,
-  handleCloseTitleModal: PropTypes.func.isRequired,
-  handleSubmitTitleProposals: PropTypes.func.isRequired,
+  handleCloseTitleModal: PropTypes.bool,
+  handleSubmitTitleProposals: PropTypes.func,
+  seccionId: PropTypes.number,
+  userId: PropTypes.number,
 };
 
 export default CourseViewAnuncios;

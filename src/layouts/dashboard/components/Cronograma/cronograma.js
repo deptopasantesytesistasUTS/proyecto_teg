@@ -49,11 +49,24 @@ const Cronograma = ({ events = [], onEventClick }) => {
     return colors[type] || colors.default;
   };
 
-  // Función para obtener eventos de un día específico
+  // Normaliza la fecha al formato YYYY-MM-DD en UTC para evitar problemas de zona horaria
+  const dateKey = (d) => {
+    try {
+      const dt = new Date(d);
+      return dt.toISOString().slice(0, 10);
+    } catch (e) {
+      return '';
+    }
+  };
+
+  // Función para obtener eventos de un día específico (comparando por clave YYYY-MM-DD)
   const getEventsForDay = (date) => {
-    return events.filter(event => {
-      const eventDate = new Date(event.date);
-      return eventDate.toDateString() === date.toDateString();
+    const key = dateKey(date);
+    return events.filter((event) => {
+      const eventKey = dateKey(event.startDate || event.date);
+      const endKey = event.endDate ? dateKey(event.endDate) : eventKey;
+      // Incluye el evento si el día cae entre start y end (o igual al único día)
+      return key >= eventKey && key <= endKey;
     });
   };
 

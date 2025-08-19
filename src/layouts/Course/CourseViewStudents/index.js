@@ -263,7 +263,7 @@ function CourseView() {
                   {/* Renderizado condicional */}
                   {selectedMenuKey === "inicio" && (
                     <TabPanel value={tabValue} index={0}>
-                      <InicioMateria />
+                      <InicioMateria seccionId={materia?.Secciones?.[0]?.idSeccion} />
                     </TabPanel>
                   )}
                   {selectedMenuKey === "cronograma" && (

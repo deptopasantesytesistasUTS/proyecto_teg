@@ -581,6 +581,8 @@ function CourseView() {
                       openTitleModal={openTitleModal}
                       handleCloseTitleModal={handleCloseTitleModal}
                       handleSubmitTitleProposals={handleSubmitTitleProposals}
+                      seccionId={materia?.Secciones?.[0]?.idSeccion}
+                      userId={user?.id}
                     />
                   )}
                   {getSelectedMenuKey() === "cronograma" && (
