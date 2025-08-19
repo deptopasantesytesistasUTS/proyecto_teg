@@ -186,6 +186,19 @@ function Cronograma({categoria, idMateria}) {
              },
              { descripcion: "Entrega de Diapositivas", fechaLimite: data.semester.finalDraftDate },
            ]);
+         } else {
+           setEntregas([
+             { descripcion: "Fecha Inicio", fechaLimite: data.semester.tutInicio },
+             { descripcion: "Fecha Clase Semana 1", fechaLimite: "2025-08-24T00:00:00.000Z" },
+             { descripcion: "Fecha Clase Semana 2", fechaLimite: "2025-09-31T08:00:00.000Z" },
+             { descripcion: "Fecha Clase Semana 3", fechaLimite: "2025-09-07T08:00:00.000Z" },
+             { descripcion: "Fecha Clase Semana 4", fechaLimite: "2025-09-14T08:00:00.000Z" },
+             { descripcion: "Fecha Clase Semana 5", fechaLimite: "2025-09-21T08:00:00.000Z" },
+             { descripcion: "Fecha Clase Semana 6", fechaLimite: "2025-09-28T08:00:00.000Z" },
+             { descripcion: "Fecha Clase Semana 7", fechaLimite: "2025-10-04T08:00:00.000Z" },
+             { descripcion: "Fecha Clase Semana 8", fechaLimite: "2025-10-11T08:00:00.000Z" },
+             { descripcion: "Fecha Fin", fechaLimite: "2025-10-15T00:00:00.000Z" },
+           ]);
          }
         
       }

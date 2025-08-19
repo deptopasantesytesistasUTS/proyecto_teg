@@ -78,7 +78,6 @@ const mockBackend = {
 function SubirContenido({ idMateria, categoria }) {
   const [userData, setUserData] = useState({});
   const [error, setError] = useState({});
-  const [currentSemester, setCurrentSemester] = useState(null);
   const [entregas, setEntregas] = useState([
     { nombre: "1", fechaLimite: "" },
     { nombre: "2", fechaLimite: "" },

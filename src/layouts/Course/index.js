@@ -156,11 +156,13 @@ function Course() {
     const response = await fetch(`${backendUrl}/secciones`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nombre: newCourse.nombre,
+      body: JSON.stringify({
+        nombre: newCourse.nombre,
         carrera: careers.find((c) => c.idCarrera === newCourse.carrera)?.nombre || "",
-        profesores: professors.filter((p) => newCourse.profesores.includes(p.idProfesor)).map((p) => p.idProfesor).join(","),
-        estatus: "Activo", 
-        letraSeccion: newCourse.letraSeccion,}),
+        profesores: newCourse.profesores,
+        estatus: "Activo",
+        letraSeccion: newCourse.letraSeccion,
+      }),
     });
 
     const data = await response.json();

@@ -3,6 +3,7 @@ import * as React from "react";
 import PropTypes from "prop-types";
 import { useParams } from "react-router-dom";
 import { getValidStudentId, wasCedulaMapped } from "utils/studentUtils";
+import { useEffect, useState } from "react";
 
 // @mui material components
 import Grid from "@mui/material/Grid";
@@ -48,6 +49,8 @@ import Typography from "@mui/material/Typography";
 import Modal from "@mui/material/Modal";
 import { TextField } from "@mui/material";
 import Box from "@mui/material/Box";
+import Alert from "@mui/material/Alert";
+import Snackbar from "@mui/material/Snackbar";
 
 // Overview page components
 import Header from "layouts/students/studentProfile/components/Header";
@@ -69,6 +72,10 @@ import team4 from "assets/images/team-4.jpg";
 import ProtocoloGenerator from "../data/generateTitlesPDF";
 import ControlTutoriasGenerator from "../data/generateTutoriasPDF";
 import BusinessLetterGenerator from "../data/generateBusinessLetter";
+import { backendUrl } from "config";
+
+
+
 
 const style = {
   position: "absolute",
@@ -109,7 +116,7 @@ function Overview() {
   console.log("🔍 StudentProfile - ID del estudiante de la URL:", id);
 
   // Para pruebas, si el ID no existe en la lista válida, usar la primera cédula válida
-  const studentId = getValidStudentId(id);
+  const studentId = id;
   console.log("🔍 StudentProfile - ID del estudiante a buscar:", id);
   console.log("🔍 StudentProfile - ID original solicitado:", id);
 
@@ -125,6 +132,7 @@ function Overview() {
   const [open4, setOpen4] = React.useState(false);
   const handleOpen4 = () => setOpen4(true);
   const handleClose4 = () => setOpen4(false);
+  
 
   // Communication modal state
   const [openCommunication, setOpenCommunication] = React.useState(false);
@@ -183,13 +191,30 @@ function Overview() {
     try {
       // Importar la URL del backend
       const { backendUrl } = await import("config");
-      const url = `${backendUrl}/jurados/${studentId}`;
+
+      const response = await fetch(`${backendUrl}/profesoresUnidades`);
+      if (response.ok) {
+        const data = await response.json();
+        setAvailableJudges(data.profesores || []);
+      } else {
+        console.error("Error al cargar datos de jurados");
+      }
+    } catch (error) {
+      console.error("Error de conexión:", error);
+    }
+  };
+
+  const loadAssignedJudgesData = async () => {
+    try {
+      // Importar la URL del backend
+      const { backendUrl } = await import("config");
+      const url = `${backendUrl}/jurados/${id}`;
 
       const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
-        setJurados(data.assignedJudges || []);
-        setAvailableJudges(data.availableJudges || []);
+        console.log("API Response Jurados:", data);
+        setJurados(data || []);
       } else {
         console.error("Error al cargar datos de jurados");
       }
@@ -201,6 +226,7 @@ function Overview() {
   // Cargar datos de jurados cuando cambie el ID del estudiante
   React.useEffect(() => {
     if (studentId) {
+      loadAssignedJudgesData();
       loadJudgesData();
     }
   }, [studentId]);
@@ -210,13 +236,14 @@ function Overview() {
     const newSelectedJudges = [...selectedJudges];
     newSelectedJudges[index] = value;
     setSelectedJudges(newSelectedJudges);
+    console.log(value);
   };
 
   // Enviar los jurados seleccionados al backend
   const handleAssignJudges = async () => {
     try {
       const { backendUrl } = await import("config");
-      const url = `${backendUrl}/asignar-jurados`;
+      const url = `${backendUrl}/admin/asignar-jurados`;
 
       const response = await fetch(url, {
         method: "POST",
@@ -255,16 +282,10 @@ function Overview() {
       const { backendUrl } = await import("config");
       const url = `${backendUrl}/estudiantePerfil/${id}`;
 
-      console.log("🔍 StudentProfile - Intentando cargar datos del estudiante");
-      console.log("🔍 StudentProfile - ID del estudiante:", studentId);
-      console.log("🔍 StudentProfile - URL de la petición:", url);
-
       const response = await fetch(url, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });
-
-      console.log("🔍 StudentProfile - Status de la respuesta:", response.status);
 
       if (response.ok) {
         const data = await response.json();
@@ -406,6 +427,144 @@ function Overview() {
     },
   ];
 
+  const [ProfileImageURL, setProfileImageURL] = React.useState("");
+
+  const [ProfileImageJudge1URL, setProfileImageJudge1URL] = React.useState("");
+
+  const [ProfileImageJudge2URL, setProfileImageJudge2URL] = React.useState("");
+
+  const [ProfileImageJudge3URL, setProfileImageJudge3URL] = React.useState("");
+
+    const [enlacesEntregados, setEnlacesEntregados] = useState([]); // { nombreEntrega: enlace }
+
+  const [entregas, setEntregas] = useState([
+    { nombre: "1", fechaLimite: "" },
+    { nombre: "2", fechaLimite: "" },
+    { nombre: "3", fechaLimite: "" },
+    { nombre: "4", fechaLimite: "" },
+  ]);
+
+  const [snackbar, setSnackbar] = useState({
+      open: false,
+      message: "",
+      severity: "success",
+    });
+
+  const [categoria,setCategoria] = useState(false)
+  const [idMateria,setIdMateria] = useState(0)
+
+   const handleCloseSnackbar = () => {
+     setSnackbar((prev) => ({ ...prev, open: false }));
+   };
+
+
+  const handleGetCurrentSemester = async () => {
+    const today = new Date();
+    const currentDate = today.toISOString().split("T")[0];
+    const response = await fetch(`${backendUrl}/actLapso/${currentDate}`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+
+      console.log("estudiante:", studentData?.matricula[0]);
+
+        const cat = studentData?.matricula.some(mat => {
+    const categoria = mat?.Secciones?.Materias?.categoria;
+    console.log("Materia", mat?.Secciones?.Materias?.idMateria);
+    if(categoria !== "Tutorias") setIdMateria(mat?.Secciones?.Materias?.idMateria)
+    return categoria === "Trabajo_Especial_de_Grado";
+  });
+
+  setCategoria(cat);
+
+      console.log("Categoria:",cat);
+      console.log("Categoria:", categoria);
+      console.log("Categoria:", categoria);
+      console.log("Categoria:", categoria);
+
+      if (!cat) {
+        setEntregas([
+          { nombre: "Protocolo de Investigación 1", fechaLimite: data.semester.titleDeliveryDate },
+          { nombre: "Protocolo de Investigación 2", fechaLimite: data.semester.titleDeliveryDate },
+          { nombre: "Protocolo de Investigación 3", fechaLimite: data.semester.titleDeliveryDate },
+          { nombre: "Capitulo 1", fechaLimite: data.semester.inv2Borrador1 },
+          { nombre: "Carta Empresarial", fechaLimite: data.semester.cartaDate },
+          { nombre: "Capitulo 2", fechaLimite: data.semester.inv2Borrador2 },
+          { nombre: "Capitulo 3", fechaLimite: data.semester.inv2Borrador3 },
+          { nombre: "Instrumentos de Investigaccion", fechaLimite: data.semester.inv2Borrador4 },
+        ]);
+      } else if (cat) {
+        setEntregas([
+          { nombre: "Entrega Instrumento 1", fechaLimite: data.semester.fechaEntInst },
+          { nombre: "Entrega Instrumento 2", fechaLimite: data.semester.fechaEntInst },
+          { nombre: "Entrega de Propuesta", fechaLimite: data.semester.firstDraftDate },
+          {
+            nombre: "Informe Completo",
+            fechaLimite: data.semester.secondDraftDate,
+          },
+          {
+            nombre: "Tomo Completo (Correciones Predefensa)",
+            fechaLimite: data.semester.thirdDraftDate,
+          },
+          { nombre: "Entrega de Diapositivas", fechaLimite: data.semester.finalDraftDate },
+        ]);
+      }
+    }
+  };
+
+    const handleGetLinks = async () => {
+      try {
+        const response = await fetch(
+          `${backendUrl}/estudianteAdm/archivos/${studentData.estudiante.cedula}/${idMateria}`,
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+        const data = await response.json();
+  
+        console.log("API Response Enlaces:", data);
+        console.log(response.ok);
+        if (response.ok) {
+          setEnlacesEntregados(data);
+        }
+      } catch (error) {
+        console.error(error);
+        setSnackbar({
+          open: true,
+          message: "Error en la conexion para archivos",
+          severity: "error",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    useEffect(() => {
+      handleGetCurrentSemester();
+    }, [studentData]);
+
+    useEffect(() => {
+      handleGetLinks();
+    }, [idMateria]);
+
+    const formatoFecha = (fechaLimite) => {
+      const fecha = new Date(fechaLimite);
+      return fecha.toLocaleString("es-VE", {
+        dateStyle: "medium",
+        timeStyle: "short",
+        timeZone: "UTC",
+      });
+    };
+
+  const handleEdit = () => {
+    setJurados([])
+  };
+
+
   return (
     <DashboardLayout>
       <MDBox mb={2} />
@@ -437,7 +596,7 @@ function Overview() {
                     <MDTypography variant="h5"> Datos de Carrera: </MDTypography>
                     <MDTypography>
                       Materia Actual:{" "}
-                      {studentData.matricula.map((mat) => {
+                      {studentData?.matricula.map((mat) => {
                         return mat.Secciones.Materias.categoria.replace("_", " ") + " ";
                       })}
                     </MDTypography>
@@ -522,12 +681,12 @@ function Overview() {
                         </Box>
                       </Modal>
 
-                      <ControlTutoriasGenerator></ControlTutoriasGenerator>
+                      {/*<ControlTutoriasGenerator></ControlTutoriasGenerator>
                       <BusinessLetterGenerator
                         studentId={studentData?.estudiante.cedula}
                         studentName={`${studentData?.estudiante.nombre1} ${studentData?.estudiante.nombre2} ${studentData?.estudiante.apellido1} ${studentData?.estudiante.apellido2}`}
                         career={`${studentData.estudiante.Carreras.nombre}`}
-                      ></BusinessLetterGenerator>
+                      ></BusinessLetterGenerator>*/}
 
                       <Button variant="contained" onClick={handleOpen}>
                         Cambiar Correo Electrónico
@@ -722,9 +881,13 @@ function Overview() {
                         textColor="primary"
                         variant="fullWidth"
                       >
-                        <Tab label="Jueces Asignados" icon={<PersonIcon />} iconPosition="start" />
                         <Tab
-                          label="Borradores del Proyecto"
+                          label="Entregas del Proyecto"
+                          icon={<PersonIcon />}
+                          iconPosition="start"
+                        />
+                        <Tab
+                          label="Jueces Asignados"
                           icon={<DescriptionIcon />}
                           iconPosition="start"
                         />
@@ -732,7 +895,7 @@ function Overview() {
                     </AppBar>
 
                     {/* Project Judges Tab - Modificado */}
-                    <TabPanel value={projectTabValue} index={0}>
+                    <TabPanel value={projectTabValue} index={1}>
                       <MDBox>
                         <MDBox
                           display="flex"
@@ -761,7 +924,7 @@ function Overview() {
                             <Grid container spacing={2}>
                               {[0, 1, 2].map((index) => (
                                 <Grid item xs={12} md={4} key={index}>
-                                  <FormControl fullWidth variant="outlined">
+                                  <FormControl fullWidth variant="standard">
                                     <InputLabel>Jurado {index + 1}</InputLabel>
                                     <Select
                                       value={selectedJudges[index]}
@@ -773,11 +936,11 @@ function Overview() {
                                       </MenuItem>
                                       {availableJudges.map((judge) => (
                                         <MenuItem
-                                          key={judge.id}
-                                          value={judge.id}
-                                          disabled={selectedJudges.includes(judge.id)}
+                                          key={judge.idProfesor}
+                                          value={judge.idProfesor}
+                                          disabled={selectedJudges.includes(judge.idProfesor)}
                                         >
-                                          {judge.nombre} ({judge.especialidad})
+                                          {judge.nombre}
                                         </MenuItem>
                                       ))}
                                     </Select>
@@ -807,46 +970,48 @@ function Overview() {
                             </MDBox>
                           </Card>
                         ) : jurados.length > 0 ? (
-                          <Grid container spacing={3}>
-                            {jurados.map((judge, index) => (
-                              <Grid item xs={12} md={4} key={index}>
-                                <Card sx={{ p: 3, height: "100%" }}>
-                                  <MDBox display="flex" alignItems="center" mb={2}>
-                                    <MDAvatar
-                                      src={team1}
-                                      alt={judge.nombre}
-                                      size="lg"
-                                      shadow="md"
-                                      sx={{ mr: 2 }}
-                                    />
+                          <>
+                            <Grid container spacing={3}>
+                              {jurados.map((judge, index) => (
+                                <Grid item xs={12} md={4} key={index}>
+                                  <Card sx={{ p: 3, height: "100%" }}>
+                                    <MDBox display="flex" alignItems="center" mb={2}>
+                                      <MDAvatar
+                                        src={team1}
+                                        alt={judge.nombre}
+                                        size="lg"
+                                        shadow="md"
+                                        sx={{ mr: 2 }}
+                                      />
+                                      <MDBox>
+                                        <MDTypography variant="h6" fontWeight="medium">
+                                          {judge.nombre}
+                                        </MDTypography>
+                                        <MDTypography
+                                          variant="button"
+                                          color="info"
+                                          fontWeight="medium"
+                                        >
+                                          {judge.rol || "Juez"}
+                                        </MDTypography>
+                                      </MDBox>
+                                    </MDBox>
                                     <MDBox>
-                                      <MDTypography variant="h6" fontWeight="medium">
-                                        {judge.nombre}
+                                      <MDTypography variant="body2" color="text" mb={1}>
+                                        {/*<strong>Especialidad:</strong> {judge.especialidad}*/}
                                       </MDTypography>
-                                      <MDTypography
-                                        variant="button"
-                                        color="info"
-                                        fontWeight="medium"
-                                      >
-                                        {judge.rol || "Juez"}
+                                      <MDTypography variant="body2" color="text" mb={1}>
+                                        <strong>Email:</strong> {judge.email}
+                                      </MDTypography>
+                                      <MDTypography variant="body2" color="text">
+                                        <strong>Teléfono:</strong> {judge.telf || "No disponible"}
                                       </MDTypography>
                                     </MDBox>
-                                  </MDBox>
-                                  <MDBox>
-                                    <MDTypography variant="body2" color="text" mb={1}>
-                                      <strong>Especialidad:</strong> {judge.especialidad}
-                                    </MDTypography>
-                                    <MDTypography variant="body2" color="text" mb={1}>
-                                      <strong>Email:</strong> {judge.email}
-                                    </MDTypography>
-                                    <MDTypography variant="body2" color="text">
-                                      <strong>Teléfono:</strong> {judge.telefono || "No disponible"}
-                                    </MDTypography>
-                                  </MDBox>
-                                </Card>
-                              </Grid>
-                            ))}
-                          </Grid>
+                                  </Card>
+                                </Grid>
+                              ))}
+                            </Grid>
+                          </>
                         ) : (
                           <Card sx={{ p: 3, textAlign: "center" }}>
                             <MDTypography variant="body1" color="text">
@@ -857,168 +1022,188 @@ function Overview() {
                       </MDBox>
                     </TabPanel>
 
-                    <TabPanel value={projectTabValue} index={1}>
+                    <TabPanel value={projectTabValue} index={0}>
                       <MDBox>
                         <MDTypography variant="h5" mb={3}>
-                          Borradores del Proyecto
+                          Entregas del Proyecto
                         </MDTypography>
 
-                        {/* Title Selection - Modificado para usar datos reales */}
-                        {studentData?.matricula?.tituloElegido ? (
-                          <MDBox mb={4}>
-                            <Card sx={{ p: 3, bgcolor: "success.light" }}>
-                              <MDTypography variant="h6" color="success.dark" mb={1}>
-                                Título ya seleccionado:
-                              </MDTypography>
-                              <MDTypography variant="body1" fontWeight="medium">
-                                {
-                                  studentData.matricula[
-                                    `titulo${studentData.matricula.tituloElegido}`
-                                  ]
-                                }
-                              </MDTypography>
-                              <MDTypography variant="caption" color="text">
-                                (No se puede cambiar el título una vez seleccionado)
-                              </MDTypography>
-                            </Card>
-                          </MDBox>
+                        {categoria ? (
+                          <></>
                         ) : (
-                          <MDBox mb={4}>
-                            <Grid container spacing={2} alignItems="center">
-                              <Grid item xs={12} md={8}>
-                                <FormControl variant="standard" fullWidth>
-                                  <InputLabel id="title-select-label">
-                                    Seleccionar Título del Proyecto
-                                  </InputLabel>
-                                  <Select
-                                    labelId="title-select-label"
-                                    id="title-select"
-                                    value={selectedTitle}
-                                    label="Seleccionar Título del Proyecto"
-                                    onChange={(e) => setSelectedTitle(e.target.value)}
-                                    disabled={!studentData?.matricula}
-                                  >
-                                    <MenuItem value="">
-                                      <em>Seleccione un título del proyecto</em>
-                                    </MenuItem>
+                          <>
+                            {/* Title Selection - Modificado para usar datos reales */}
+                            {studentData?.matricula?.tituloElegido ? (
+                              <MDBox mb={4}>
+                                <Card sx={{ p: 3, bgcolor: "success.light" }}>
+                                  <MDTypography variant="h6" color="success.dark" mb={1}>
+                                    Título ya seleccionado:
+                                  </MDTypography>
+                                  <MDTypography variant="body1" fontWeight="medium">
+                                    {
+                                      studentData.matricula[
+                                        `titulo${studentData.matricula.tituloElegido}`
+                                      ]
+                                    }
+                                  </MDTypography>
+                                  <MDTypography variant="caption" color="text">
+                                    (No se puede cambiar el título una vez seleccionado)
+                                  </MDTypography>
+                                </Card>
+                              </MDBox>
+                            ) : (
+                              <MDBox mb={4}>
+                                <Grid container spacing={2} alignItems="center">
+                                  <Grid item xs={12} md={8}>
+                                    <FormControl variant="standard" fullWidth>
+                                      <InputLabel id="title-select-label">
+                                        Seleccionar Título del Proyecto
+                                      </InputLabel>
+                                      <Select
+                                        labelId="title-select-label"
+                                        id="title-select"
+                                        value={selectedTitle}
+                                        label="Seleccionar Título del Proyecto"
+                                        onChange={(e) => setSelectedTitle(e.target.value)}
+                                        disabled={!studentData?.matricula}
+                                      >
+                                        <MenuItem value="">
+                                          <em>Seleccione un título del proyecto</em>
+                                        </MenuItem>
+                                        {[1, 2, 3].map((num) => {
+                                          const titulo = studentData?.matricula?.[`titulo${num}`];
+                                          return titulo ? (
+                                            <MenuItem key={num} value={titulo}>
+                                              {titulo}
+                                            </MenuItem>
+                                          ) : null;
+                                        })}
+                                      </Select>
+                                    </FormControl>
+                                  </Grid>
+                                  <Grid item xs={12} md={4}>
+                                    <Button
+                                      variant="contained"
+                                      fullWidth
+                                      disabled={!selectedTitle}
+                                      onClick={() => {
+                                        if (selectedTitle) {
+                                          // Aquí deberías hacer la llamada al backend para guardar el título seleccionado
+                                          console.log("Título seleccionado:", selectedTitle);
+                                          // Ejemplo de cómo determinar qué título se seleccionó
+                                          const tituloIndex = [1, 2, 3].find(
+                                            (num) =>
+                                              studentData.matricula[`titulo${num}`] ===
+                                              selectedTitle
+                                          );
+                                          console.log(
+                                            "Índice del título seleccionado:",
+                                            tituloIndex
+                                          );
+
+                                          // Lógica para actualizar el título elegido en el backend
+                                          // await api.actualizarTituloElegido(studentData.estudiante.cedula, tituloIndex);
+
+                                          // Actualizar el estado local (solo como ejemplo, deberías actualizar con la respuesta del backend)
+                                          setStudentData((prev) => ({
+                                            ...prev,
+                                            matricula: {
+                                              ...prev.matricula,
+                                              tituloElegido: tituloIndex,
+                                            },
+                                          }));
+                                        }
+                                      }}
+                                    >
+                                      Seleccionar Título
+                                    </Button>
+                                  </Grid>
+                                </Grid>
+
+                                {/* Mostrar títulos disponibles */}
+                                <MDBox mt={3}>
+                                  <MDTypography variant="h6" mb={1}>
+                                    Títulos disponibles:
+                                  </MDTypography>
+                                  <List>
                                     {[1, 2, 3].map((num) => {
                                       const titulo = studentData?.matricula?.[`titulo${num}`];
                                       return titulo ? (
-                                        <MenuItem key={num} value={titulo}>
-                                          {titulo}
-                                        </MenuItem>
+                                        <ListItem key={num}>
+                                          <ListItemText
+                                            primary={`Título ${num}:`}
+                                            secondary={titulo}
+                                            secondaryTypographyProps={{
+                                              style: { fontWeight: "medium" },
+                                            }}
+                                          />
+                                        </ListItem>
                                       ) : null;
                                     })}
-                                  </Select>
-                                </FormControl>
-                              </Grid>
-                              <Grid item xs={12} md={4}>
-                                <Button
-                                  variant="contained"
-                                  fullWidth
-                                  disabled={!selectedTitle}
-                                  onClick={() => {
-                                    if (selectedTitle) {
-                                      // Aquí deberías hacer la llamada al backend para guardar el título seleccionado
-                                      console.log("Título seleccionado:", selectedTitle);
-                                      // Ejemplo de cómo determinar qué título se seleccionó
-                                      const tituloIndex = [1, 2, 3].find(
-                                        (num) =>
-                                          studentData.matricula[`titulo${num}`] === selectedTitle
-                                      );
-                                      console.log("Índice del título seleccionado:", tituloIndex);
-
-                                      // Lógica para actualizar el título elegido en el backend
-                                      // await api.actualizarTituloElegido(studentData.estudiante.cedula, tituloIndex);
-
-                                      // Actualizar el estado local (solo como ejemplo, deberías actualizar con la respuesta del backend)
-                                      setStudentData((prev) => ({
-                                        ...prev,
-                                        matricula: {
-                                          ...prev.matricula,
-                                          tituloElegido: tituloIndex,
-                                        },
-                                      }));
-                                    }
-                                  }}
-                                >
-                                  Seleccionar Título
-                                </Button>
-                              </Grid>
-                            </Grid>
-
-                            {/* Mostrar títulos disponibles */}
-                            <MDBox mt={3}>
-                              <MDTypography variant="h6" mb={1}>
-                                Títulos disponibles:
-                              </MDTypography>
-                              <List>
-                                {[1, 2, 3].map((num) => {
-                                  const titulo = studentData?.matricula?.[`titulo${num}`];
-                                  return titulo ? (
-                                    <ListItem key={num}>
-                                      <ListItemText
-                                        primary={`Título ${num}:`}
-                                        secondary={titulo}
-                                        secondaryTypographyProps={{
-                                          style: { fontWeight: "medium" },
-                                        }}
-                                      />
-                                    </ListItem>
-                                  ) : null;
-                                })}
-                              </List>
-                            </MDBox>
-                          </MDBox>
+                                  </List>
+                                </MDBox>
+                              </MDBox>
+                            )}
+                          </>
                         )}
 
                         {/* Draft Cards */}
                         <Grid container spacing={3}>
-                          {drafts.map((draft, index) => (
-                            <Grid item xs={12} sm={6} md={3} key={index}>
-                              <Card sx={{ p: 3, height: "100%", textAlign: "center" }}>
-                                <MDBox>
-                                  <MDTypography variant="h6" fontWeight="medium" mb={2}>
-                                    {draft.title}
-                                  </MDTypography>
-                                  <MDBox
-                                    display="flex"
-                                    justifyContent="center"
-                                    alignItems="center"
-                                    mb={2}
-                                  >
+                          {entregas.map((draft, index) => {
+                            const objetoEnlace = enlacesEntregados.find(
+                              (enlace) => enlace[draft.nombre]
+                            );
+                            const entregado = objetoEnlace ? objetoEnlace[draft.nombre] : undefined;
+                            return (
+                              <Grid item xs={12} sm={6} md={3} key={index}>
+                                <Card sx={{ p: 3, height: "100%", textAlign: "center" }}>
+                                  <MDBox>
+                                    <MDTypography variant="h6" fontWeight="medium" mb={2}>
+                                      {draft.nombre}
+                                    </MDTypography>
                                     <MDBox
-                                      width="60px"
-                                      height="60px"
-                                      borderRadius="50%"
                                       display="flex"
-                                      alignItems="center"
                                       justifyContent="center"
-                                      bgColor={draft.color}
-                                      color="white"
-                                      fontSize="1.5rem"
-                                      fontWeight="bold"
+                                      alignItems="center"
+                                      mb={2}
                                     >
-                                      {draft.progress}%
+                                      <MDBox
+                                        width="60px"
+                                        height="60px"
+                                        borderRadius="50%"
+                                        display="flex"
+                                        alignItems="center"
+                                        justifyContent="center"
+                                        bgColor={!entregado ? "error" : "success"}
+                                        color="white"
+                                        fontSize="1.5rem"
+                                        fontWeight="bold"
+                                      >
+                                        {!entregado ? 0 : 100}%
+                                      </MDBox>
                                     </MDBox>
+                                    <MDTypography variant="body2" color="text" mb={1}>
+                                      <strong>
+                                        Estado: {!entregado ? "Pendiente" : "Entregado"}
+                                      </strong>
+                                    </MDTypography>
+                                    <MDTypography variant="body2" color="text" mb={2}>
+                                      <strong>Fecha Limite:</strong>{" "}
+                                      {formatoFecha(draft.fechaLimite)}
+                                    </MDTypography>
+                                    <Button
+                                      variant="contained"
+                                      href={entregado}
+                                      fullWidth
+                                      disabled={!entregado}
+                                    >
+                                      {!entregado ? "Pendiente" : "Ver Borrador"}
+                                    </Button>
                                   </MDBox>
-                                  <MDTypography variant="body2" color="text" mb={1}>
-                                    <strong>Estado:</strong> {draft.status}
-                                  </MDTypography>
-                                  <MDTypography variant="body2" color="text" mb={2}>
-                                    <strong>Fecha:</strong> {draft.date}
-                                  </MDTypography>
-                                  <Button
-                                    variant="contained"
-                                    fullWidth
-                                    disabled={draft.progress === 0}
-                                  >
-                                    {draft.progress === 0 ? "Pendiente" : "Ver Borrador"}
-                                  </Button>
-                                </MDBox>
-                              </Card>
-                            </Grid>
-                          ))}
+                                </Card>
+                              </Grid>
+                            );
+                          })}
                         </Grid>
                       </MDBox>
                     </TabPanel>
@@ -1027,6 +1212,22 @@ function Overview() {
               </Grid>
             </Grid>
           </MDBox>
+
+          {/* Snackbar for notifications */}
+          <Snackbar
+            open={snackbar.open}
+            autoHideDuration={6000}
+            onClose={handleCloseSnackbar}
+            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          >
+            <Alert
+              onClose={handleCloseSnackbar}
+              severity={snackbar.severity}
+              sx={{ width: "100%" }}
+            >
+              {snackbar.message}
+            </Alert>
+          </Snackbar>
 
           {/* Communication Modal */}
           <Modal

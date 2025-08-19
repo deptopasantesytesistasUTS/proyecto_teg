@@ -327,8 +327,7 @@ function Students() {
       console.log(selectedSection);
       console.log(selectedSection.Materias.categoria);
     }
-    if (selectedSection && selectedSection.Materias.categoria == "investigacion_II") {
-      console.log("Hola");
+    if (selectedSection && selectedSection.Materias.categoria == "Trabajo_Especial_de_Grado") {
       handleGetSectionsTutor(newStudent.carrera);
     } else {
       setSectionsTutor([]);
