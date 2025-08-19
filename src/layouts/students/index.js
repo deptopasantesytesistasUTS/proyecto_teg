@@ -37,6 +37,7 @@ import DataTable from "examples/Tables/DataTable";
 // Data
 import studentsTableData from "layouts/students/data/studentsTableData";
 import { backendUrl } from "config";
+import { ConstructionOutlined } from "@mui/icons-material";
 
 function Students() {
   const navigate = useNavigate();
@@ -452,12 +453,15 @@ function Students() {
         });
       }
 
+      console.log("info:", row);
+
       // Buscar por nombre
       if (search) {
         filtered = filtered.filter(
           (row) =>
             row.nombre.toLowerCase().includes(search.toLowerCase()) ||
-            `${row.cedula}`.toLowerCase().includes(search.toLowerCase())
+            `${row.cedula}`.toLowerCase().includes(search.toLowerCase()) ||
+            row.email.toLowerCase().includes(search.toLowerCase())
         );
       }
 
@@ -640,7 +644,8 @@ function Students() {
         filtered = filtered.filter(
           (row) =>
             row.nombre.toLowerCase().includes(search.toLowerCase()) ||
-            `${row.cedula}`.toLowerCase().includes(search.toLowerCase())
+            `${row.cedula}`.toLowerCase().includes(search.toLowerCase()) ||
+            row.email.toLowerCase().includes(search.toLowerCase())
         );
       }
 
@@ -767,7 +772,8 @@ function Students() {
       filtered = filtered.filter(
         (row) =>
           row.nombre.toLowerCase().includes(search.toLowerCase()) ||
-          `${row.cedula}`.toLowerCase().includes(search.toLowerCase())
+          `${row.cedula}`.toLowerCase().includes(search.toLowerCase()) ||
+            row.email.toLowerCase().includes(search.toLowerCase())
       );
     }
     // Ordenar
@@ -843,7 +849,7 @@ function Students() {
                 </Grid>
                 <Grid item size={6} width={200}>
                   <FormControl variant="standard" fullWidth>
-                    <InputLabel id="materia-label">Unidad</InputLabel>
+                    <InputLabel id="materia-label">Área</InputLabel>
                     <Select
                       labelId="materia-label"
                       id="materia-select"
