@@ -101,7 +101,7 @@ const docenteOptions = [
     key: "participantes",
   },
   {
-    text: "Control Actividades",
+    text: " Actividades",
     icon: <CheckCircleIcon />,
     key: "control_entrega",
   },

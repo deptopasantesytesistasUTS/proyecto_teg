@@ -438,7 +438,7 @@ function Teachers() {
                       startIcon={<FileDownloadIcon />}
                       color="primary"
                     >
-                      Exportar Listado
+                      Listado Docentes 
                     </Button>
 
                     <Modal

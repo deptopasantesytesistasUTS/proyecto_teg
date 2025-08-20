@@ -884,7 +884,7 @@ function Students() {
                       startIcon={<FileDownloadIcon />}
                       color="success"
                     >
-                      Exportar Listado Jueces
+                      Listado Propuestas 
                     </Button>
                     <Button 
                       variant="outlined" 
@@ -892,7 +892,7 @@ function Students() {
                       startIcon={<FileDownloadIcon />}
                       color="primary"
                     >
-                      Exportar Listado Simple
+                      Listado Estudiantes 
                     </Button>
                   </Stack>
                 </Grid>
