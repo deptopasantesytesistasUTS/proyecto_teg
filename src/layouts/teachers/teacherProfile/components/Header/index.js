@@ -39,7 +39,7 @@ import breakpoints from "assets/theme/base/breakpoints";
 import burceMars from "assets/images/bruce-mars.jpg";
 import backgroundImage from "assets/images/bg-profile.jpeg";
 
-function Header({ children, tabValue, onTabChange }) {
+function Header({ children,teacherData, tabValue, onTabChange }) {
   const [tabsOrientation, setTabsOrientation] = useState("horizontal");
 
   useEffect(() => {
@@ -97,10 +97,13 @@ function Header({ children, tabValue, onTabChange }) {
           <Grid item>
             <MDBox height="100%" mt={0.5} lineHeight={1}>
               <MDTypography variant="h5" fontWeight="medium">
-                Pedro Alexandro Perez Mora
+                {`${teacherData?.docente.nombre1} 
+                  ${teacherData?.docente.nombre2}
+                  ${teacherData?.docente.apellido1}
+                  ${teacherData?.docente.apellido2}` || " "}
               </MDTypography>
               <MDTypography variant="button" color="text" fontWeight="regular">
-                V-20.433.708 / Ingeniero Informático
+                {`${teacherData?.docente.cedula}`}
               </MDTypography>
             </MDBox>
           </Grid>
@@ -145,6 +148,7 @@ Header.defaultProps = {
 Header.propTypes = {
   children: PropTypes.node,
   tabValue: PropTypes.number,
+  teacherData: PropTypes.object,
   onTabChange: PropTypes.func,
 };
 

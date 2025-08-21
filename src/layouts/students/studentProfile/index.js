@@ -724,6 +724,7 @@ function Overview() {
 
       if (!cat) {
         setEntregas([
+          { nombre: "Carga Academica", fechaLimite: data.semester.cartaDate},
           { nombre: "Protocolo de Investigación 1", fechaLimite: data.semester.titleDeliveryDate },
           { nombre: "Protocolo de Investigación 2", fechaLimite: data.semester.titleDeliveryDate },
           { nombre: "Protocolo de Investigación 3", fechaLimite: data.semester.titleDeliveryDate },
