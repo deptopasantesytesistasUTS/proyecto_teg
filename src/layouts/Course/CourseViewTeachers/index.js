@@ -572,7 +572,9 @@ function CourseView() {
                       BIENVENIDOS
                     </MDTypography>
                   </MDBox>
-                  {getSelectedMenuKey() === "informacion" && <CourseViewInfo />}
+                  {getSelectedMenuKey() === "informacion" && (
+                    <CourseViewInfo seccionId={materia?.Secciones?.[0]?.idSeccion} />
+                  )}
                   {getSelectedMenuKey() === "anuncios" && (
                     <CourseViewAnuncios
                       titleProposals={titleProposals}
@@ -636,7 +638,7 @@ function CourseView() {
                   )}
                   {getSelectedMenuKey() === "control_entrega" && (
                     <EstadisticasEntregas 
-                      estadisticas={estadisticasEntregas} 
+                      estadisticas={[]}
                       totalEstudiantes={students.length}
                     />
                   )}
