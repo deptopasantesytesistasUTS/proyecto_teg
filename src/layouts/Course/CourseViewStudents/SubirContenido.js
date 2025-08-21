@@ -23,56 +23,6 @@ import Snackbar from "@mui/material/Snackbar";
 import { backendUrl } from "config";
 import ProtocoloGenerator from "layouts/students/data/generateTitlesPDF";
 
-// Fechas límite de entregas de borradores
-
-
-
-
-// Mock function to simulate backend calls
-const mockBackend = {
-  getSelectedTitle: async () => {
-    // Simulate API call
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Return null if no title selected yet
-        resolve(null);
-        // To test with a selected title, use:
-        // resolve("Plataforma de Tutorías Online");
-      }, 500);
-    });
-  },
-  submitTitleProposals: async (proposals) => {
-    // Simulate API call
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log("Proposals submitted:", proposals);
-        resolve({ success: true });
-      }, 1000);
-    });
-  },
-  getProposalUrl: async () => {
-    // Simulate API call
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Return null if no URL submitted yet
-        resolve(null);
-        // To test with a submitted URL, use:
-        // resolve("https://example.com/proposal-document.pdf");
-      }, 500);
-    });
-  },
-  submitProposalUrl: async (url) => {
-    // Simulate API call
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log("URL submitted:", url);
-        resolve({ success: true });
-      }, 1000);
-    });
-  },
-};
-
-
  
 
 function SubirContenido({ idMateria, categoria }) {
@@ -319,9 +269,7 @@ function SubirContenido({ idMateria, categoria }) {
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Get selected title
-        const title = await mockBackend.getSelectedTitle();
-        setSelectedTitle(title);
+        handleGetSelectedTitle();
 
         handleGetProposals();
 
@@ -332,6 +280,7 @@ function SubirContenido({ idMateria, categoria }) {
         const url = await mockBackend.getProposalUrl();
         setProposalUrl(url);
       } catch (error) {
+        console.log(error)
         setSnackbar({
           open: true,
           message: "Error al cargar los datos",
@@ -435,7 +384,7 @@ function SubirContenido({ idMateria, categoria }) {
       console.error(error);
       setSnackbar({
         open: true,
-        message: "Error al enviar las propuestas",
+        message: "Error al recibir las propuestas",
         severity: "error",
         
       });
@@ -443,6 +392,44 @@ function SubirContenido({ idMateria, categoria }) {
       setLoading((prev) => ({ ...prev, submitting: false }));
     }
   }
+
+  const handleGetSelectedTitle = async () => {
+    try {
+      let user = null;
+      try {
+        const userStr = localStorage.getItem("user");
+        if (userStr) {
+          user = JSON.parse(userStr);
+        }
+      } catch (e) {
+        user = null;
+      }
+      console.log(user.userId);
+      const userId = user.userId; // You might need to adjust this based on your auth system
+      const response = await fetch(`${backendUrl}/estudiante/tituloElegido/${userId}/${idMateria}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+      console.log(response);
+      const data = await response.json();
+
+      console.log("API Response:", data);
+      console.log(response.ok);
+      if (response.ok) {
+        setSelectedTitle(data.titulo);
+        // Si la respuesta es un array directamente
+        setSnackbar({
+          open: true,
+          message: "Titulo Elegido Recibido",
+          severity: "success",
+        });
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading((prev) => ({ ...prev, submitting: false }));
+    }
+  };
 
   const handleSubmitProposals = () => {
     if (!validateProposals()) {

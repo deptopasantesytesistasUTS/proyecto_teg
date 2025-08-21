@@ -166,203 +166,6 @@ function Overview() {
     correo:"",
   });
 
-  const handleAddStudent = async () => {
-    const response = await fetch(`${backendUrl}/estudiante/changeInfo`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        cedula: studentData.estudiante.cedula,
-        estudiante: newStudent,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      setNewStudent({
-        nombre1: "",
-        nombre2: "",
-        apellido1: "",
-        apellido2: "",
-        telf: "",
-        cedula: "",
-        correo: "",
-      });
-      setValidationErrors({
-        nombre1: "",
-        nombre2: "",
-        apellido1: "",
-        apellido2: "",
-        telf: "",
-        cedula: "",
-        correo: "",
-      });
-      loadStudentData();
-      setSnackbar({
-        open: true,
-        message: "Información editada exitosamente",
-        severity: "success",
-      });
-    } else {
-      setSnackbar({
-        open: true,
-        message: "Fallo en la cambiar los datos del estudiante",
-        severity: "error",
-      });
-    }
-    handleClose2();
-  };
-
-  const handleChangeTelf = async () => {
-    const response = await fetch(`${backendUrl}/estudiante/changeTelf`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        cedula: studentData.estudiante.cedula,
-        telf: newStudent.telf,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      setNewStudent({
-        nombre1: "",
-        nombre2: "",
-        apellido1: "",
-        apellido2: "",
-        telf: "",
-        cedula: "",
-        correo: "",
-      });
-      setValidationErrors({
-        nombre1: "",
-        nombre2: "",
-        apellido1: "",
-        apellido2: "",
-        telf: "",
-        cedula: "",
-        correo: "",
-      });
-      loadStudentData();
-      setSnackbar({
-        open: true,
-        message: "Información editada exitosamente",
-        severity: "success",
-      });
-    } else {
-      setSnackbar({
-        open: true,
-        message: "Fallo en la cambiar el telefono del estudiante",
-        severity: "error",
-      });
-    }
-    handleClose3();
-  };
-
-  const handleChangeCorreo = async () => {
-    const response = await fetch(`${backendUrl}/estudiante/changeCorreo`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        cedula: studentData.estudiante.cedula,
-        correo: newStudent.correo,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      setNewStudent({
-        nombre1: "",
-        nombre2: "",
-        apellido1: "",
-        apellido2: "",
-        telf: "",
-        cedula: "",
-        correo: "",
-      });
-      setValidationErrors({
-        nombre1: "",
-        nombre2: "",
-        apellido1: "",
-        apellido2: "",
-        telf: "",
-        cedula: "",
-        correo: "",
-      });
-      loadStudentData();
-      setSnackbar({
-        open: true,
-        message: "Información editada exitosamente",
-        severity: "success",
-      });
-    } else {
-      setSnackbar({
-        open: true,
-        message: "Fallo en la cambiar el telefono del estudiante",
-        severity: "error",
-      });
-    }
-    handleClose();
-  };
-
-  const handleRestorePassword = async () => {
-    const response = await fetch(`${backendUrl}/estudiante/restorePassword`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        cedula: studentData.estudiante.cedula,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      setSnackbar({
-        open: true,
-        message: "Contraseña Restaurada exitosamente",
-        severity: "success",
-      });
-    } else {
-      setSnackbar({
-        open: true,
-        message: "Fallo en la cambiar la contraseña del estudiante",
-        severity: "error",
-      });
-    }
-    handleClose4();
-  };
-
-  const handleSetAccess = async (value) => {
-
-    const response = await fetch(`${backendUrl}/estudiante/setAccess`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        cedula: studentData.estudiante.cedula,
-        acceso: value,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      loadStudentData()
-      setSnackbar({
-        open: true,
-        message: "Cambio en acceso al usuario exitoso",
-        severity: "success",
-      });
-    } else {
-      setSnackbar({
-        open: true,
-        message: "Fallo en Cambio en acceso al usuario",
-        severity: "error",
-      });
-    }
-  };
-
   const handleAssignTitle = async(index) => {
     const response = await fetch(`${backendUrl}/estudiante/assign-Title`, {
       method: "PUT",
@@ -585,59 +388,6 @@ function Overview() {
     loadStudentData();
   }, [loadStudentData]);
 
-  // Mock data for judges
-  const assignedJudges = [
-    {
-      name: "Dr. María González",
-      role: "Juez",
-      email: "maria.gonzalez@universidad.edu",
-      specialty: "Inteligencia Artificial",
-    },
-    {
-      name: "Prof. Carlos Rodríguez",
-      role: "Juez",
-      email: "carlos.rodriguez@universidad.edu",
-      specialty: "Desarrollo de Software",
-    },
-    {
-      name: "Ing. Ana Martínez",
-      role: "Juez",
-      email: "ana.martinez@universidad.edu",
-      specialty: "Bases de Datos",
-    },
-  ];
-
-  // Mock data for drafts
-  const drafts = [
-    {
-      title: "Primer Borrador",
-      status: "Completado",
-      date: "15/01/2024",
-      progress: 100,
-      color: "success",
-    },
-    {
-      title: "Segundo Borrador",
-      status: "En Revisión",
-      date: "20/02/2024",
-      progress: 75,
-      color: "warning",
-    },
-    {
-      title: "Tercer Borrador",
-      status: "En Progreso",
-      date: "10/03/2024",
-      progress: 50,
-      color: "info",
-    },
-    {
-      title: "Borrador Final",
-      status: "Pendiente",
-      date: "Pendiente",
-      progress: 0,
-      color: "error",
-    },
-  ];
 
   // Mock data for communications
   const communications = [
@@ -797,41 +547,6 @@ function Overview() {
     });
   };
 
-  const handleEdit = () => {
-    setJurados([]);
-  };
-
-  const handleNewStudentChange = (e) => {
-    const { name, value } = e.target;
-
-    // Validaciones en tiempo real
-    let error = "";
-
-    if (name === "nombre1" || name === "nombre2" || name === "apellido1" || name === "apellido2") {
-      if (value && !validateLettersOnly(value)) {
-        error = "Solo se permiten letras";
-        return; // No actualizar el valor si no es válido
-      }
-    }
-
-    if (name === "cedula") {
-      if (value && !validateNumbersOnly(value)) {
-        error = "Solo se permiten números";
-        return; // No actualizar el valor si no es válido
-      }
-    }
-
-    if (name === "correo") {
-      if (value && !validateEmailStructure(value)) {
-        error = "Correo Electronico invalido";
-      }
-    }
-
-    // Limpiar error si el valor es válido
-    setValidationErrors((prev) => ({ ...prev, [name]: error }));
-
-    setNewStudent((prev) => ({ ...prev, [name]: value }));
-  };
 
   const [validationErrors, setValidationErrors] = useState({
     nombre1: "",
@@ -857,13 +572,6 @@ function Overview() {
     return numbersRegex.test(value);
   };
 
-
-  const handleTelfChange = (value) => {
-    setNewStudent({
-      ...newStudent,
-      telf: value,
-    });
-  };
 
   return (
     <DashboardLayout>
@@ -913,209 +621,14 @@ function Overview() {
                 <Grid item xs={12} md={6} xl={4} sx={{ display: "flex" }}>
                   <Grid item size={4}>
                     <Stack mt={2} px={5} spacing={3}>
-                      <Button
-                        variant="contained"
-                        onClick={() => {
-                          setOpen2(true), console.log(open2);
-                        }}
-                      >
-                        Cambiar Datos de Identificación
-                      </Button>
-
-                      <Modal
-                        open={open2}
-                        onClose={handleClose2}
-                        aria-labelledby="modal-modal-title2"
-                        aria-describedby="modal-modal-description2"
-                      >
-                        <Box p={3} sx={style}>
-                          <Typography id="modal-modal-title2" variant="h6" component="h2">
-                            Introduzca los Datos Personales a Cambiar
-                          </Typography>
-                          <Grid container spacing={2}>
-                            <Grid item xs={12} md={6}>
-                              <TextField
-                                label="Primer Nombre"
-                                name="nombre1"
-                                value={newStudent.nombre1}
-                                onChange={handleNewStudentChange}
-                                fullWidth
-                                error={!!validationErrors.nombre1}
-                                helperText={validationErrors.nombre1}
-                              />
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                              <TextField
-                                label="Segundo Nombre"
-                                name="nombre2"
-                                value={newStudent.nombre2}
-                                onChange={handleNewStudentChange}
-                                fullWidth
-                                error={!!validationErrors.nombre2}
-                                helperText={validationErrors.nombre2}
-                              />
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                              <TextField
-                                label="Primer Apellido"
-                                name="apellido1"
-                                value={newStudent.apellido1}
-                                onChange={handleNewStudentChange}
-                                fullWidth
-                                error={!!validationErrors.apellido1}
-                                helperText={validationErrors.apellido1}
-                              />
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                              <TextField
-                                label="Segundo Apellido"
-                                name="apellido2"
-                                value={newStudent.apellido2}
-                                onChange={handleNewStudentChange}
-                                fullWidth
-                                error={!!validationErrors.apellido2}
-                                helperText={validationErrors.apellido2}
-                              />
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                              <TextField
-                                label="Cédula"
-                                name="cedula"
-                                value={newStudent.cedula}
-                                onChange={handleNewStudentChange}
-                                fullWidth
-                                error={!!validationErrors.cedula}
-                                helperText={validationErrors.cedula}
-                              />
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                              <Button variant="contained" onClick={() => handleAddStudent()}>
-                                Aceptar
-                              </Button>
-                            </Grid>
-                          </Grid>
-                        </Box>
-                      </Modal>
-
-                      <Button onClick={handleOpen3} variant="contained">
-                        Cambiar Número de Teléfono
-                      </Button>
-
-                      <Modal
-                        open={open3}
-                        onClose={handleClose3}
-                        aria-labelledby="modal-modal-title2"
-                        aria-describedby="modal-modal-description2"
-                      >
-                        <Box p={3} sx={style}>
-                          <Typography id="modal-modal-title2" variant="h6" component="h2">
-                            Introduzca el Número de Teléfono:
-                          </Typography>
-                          <FormControl variant="standard" fullWidth>
-                            <PhoneInput
-                              className="hola MuiInputBase-root  MuiInputBase-colorPrimary MuiInputBase-fullWidth MuiInputBase-formControl css-1u5lk04-MuiInputBase-root-MuiOutlinedInput-root"
-                              placeholder="Ingresar N° de Teléfono"
-                              value={newStudent.telf}
-                              onChange={handleTelfChange}
-                              defaultCountry="VE"
-                              numberInputProps={{
-                                className:
-                                  "MuiInputBase-input MuiOutlinedInput-input css-5mmmz-MuiInputBase-input-MuiOutlinedInput-input",
-                              }}
-                            />
-                          </FormControl>
-                          <Button color="success" onClick={() => handleChangeTelf()}>
-                            Aceptar
-                          </Button>
-                        </Box>
-                      </Modal>
-
-                      {/*<ControlTutoriasGenerator></ControlTutoriasGenerator>
-                      <BusinessLetterGenerator
-                        studentId={studentData?.estudiante.cedula}
-                        studentName={`${studentData?.estudiante.nombre1} ${studentData?.estudiante.nombre2} ${studentData?.estudiante.apellido1} ${studentData?.estudiante.apellido2}`}
-                        career={`${studentData.estudiante.Carreras.nombre}`}
-                      ></BusinessLetterGenerator>*/}
-
-                      <Button variant="contained" onClick={handleOpen}>
-                        Cambiar Correo Electrónico
-                      </Button>
-
-                      <Modal
-                        open={open}
-                        onClose={handleClose}
-                        aria-labelledby="modal-modal-title"
-                        aria-describedby="modal-modal-description"
-                      >
-                        <Box p={3} sx={style}>
-                          <Typography id="modal-modal-title" variant="h6" component="h2">
-                            Introduzca el Nuevo Correo:
-                          </Typography>
-
-                          <TextField
-                            label="Correo"
-                            name="correo"
-                            value={newStudent.correo}
-                            onChange={handleNewStudentChange}
-                            fullWidth
-                            error={!!validationErrors.correo}
-                            helperText={validationErrors.correo}
-                          />
-                          <Button color="success" onClick={handleChangeCorreo}>
-                            Aceptar
-                          </Button>
-                        </Box>
-                      </Modal>
-
-                      <Button onClick={handleOpen4} variant="contained">
-                        Restaurar Constraseña
-                      </Button>
-
-                      <Modal
-                        open={open4}
-                        onClose={handleClose4}
-                        aria-labelledby="modal-modal-title"
-                        aria-describedby="modal-modal-description"
-                      >
-                        <Box p={3} sx={style}>
-                          <Typography id="modal-modal-title" variant="h6" component="h2">
-                            Si prosigue la contraseña del estudiante sera reseteada, la nueva
-                            contraseña le llega al estudiante por correo
-                          </Typography>
-
-                          <Button color="error" onClick={handleRestorePassword}>
-                            Aceptar
-                          </Button>
-                        </Box>
-                      </Modal>
+                     
                     </Stack>
                   </Grid>
                 </Grid>
                 <Grid item xs={12} xl={4}>
                   {/* TabPanel Content - Only 2 tabs */}
-                  <TabPanel value={tabValue} index={0}>
-                    <Card>
-                      <MDBox p={3}>
-                        <MDTypography variant="h5" mb={3}>
-                          Configuraciones de Acceso
-                        </MDTypography>
-                        <Stack spacing={2}>
-                          <FormControlLabel
-                            control={
-                              <Switch
-                                checked={accessPage}
-                                onChange={(e) => handleSetAccess(e.target.checked)}
-                                color="primary"
-                              />
-                            }
-                            label="Acceso a la Página"
-                          />
-                        </Stack>
-                      </MDBox>
-                    </Card>
-                  </TabPanel>
 
-                  <TabPanel value={tabValue} index={1}>
+                  <TabPanel value={tabValue} index={0}>
                     <Card>
                       <MDBox p={3}>
                         <MDTypography variant="h5" mb={3}>
@@ -1238,70 +751,12 @@ function Overview() {
                         >
                           <MDTypography variant="h5">Jueces Asignados al Proyecto</MDTypography>
                           {jurados.length === 0 && (
-                            <Button
-                              variant="contained"
-                              color="primary"
-                              onClick={() => setIsAssigningJudges(true)}
-                            >
-                              Asignar Jurados
-                            </Button>
+                            <></>
                           )}
                         </MDBox>
 
                         {isAssigningJudges ? (
-                          <Card sx={{ p: 3 }}>
-                            <MDTypography variant="h6" mb={2}>
-                              Asignar Jurados al Proyecto
-                            </MDTypography>
-
-                            <Grid container spacing={2}>
-                              {[0, 1, 2].map((index) => (
-                                <Grid item xs={12} md={4} key={index}>
-                                  <FormControl fullWidth variant="standard">
-                                    <InputLabel>Jurado {index + 1}</InputLabel>
-                                    <Select
-                                      value={selectedJudges[index]}
-                                      onChange={(e) => handleJudgeSelect(index, e.target.value)}
-                                      label={`Jurado ${index + 1}`}
-                                    >
-                                      <MenuItem value="">
-                                        <em>Seleccionar...</em>
-                                      </MenuItem>
-                                      {availableJudges.map((judge) => (
-                                        <MenuItem
-                                          key={judge.idProfesor}
-                                          value={judge.idProfesor}
-                                          disabled={selectedJudges.includes(judge.idProfesor)}
-                                        >
-                                          {judge.nombre}
-                                        </MenuItem>
-                                      ))}
-                                    </Select>
-                                  </FormControl>
-                                </Grid>
-                              ))}
-                            </Grid>
-
-                            <MDBox mt={3} display="flex" justifyContent="flex-end" gap={2}>
-                              <Button
-                                variant="outlined"
-                                onClick={() => {
-                                  setIsAssigningJudges(false);
-                                  setSelectedJudges(["", "", ""]);
-                                }}
-                              >
-                                Cancelar
-                              </Button>
-                              <Button
-                                variant="contained"
-                                color="primary"
-                                onClick={handleAssignJudges}
-                                disabled={selectedJudges.filter((j) => j !== "").length < 3}
-                              >
-                                Guardar Asignación
-                              </Button>
-                            </MDBox>
-                          </Card>
+                          <></>
                         ) : jurados.length > 0 ? (
                           <>
                             <Grid container spacing={3}>
@@ -1344,14 +799,6 @@ function Overview() {
                                 </Grid>
                               ))}
                             </Grid>
-                            <Button
-                              className="m-4"
-                              variant="contained"
-                              color="primary"
-                              onClick={() => handleEdit}
-                            >
-                              Editar
-                            </Button>
                           </>
                         ) : (
                           <Card sx={{ p: 3, textAlign: "center" }}>
@@ -1387,93 +834,10 @@ function Overview() {
                                       ]
                                     }
                                   </MDTypography>
-                                  <MDTypography variant="caption" color="text">
-                                    (No se puede cambiar el título una vez seleccionado)
-                                  </MDTypography>
                                 </Card>
                               </MDBox>
                             ) : (
-                              <MDBox mb={4}>
-                                <Grid container spacing={2} alignItems="center">
-                                  <Grid item xs={12} md={8}>
-                                    <FormControl variant="standard" fullWidth>
-                                      <InputLabel id="title-select-label">
-                                        Seleccionar Título del Proyecto
-                                      </InputLabel>
-                                      <Select
-                                        labelId="title-select-label"
-                                        id="title-select"
-                                        value={selectedTitle}
-                                        label="Seleccionar Título del Proyecto"
-                                        onChange={(e) => setSelectedTitle(e.target.value)}
-                                        disabled={!studentData?.matricula}
-                                      >
-                                        <MenuItem value="">
-                                          <em>Seleccione un título del proyecto</em>
-                                        </MenuItem>
-                                        {[1, 2, 3].map((num) => {
-                                          const titulo =
-                                            studentData?.matricula[0]?.[`titulo${num}`];
-                                          return titulo ? (
-                                            <MenuItem key={num} value={titulo}>
-                                              {titulo}
-                                            </MenuItem>
-                                          ) : null;
-                                        })}
-                                      </Select>
-                                    </FormControl>
-                                  </Grid>
-                                  <Grid item xs={12} md={4}>
-                                    <Button
-                                      variant="contained"
-                                      fullWidth
-                                      disabled={!selectedTitle}
-                                      onClick={() => {
-                                        if (selectedTitle) {
-                                          // Aquí deberías hacer la llamada al backend para guardar el título seleccionado
-                                          console.log("Título seleccionado:", selectedTitle);
-                                          // Ejemplo de cómo determinar qué título se seleccionó
-                                          const tituloIndex = [1, 2, 3].find(
-                                            (num) =>
-                                              studentData?.matricula[0]?.[`titulo${num}`] ===
-                                              selectedTitle
-                                          );
-                                          console.log(
-                                            "Índice del título seleccionado:",
-                                            tituloIndex
-                                          );
-                                          handleAssignTitle(tituloIndex);
-                                        }
-                                      }}
-                                    >
-                                      Seleccionar Título
-                                    </Button>
-                                  </Grid>
-                                </Grid>
-
-                                {/* Mostrar títulos disponibles */}
-                                <MDBox mt={3}>
-                                  <MDTypography variant="h6" mb={1}>
-                                    Títulos disponibles:
-                                  </MDTypography>
-                                  <List>
-                                    {[1, 2, 3].map((num) => {
-                                      const titulo = studentData?.matricula?.[`titulo${num}`];
-                                      return titulo ? (
-                                        <ListItem key={num}>
-                                          <ListItemText
-                                            primary={`Título ${num}:`}
-                                            secondary={titulo}
-                                            secondaryTypographyProps={{
-                                              style: { fontWeight: "medium" },
-                                            }}
-                                          />
-                                        </ListItem>
-                                      ) : null;
-                                    })}
-                                  </List>
-                                </MDBox>
-                              </MDBox>
+                              <></>
                             )}
                           </>
                         )}

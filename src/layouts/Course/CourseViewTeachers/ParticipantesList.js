@@ -50,7 +50,7 @@ function ParticipantesList({ teachers, students }) {
     console.log("🔍 ParticipantesList - Cédula a usar:", validCedula);
     console.log("🔍 ParticipantesList - ¿Cédula fue mapeada?", wasCedulaMapped(cedula, validCedula));
     
-    navigate(`/estudiantes/${validCedula}`);
+    navigate(`/estudiantesDoc/${cedula}`);
   };
   
   const [searchName, setSearchName] = useState("");

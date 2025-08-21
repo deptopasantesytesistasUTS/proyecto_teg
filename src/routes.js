@@ -51,6 +51,7 @@ import Notifications from "layouts/notifications";
 import Profile from "layouts/profile";
 import SignIn from "layouts/authentication/sign-in";
 import StudentProfile from "layouts/students/studentProfile";
+import StudentProfileDoc from "layouts/students/studentProfileDoc"
 import SignUp from "layouts/authentication/sign-up";
 import Teachers from "layouts/teachers";
 import TeacherProfile from "layouts/teachers/teacherProfile";
@@ -73,7 +74,7 @@ const routes = [
     icon: <Icon fontSize="small">dashboard</Icon>,
     route: "/dashboard",
     component: <Dashboard />,
-    allowedRoles: [1, 4 ],
+    allowedRoles: [1, 4],
   },
   {
     type: "collapse",
@@ -90,7 +91,15 @@ const routes = [
     icon: <Icon fontSize="small">table_view</Icon>,
     route: "/estudiantes/:id",
     component: <StudentProfile />,
-    allowedRoles: [1, 2],
+    allowedRoles: [1],
+  },
+  {
+    name: "Perfil-Estudiante",
+    key: "estudiantes",
+    icon: <Icon fontSize="small">table_view</Icon>,
+    route: "/estudiantesDoc/:id",
+    component: <StudentProfileDoc />,
+    allowedRoles: [2],
   },
   {
     type: "collapse",
@@ -99,6 +108,14 @@ const routes = [
     icon: <Icon fontSize="small">receipt_long</Icon>,
     route: "/docentes",
     component: <Teachers />,
+    allowedRoles: [1],
+  },
+  {
+    name: "Docentes",
+    key: "Docente",
+    icon: <Icon fontSize="small">receipt_long</Icon>,
+    route: "/docentes/:id",
+    component: <TeacherProfile />,
     allowedRoles: [1],
   },
   {
@@ -119,7 +136,6 @@ const routes = [
     component: <SemesterConfig />,
     allowedRoles: [1],
   },
-  
 
   // rutas profesores
   {
@@ -142,7 +158,7 @@ const routes = [
     component: <DashboardStudents />,
     allowedRoles: [3],
   },
-  //rutas superusuario 
+  //rutas superusuario
   {
     type: "collapse",
     name: "Usuarios",
@@ -152,7 +168,7 @@ const routes = [
     component: <UsersSuperusuario />,
     allowedRoles: [4],
   },
- // rutas publicas
+  // rutas publicas
   {
     type: "url",
     name: "Profile",
@@ -162,7 +178,7 @@ const routes = [
     component: <Profile />,
     allowedRoles: [1, 2, 3, 4],
   },
-  
+
   {
     type: "url",
     name: "Salir",
@@ -170,9 +186,8 @@ const routes = [
     icon: <Icon fontSize="small">login</Icon>,
     route: "/authentication/sign-in",
     component: <SignIn />,
-    allowedRoles: [1, 2, 3 ,4 ],
+    allowedRoles: [1, 2, 3, 4],
   },
-  
 ];
 
 export default routes;
