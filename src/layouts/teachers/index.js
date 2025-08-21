@@ -200,14 +200,13 @@ function Teachers() {
       // Crear workbook
       const wb = XLSX.utils.book_new();
       
-      // Crear hoja con estructura: n | carrera | ci | nombre y apellido
+      // Crear hoja con estructura: n | ci | nombre y apellido
       const wsTeachers = XLSX.utils.aoa_to_sheet([
         // Fila 1: Encabezados
-        ['N°', 'Carrera', 'CI', 'Nombre y Apellido', 'email', 'Localidad'],
+        ['N°', 'CI', 'Nombre y Apellido', 'email', 'Localidad'],
         // Filas de datos
         ...filtered.map((teacher, index) => [
           index + 1, // N°
-          teacher.carrera || '', // Carrera
           teacher.cedula || '', // CI
           teacher.nombre || '', // Nombre y Apellido
           teacher.correo || '', // Email
@@ -218,7 +217,6 @@ function Teachers() {
       // Configurar ancho de columnas
       wsTeachers['!cols'] = [
         { wch: 8 },  // N°
-        { wch: 25 }, // Carrera
         { wch: 15 }, // CI
         { wch: 40 }, // Nombre y Apellido
         { wch: 30 }, // Email
@@ -353,6 +351,7 @@ function Teachers() {
           id: "",
           email: "",
           telf: "",
+          localidad: "",
         });
       } else {
         setError("Error al agregar docente");
@@ -543,6 +542,21 @@ function Teachers() {
                                 }}
                               />
                             </FormControl>
+
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              select
+                              fullWidth
+                              label="Localidad"
+                              variant="standard"
+                              size="medium"
+                              value={formData.localidad}
+                              onChange={(e) => handleFormChange("localidad", e.target.value)}
+                            >
+                              <MenuItem value="L">Local</MenuItem>
+                              <MenuItem value="F">Foraneo</MenuItem>
+                            </TextField>
                           </Grid>
                         </Grid>
                         <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 2, mt: 4 }}>

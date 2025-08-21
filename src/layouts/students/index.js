@@ -23,6 +23,7 @@ import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import * as XLSX from 'xlsx';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import FormHelperText from "@mui/material/FormHelperText";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -81,6 +82,7 @@ function Students() {
     seccion: "",
     seccion_tutor: "",
     cedula: "",
+    localidad: "",
   });
 
   const [validationErrors, setValidationErrors] = useState({
@@ -386,6 +388,7 @@ function Students() {
         seccion: "",
         seccion_tutor: "",
         cedula: "",
+        localidad: "",
       });
       setValidationErrors({
         nombre1: "",
@@ -810,7 +813,12 @@ function Students() {
                 bgColor="info"
                 borderRadius="lg"
                 coloredShadow="info"
-              ></MDBox>
+              >
+                <MDTypography variant="h6" color="white">
+                Listado de Estudiantes
+                </MDTypography>
+                
+              </MDBox>
               <br></br>
               <Grid container columns={4} spacing={3} px={2} py={1}>
                 <Grid item size={6} width={200}>
@@ -991,6 +999,23 @@ function Students() {
                 helperText={validationErrors.correo}
               />
             </Grid>
+            {/* Localidad */}
+            <Grid item xs={12} md={6}>
+              <FormControl variant="standard" fullWidth >
+                <InputLabel id="localidad-add-label">Localidad</InputLabel>
+                <Select
+                  name="localidad"
+                  value={newStudent.localidad}
+                  onChange={handleNewStudentChange}
+                >
+                  <MenuItem value="">Seleccione una localidad</MenuItem>
+                  <MenuItem value="L">Local</MenuItem>
+                  <MenuItem value="F">Foráneo</MenuItem>
+                </Select>
+                <FormHelperText>{validationErrors.localidad}</FormHelperText>
+              </FormControl>
+            </Grid>
+
             <Grid item xs={12} md={6}>
               <FormControl variant="standard" fullWidth>
                 <PhoneInput

@@ -17,6 +17,8 @@ Coded by www.creative-tim.com
 import Card from "@mui/material/Card";
 import Icon from "@mui/material/Icon";
 import { useState, useEffect } from "react";
+// Config
+import { backendUrl } from "config";
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -34,7 +36,7 @@ function OrdersOverview() {
       try {
         setLoading(true);
         // Obtener comunicados del dashboard (para admin, usar role 1)
-        const response = await fetch('http://localhost:3003/api/dashboard/comunicados?userId=1&role=1');
+        const response = await fetch(`${backendUrl}/dashboard/comunicados?userId=1&role=1`);
         if (!response.ok) {
           throw new Error('Error al obtener comunicados');
         }
@@ -49,6 +51,7 @@ function OrdersOverview() {
 
     fetchComunicados();
   }, []);
+
   // Función para obtener el color según el tipo de comunicado
   const getComunicadoColor = (tipo) => {
     switch (tipo) {

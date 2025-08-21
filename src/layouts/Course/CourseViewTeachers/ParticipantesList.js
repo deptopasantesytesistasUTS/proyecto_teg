@@ -72,7 +72,6 @@ function ParticipantesList({ teachers, students }) {
       Nombre: s.name,
       Cédula: s.id,
       Teléfono: s.telf,
-      Email: s.email,
     }));
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
@@ -87,8 +86,8 @@ function ParticipantesList({ teachers, students }) {
     const doc = new jsPDF();
     doc.text("Lista de Estudiantes", 14, 16);
     autoTable(doc, {
-      head: [["Nombre", "Cédula", "Teléfono", "Email"]],
-      body: filteredStudents.map(s => [s.name, s.id, s.telf, s.email]),
+      head: [["Nombre", "Cédula", "Teléfono"]],
+      body: filteredStudents.map(s => [s.name, s.id, s.telf]),
       startY: 22,
       styles: { fontSize: 10 },
       headStyles: { fillColor: [33, 150, 243] }, // Azul
@@ -233,7 +232,6 @@ function ParticipantesList({ teachers, students }) {
         >
           <Box>
             <MDTypography variant="body2"><b>Teléfono:</b> {s.telf}</MDTypography>
-            <MDTypography variant="body2"><b>Email:</b> {s.email}</MDTypography>
           </Box>
           <Box>
             <Tooltip title="Ver perfil completo del estudiante" arrow>
