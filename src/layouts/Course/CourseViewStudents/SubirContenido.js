@@ -273,9 +273,6 @@ function SubirContenido({ idMateria, categoria }) {
 
         handleGetProposals();
 
-        // Check if proposals were already submitted (if no title selected but proposals exist)
-        setProposalsSubmitted(title === null && proposals.some((p) => p.title !== ""));
-
         // Get proposal URL
         const url = await mockBackend.getProposalUrl();
         setProposalUrl(url);
@@ -372,6 +369,7 @@ function SubirContenido({ idMateria, categoria }) {
       console.log("API Response:", data);
       console.log(response.ok);
       if (response.ok) {
+        if(data[0].title !== null)
         setProposalsSubmitted(data)
         // Si la respuesta es un array directamente
         setSnackbar({
@@ -382,12 +380,6 @@ function SubirContenido({ idMateria, categoria }) {
       }
     } catch (error) {
       console.error(error);
-      setSnackbar({
-        open: true,
-        message: "Error al recibir las propuestas",
-        severity: "error",
-        
-      });
     } finally {
       setLoading((prev) => ({ ...prev, submitting: false }));
     }

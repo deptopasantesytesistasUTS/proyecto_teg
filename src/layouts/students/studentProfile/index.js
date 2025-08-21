@@ -736,6 +736,7 @@ function Overview() {
         ]);
       } else if (cat) {
         setEntregas([
+          { nombre: "Carga Academica", fechaLimite: data.semester.cartaDate },
           { nombre: "Entrega Instrumento 1", fechaLimite: data.semester.fechaEntInst },
           { nombre: "Entrega Instrumento 2", fechaLimite: data.semester.fechaEntInst },
           { nombre: "Entrega de Propuesta", fechaLimite: data.semester.firstDraftDate },

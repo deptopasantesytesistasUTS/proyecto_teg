@@ -86,13 +86,14 @@ function Cronograma({categoria, idMateria}) {
         const data = await response.json();
   
         console.log("API Response Enlaces:", data);
+        console.log("jajajajajajjaja");
         console.log(response.ok);
         if (response.ok) {
           setEnlacesEntregados(data);
-          const objetoEnlace = enlacesEntregados?.find((enlace) => enlace["Carga Academica"]);
+          const objetoEnlace = data?.find((enlace) => enlace["Carga Academica"]);
           setArchivoCargaSubido(objetoEnlace ? objetoEnlace["Carga Academica"] : undefined);
           // Si la respuesta es un array directamente
-          console.log(objetoEnlace);
+          console.log(enlacesEntregados);
           console.log(archivoCarga)
         }
       } catch (error) {

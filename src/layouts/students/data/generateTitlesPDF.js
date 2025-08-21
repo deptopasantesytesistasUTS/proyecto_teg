@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
   page: {
     flexDirection: "column",
     backgroundColor: "#fff",
-    padding: 30,
+    padding: 60,
     fontFamily: "Helvetica",
   },
   headerSection: {
@@ -336,12 +336,6 @@ const ProtocoloGenerator = ({studentData, titleInfo, numero}) => {
     placePhone: titleInfo.placePhone,
     placeMobile: titleInfo.placeMobile,
   };
-
-
-  console.log(protocolData);
-  console.log(studentData);
-
-  console.log("hola: ",protocolData);
 
   return (
     <Button variant="outlined" color="primary">

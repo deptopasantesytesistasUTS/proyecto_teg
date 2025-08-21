@@ -70,6 +70,7 @@ function SemesterConfig() {
     tutInicio: "",
     tutFinal: "",
     urlCronograma: "",
+    urlCronograma2: "",
   });
 
   // Form states for editing semester
@@ -91,6 +92,7 @@ function SemesterConfig() {
     tutInicio: "",
     tutFinal: "",
     urlCronograma: "",
+    urlCronograma2: "",
   });
 
   
@@ -347,6 +349,7 @@ function SemesterConfig() {
         tutInicio: data.semester.tutInicio,
         tutFinal: data.semester.tutFinal,
         urlCronograma: data.semester.urlCronograma,
+        urlCronograma2: data.semester.urlCronograma2,
         fechaEntInst: data.semester.fechaEntInst,
       });
       setCronogramaB(true);
@@ -389,6 +392,7 @@ function SemesterConfig() {
           tutInicio: "",
           tutFinal: "",
           urlCronograma: "",
+          urlCronograma2: "",
         });
         setSnackbar({
           open: true,
@@ -496,9 +500,19 @@ function SemesterConfig() {
                 variant="outlined"
                 disabled={!cronogramaB}
                 href={currentSemester?.urlCronograma}
+                target="_blank"
               >
                 {" "}
-                Ver Cronograma
+                Ver Cronograma (TEG)
+              </Button>
+              <Button
+                variant="outlined"
+                disabled={!cronogramaB}
+                href={currentSemester?.urlCronograma2}
+                target="_blank"
+              >
+                {" "}
+                Ver Cronograma (Investigacion 2)
               </Button>
               <MDButton
                 variant="gradient"
@@ -783,13 +797,24 @@ function SemesterConfig() {
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Enlace de Cronograma"
+                label="Enlace de Cronograma (TEG)"
                 value={newSemester.urlCronograma}
                 InputLabelProps={{ shrink: true }}
                 onChange={(e) => handleEnlaceChange("new", "urlCronograma", e.target.value)}
                 placeholder="https://..."
                 error={!!errors.urlCronograma}
                 helperText={errors.urlCronograma}
+                margin="normal"
+              />
+              <TextField
+                fullWidth
+                label="Enlace de Cronograma (Investigacion 2)"
+                value={newSemester.urlCronograma2}
+                InputLabelProps={{ shrink: true }}
+                onChange={(e) => handleEnlaceChange("new", "urlCronograma2", e.target.value)}
+                placeholder="https://..."
+                error={!!errors.urlCronograma2}
+                helperText={errors.urlCronograma2}
                 margin="normal"
               />
             </Grid>
@@ -1066,13 +1091,26 @@ function SemesterConfig() {
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
-                label="Enlace de Cronograma"
+                label="Enlace de Cronograma(TEG)"
                 value={newSemester.urlCronograma}
                 InputLabelProps={{ shrink: true }}
                 onChange={(e) => handleEnlaceChange("edit", "urlCronograma", e.target.value)}
                 placeholder="https://..."
                 error={!!errors.urlCronograma}
                 helperText={errors.urlCronograma}
+                margin="normal"
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Enlace de Cronograma (Investigacion 2)"
+                value={newSemester.urlCronograma2}
+                InputLabelProps={{ shrink: true }}
+                onChange={(e) => handleEnlaceChange("edit", "urlCronograma2", e.target.value)}
+                placeholder="https://..."
+                error={!!errors.urlCronograma2}
+                helperText={errors.urlCronograma2}
                 margin="normal"
               />
             </Grid>
