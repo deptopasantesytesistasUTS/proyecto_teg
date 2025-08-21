@@ -477,7 +477,7 @@ function CourseView() {
         sx={{
           display: "flex",
           minHeight: "100vh",
-          background: theme.palette.mode === 'dark' ? theme.palette.background.default : "#f5f6fa",
+          background: theme.palette.mode === "dark" ? theme.palette.background.default : "#f5f6fa",
           alignItems: "flex-start",
           flexDirection: { xs: "column", md: "row" },
         }}
@@ -487,7 +487,8 @@ function CourseView() {
           sx={{
             width: { xs: "100%", md: 300 },
             minWidth: { xs: "auto", md: 300 },
-            background: theme.palette.mode === 'dark' ? theme.palette.background.sidenav : "#1976d2",
+            background:
+              theme.palette.mode === "dark" ? theme.palette.background.sidenav : "#1976d2",
             boxShadow: 2,
             borderRadius: { xs: 0, md: 2 },
             m: { xs: 0, md: 2 },
@@ -512,7 +513,11 @@ function CourseView() {
                 ? {
                     ...materia,
                     carrera: materia.Carreras?.nombre || materia.carrera,
-                    nombre: `${materia.categoria}${(materia.Carreras?.nombre || materia.carrera) ? ' - ' + (materia.Carreras?.nombre || materia.carrera) : ''}`,
+                    nombre: `${materia.categoria}${
+                      materia.Carreras?.nombre || materia.carrera
+                        ? " - " + (materia.Carreras?.nombre || materia.carrera)
+                        : ""
+                    }`,
                     descripcion: `ID: ${materia.idMateria}`,
                   }
                 : {
@@ -534,7 +539,8 @@ function CourseView() {
             mt: { xs: 0, md: 2 },
             mb: 2,
             mr: { xs: 0, md: 2 },
-            background: theme.palette.mode === 'dark' ? theme.palette.background.default : "#f8fafc",
+            background:
+              theme.palette.mode === "dark" ? theme.palette.background.default : "#f8fafc",
             borderRadius: { xs: 0, md: 2 },
             boxShadow: 1,
             p: { xs: 2, md: 3 },
@@ -542,17 +548,20 @@ function CourseView() {
             overflow: "auto",
           }}
         >
-                <MDBox pt={{ xs: 2, md: 6 }} pb={3}>
-        <Grid container spacing={{ xs: 2, md: 6 }}>
-          <Grid item xs={12}>
+          <MDBox pt={{ xs: 2, md: 6 }} pb={3}>
+            <Grid container spacing={{ xs: 2, md: 6 }}>
+              <Grid item xs={12}>
                 <Card
-                  sx={{ 
-                    boxShadow: 'none', 
-                    border: 'none', 
-                    background: 'transparent',
-                    '& .MuiCardContent-root': {
-                      backgroundColor: theme.palette.mode === 'dark' ? theme.palette.background.card : 'transparent'
-                    }
+                  sx={{
+                    boxShadow: "none",
+                    border: "none",
+                    background: "transparent",
+                    "& .MuiCardContent-root": {
+                      backgroundColor:
+                        theme.palette.mode === "dark"
+                          ? theme.palette.background.card
+                          : "transparent",
+                    },
                   }}
                 >
                   <MDBox
@@ -573,7 +582,10 @@ function CourseView() {
                     </MDTypography>
                   </MDBox>
                   {getSelectedMenuKey() === "informacion" && (
-                    <CourseViewInfo seccionId={materia?.Secciones?.[0]?.idSeccion} />
+
+                    <CourseViewInfo 
+                    seccionId={materia?.Secciones?.[0]?.idSeccion} 
+                    categoria={materia?.categoria} />
                   )}
                   {getSelectedMenuKey() === "anuncios" && (
                     <CourseViewAnuncios
@@ -605,40 +617,50 @@ function CourseView() {
                     />
                   )}
 
-                  {getSelectedMenuKey() === "participantes" && (
-                    loadingParticipantes ? <MDTypography>Cargando participantes...</MDTypography> :
-                    errorParticipantes ? <MDTypography color="error">{errorParticipantes}</MDTypography> :
-                    <>
-                      <ParticipantesList
-                        teachers={participantes.docente ? [participantes.docente] : []}
-                        students={participantes.estudiantes || []}
-                      />
-                      {/* Mostrar estudiantes por docente debajo de la lista por sección */}
-                      {user && user.cedula && (
-                        loadingEstudiantesDocente ? <MDTypography>Cargando estudiantes por docente...</MDTypography> :
-                        errorEstudiantesDocente ? <MDTypography color="error">{errorEstudiantesDocente}</MDTypography> :
-                        estudiantesPorDocente.length > 0 && (
-                          <Box mt={4}>
-                            <MDTypography variant="h6" color="primary" mb={2}>Todos los estudiantes inscritos en tus clases</MDTypography>
-                            <ParticipantesList
-                              teachers={[]}
-                              students={estudiantesPorDocente.map(e => ({
-                                name: e.estudiante.nombre,
-                                id: e.estudiante.cedula,
-                                email: e.estudiante.email
-                              }))}
-                            />
-                          </Box>
-                        )
-                      )}
-                    </>
-                  )}
+                  {getSelectedMenuKey() === "participantes" &&
+                    (loadingParticipantes ? (
+                      <MDTypography>Cargando participantes...</MDTypography>
+                    ) : errorParticipantes ? (
+                      <MDTypography color="error">{errorParticipantes}</MDTypography>
+                    ) : (
+                      <>
+                        <ParticipantesList
+                          teachers={participantes.docente ? [participantes.docente] : []}
+                          students={participantes.estudiantes || []}
+                        />
+                        {/* Mostrar estudiantes por docente debajo de la lista por sección */}
+                        {user &&
+                          user.cedula &&
+                          (loadingEstudiantesDocente ? (
+                            <MDTypography>Cargando estudiantes por docente...</MDTypography>
+                          ) : errorEstudiantesDocente ? (
+                            <MDTypography color="error">{errorEstudiantesDocente}</MDTypography>
+                          ) : (
+                            estudiantesPorDocente.length > 0 && (
+                              <Box mt={4}>
+                                <MDTypography variant="h6" color="primary" mb={2}>
+                                  Todos los estudiantes inscritos en tus clases
+                                </MDTypography>
+                                <ParticipantesList
+                                  teachers={[]}
+                                  students={estudiantesPorDocente.map((e) => ({
+                                    name: e.estudiante.nombre,
+                                    id: e.estudiante.cedula,
+                                    email: e.estudiante.email,
+                                  }))}
+                                />
+                              </Box>
+                            )
+                          ))}
+                      </>
+                    ))}
                   {getSelectedMenuKey() === "recursos" && (
                     <RecursosList resources={resources} onAddResource={handleAddResource} />
                   )}
                   {getSelectedMenuKey() === "control_entrega" && (
-                    <EstadisticasEntregas 
-                      estadisticas={[]}
+                    <EstadisticasEntregas
+                      categoria={materia?.categoria}
+                      estadisticas={estadisticasEntregas}
                       totalEstudiantes={students.length}
                     />
                   )}
@@ -654,5 +676,9 @@ function CourseView() {
     </DashboardLayout>
   );
 }
+
+CourseView.propTypes = {
+  categoria: PropTypes.any,
+};
 
 export default CourseView;

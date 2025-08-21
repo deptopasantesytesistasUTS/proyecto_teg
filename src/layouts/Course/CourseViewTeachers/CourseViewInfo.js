@@ -11,7 +11,7 @@ import UltimosComunicadosList from "./UltimosComunicadosList";
 import { backendUrl } from "config";
 import PropTypes from "prop-types";
 
-function CourseViewInfo({ seccionId }) {
+function CourseViewInfo({ categoria, seccionId }) {
   const [latestUsers, setLatestUsers] = useState([]);
   const [estadisticasEntregas, setEstadisticasEntregas] = useState([]);
   const [totalEstudiantes, setTotalEstudiantes] = useState(0);
@@ -24,10 +24,6 @@ function CourseViewInfo({ seccionId }) {
       .then((data) => Array.isArray(data) && setLatestUsers(data))
       .catch(() => {});
     // Estadísticas de entregas
-    fetch(`${backendUrl}/aulavirtualDocente/secciones/${seccionId}/estadisticas-entregas`)
-      .then((res) => (res.ok ? res.json() : []))
-      .then((data) => Array.isArray(data) && setEstadisticasEntregas(data))
-      .catch(() => {});
     // Total de estudiantes en la sección (se reutiliza el endpoint de participantes)
     fetch(`${backendUrl}/secciones/${seccionId}/participantes`)
       .then((res) => (res.ok ? res.json() : null))
@@ -65,7 +61,7 @@ function CourseViewInfo({ seccionId }) {
           <UltimosConectadosList users={latestUsers} />
         </Grid>
         <Grid item xs={12} md={8}>
-          <EstadisticasEntregas estadisticas={estadisticasEntregas} totalEstudiantes={totalEstudiantes} />
+          <EstadisticasEntregas categoria={categoria} />
         </Grid>
       </Grid>
     </MDBox>
@@ -74,6 +70,7 @@ function CourseViewInfo({ seccionId }) {
 
 CourseViewInfo.propTypes = {
   seccionId: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  categoria: PropTypes.any,
 };
 
 export default CourseViewInfo;
