@@ -420,7 +420,7 @@ function Students() {
   const [search, setSearch] = useState("");
 
   // Función para exportar a Excel (Listado de Jueces)
-  const handleExportToExcel = () => {
+  const handleExportToExcel = async () => {
     try {
       // Obtener los datos filtrados
       let filtered = [...students];
@@ -456,7 +456,8 @@ function Students() {
         });
       }
 
-      console.log("info:", row);
+      // Debug opcional de estudiantes filtrados
+      // console.log("info filtered sample:", filtered[0]);
 
       // Buscar por nombre
       if (search) {
@@ -471,24 +472,25 @@ function Students() {
       // Crear workbook
       const wb = XLSX.utils.book_new();
       
-      // Crear hoja TITULOS con el formato específico
+      // Crear hoja TITULOS consultando titulos-excel para poblar títulos, tutor y jurados
+      const titulosResp = await fetch(`${backendUrl}/estudiante/titulos-excel`);
+      const titulos = titulosResp.ok ? await titulosResp.json() : [];
+      const rowsTitulos = Array.isArray(titulos) ? titulos : [];
+      // Encabezado y filas mapeadas desde rowsTitulos
       const wsTitulos = XLSX.utils.aoa_to_sheet([
-        // Fila 1: Título principal (células E1:J1 fusionadas)
         ['', '', '', '', 'LISTADO ESTUDIANTES TRABAJO DE GRADO - PASANTÍAS 2025-1', '', '', '', '', ''],
-        // Fila 2: Encabezados
         ['Condición', 'No.', 'Especialidad', 'Cedula', 'Apellidos y Nombres Estudiante', 'TITULOS', 'TUTOR', 'JURADO 1', 'JURADO 2', 'JURADO 3'],
-        // Filas de datos
-        ...filtered.map((student, index) => [
-          '', // Condición
-          index + 1, // No.
-          student.carrera || '', // Especialidad
-          student.cedula || '', // Cedula
-          student.nombre || '', // Apellidos y Nombres Estudiante
-          '', // TITULOS
-          '', // TUTOR
-          '', // JURADO 1
-          '', // JURADO 2
-          '', // JURADO 3
+        ...rowsTitulos.map((r, idx) => [
+          '',
+          idx + 1,
+          r.carrera || '',
+          r.cedula || '',
+          r.nombre || '',
+          r.titulo || '',
+          r.tutor || '',
+          (r.jurados && r.jurados[0]) || '',
+          (r.jurados && r.jurados[1]) || '',
+          (r.jurados && r.jurados[2]) || '',
         ])
       ]);
 
@@ -538,7 +540,7 @@ function Students() {
       }
 
       // Datos (filas 3 en adelante)
-      for (let row = 2; row < filtered.length + 2; row++) {
+      for (let row = 2; row < rowsTitulos.length + 2; row++) {
         for (let col = 0; col <= 9; col++) {
           const cellRef = XLSX.utils.encode_cell({ r: row, c: col });
           if (wsTitulos[cellRef]) {
@@ -558,31 +560,7 @@ function Students() {
       // Agregar la hoja al workbook
       XLSX.utils.book_append_sheet(wb, wsTitulos, 'TITULOS');
 
-      // Crear hoja para tutores (mantener la funcionalidad original)
-      const tutorsData = tutors.map((tutor) => ({
-        'ID': tutor.idProfesor,
-        'Nombre Completo': tutor.nombre,
-        'Email': tutor.email || '',
-        'Teléfono': tutor.telefono || '',
-        'Carrera': tutor.carrera || '',
-        'Especialidad': tutor.especialidad || '',
-        'Estatus': tutor.estatus || 'Activo'
-      }));
-
-      const wsTutors = XLSX.utils.json_to_sheet(tutorsData);
-      XLSX.utils.book_append_sheet(wb, wsTutors, 'Tutores');
-
-      // Ajustar ancho de columnas para tutores
-      const colWidthsTutors = [
-        { wch: 10 }, // ID
-        { wch: 30 }, // Nombre Completo
-        { wch: 25 }, // Email
-        { wch: 15 }, // Teléfono
-        { wch: 20 }, // Carrera
-        { wch: 25 }, // Especialidad
-        { wch: 15 }  // Estatus
-      ];
-      wsTutors['!cols'] = colWidthsTutors;
+      // Eliminar hoja de tutores: ahora la información proviene de titulos-excel
 
       // Generar nombre del archivo
       const fileName = `Titulos_Listado_de_TEG_2025-1_para_sistema.xlsx`;
