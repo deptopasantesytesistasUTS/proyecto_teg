@@ -587,16 +587,6 @@ function CourseView() {
                   )}
                   {getSelectedMenuKey() === "cronograma" && (
                     <CourseViewCronogramas
-                      newClassDate={newClassDate}
-                      setNewClassDate={setNewClassDate}
-                      newClassTime={newClassTime}
-                      setNewClassTime={setNewClassTime}
-                      newClassDescription={newClassDescription}
-                      setNewClassDescription={setNewClassDescription}
-                      handleAddClass={handleAddClass}
-                      classes={classes}
-                      handleEditClass={handleEditClass}
-                      handleDeleteClass={handleDeleteClass}
                       // Props para entregas
                       currentUploadType={currentUploadType}
                       handleOpenUploadModal={handleOpenUploadModal}
@@ -608,6 +598,8 @@ function CourseView() {
                       handleFileUpload={handleFileUpload}
                       handleSubmitUpload={handleSubmitUpload}
                       uploadFile={uploadFile}
+                      // Prop para el id de la sección
+                      idSeccion={materia?.Secciones?.[0]?.idSeccion?.toString()}
                     />
                   )}
 

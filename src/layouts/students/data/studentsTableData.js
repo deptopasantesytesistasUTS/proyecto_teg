@@ -44,7 +44,7 @@ export default function data(students, onViewStudent, onDeleteClick) {
 
     rows: students.map((student) => ({
       estudiante: (
-        <Estudiante name={student.nombre} id={student.cedula} image={team2} email={student.email} />
+        <Estudiante name={student.nombre} id={student.cedula} image={team2} email={student.email} localidad={student.localidad} />
       ),
       carrera: <Job title={student.carrera} description={Array.isArray(student.materia) ? student.materia.map((m) => {
         return `${m} `;}) : student.materia || ''} />,

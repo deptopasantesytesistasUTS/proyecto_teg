@@ -175,6 +175,7 @@ function Teachers() {
         const nameB = `${b.nombre}`.trim();
         const idA = `${a.cedula}` || "";
         const idB = `${b.cedula}` || "";
+
         switch (sortBy) {
           case "2": // Nombre
             return nameA.localeCompare(nameB);
@@ -202,13 +203,15 @@ function Teachers() {
       // Crear hoja con estructura: n | carrera | ci | nombre y apellido
       const wsTeachers = XLSX.utils.aoa_to_sheet([
         // Fila 1: Encabezados
-        ['N°', 'Carrera', 'CI', 'Nombre y Apellido'],
+        ['N°', 'Carrera', 'CI', 'Nombre y Apellido', 'email', 'Localidad'],
         // Filas de datos
         ...filtered.map((teacher, index) => [
           index + 1, // N°
           teacher.carrera || '', // Carrera
           teacher.cedula || '', // CI
           teacher.nombre || '', // Nombre y Apellido
+          teacher.correo || '', // Email
+          teacher.localidad || '', // Localidad
         ])
       ]);
 
@@ -218,10 +221,12 @@ function Teachers() {
         { wch: 25 }, // Carrera
         { wch: 15 }, // CI
         { wch: 40 }, // Nombre y Apellido
+        { wch: 30 }, // Email
+        { wch: 20 }, // Localidad
       ];
 
       // Aplicar estilos a los encabezados
-      for (let col = 0; col <= 3; col++) {
+      for (let col = 0; col <= 4; col++) {
         const cellRef = XLSX.utils.encode_cell({ r: 0, c: col });
         if (wsTeachers[cellRef]) {
           wsTeachers[cellRef].s = {

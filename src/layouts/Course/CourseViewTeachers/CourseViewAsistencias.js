@@ -14,15 +14,6 @@ import { useParams, useLocation } from 'react-router-dom';
 import { backendUrl } from "config";
 import { useAuth } from "context/AuthContext";
 
-
-const fakeDates = [
-  "2024-06-01",
-  "2024-06-08",
-  "2024-06-15",
-  "2024-06-22",
-  "2024-06-29"
-];
-
 // Función helper para adaptar estudiantes (similar a ParticipantesList)
 function adaptStudents(students) {
   if (!Array.isArray(students)) return [];
@@ -42,357 +33,188 @@ function adaptStudents(students) {
 }
 
 function CourseViewAsistencias ({ students, materia }) {
-  // Obtener el idSeccion de múltiples fuentes posibles
   const { id, idMateria } = useParams();
   const location = useLocation();
   const search = new URLSearchParams(location.search);
   const seccionParam = search.get('idSeccion');
   const { user } = useAuth();
-  
-  // Prioridad: 1. Parámetro de URL, 2. Sección de la materia, 3. ID de la materia (ambos formatos)
+
   const materiaId = id || idMateria;
   const idSeccion = seccionParam || materia?.Secciones?.[0]?.idSeccion || materiaId;
-  
+
   const [docente, setDocente] = useState(null);
   const [estudiantes, setEstudiantes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [docenteCedula, setDocenteCedula] = useState(null);
 
-  // Estas faltaban
   const [adaptedStudents, setAdaptedStudents] = useState([]);
   const [attendance, setAttendance] = useState({});
+  const [tutorias, setTutorias] = useState([]);
+  const [loadingTutorias, setLoadingTutorias] = useState(true);
+  const [fechasTutorias, setFechasTutorias] = useState([]);
+  const [asistencias, setAsistencias] = useState([]);
+  const [selectedDateForStats, setSelectedDateForStats] = useState('');
 
- // Obtener la cédula del docente si es necesario
- useEffect(() => {
-   const fetchDocenteCedula = async () => {
-     if (user && user.userId && (user.role === 2 || user.role === "2")) {
-       try {
-         const url = `${backendUrl}/cedula-personal?userId=${user.userId}`;
-         console.log("🌐 Obteniendo cédula del docente desde:", url);
-         
-         const res = await fetch(url, {
-           method: 'GET',
-           headers: {
-             'Content-Type': 'application/json',
-           },
-           signal: AbortSignal.timeout(10000)
-         });
-         
-         if (res.ok) {
-           const data = await res.json();
-           console.log("📦 Cédula del docente obtenida:", data.cedula);
-           setDocenteCedula(data.cedula);
-         }
-       } catch (err) {
-         console.error("🚨 Error obteniendo cédula del docente:", err.message);
-       }
-     }
-   };
-
-   fetchDocenteCedula();
- }, [user]);
-
- useEffect(() => {
-  console.log("📢 CourseViewAsistencias - Debug info:");
-  console.log("📢 idSeccion recibido:", idSeccion);
-  console.log("📢 materia recibida:", materia);
-  console.log("📢 students recibidos:", students);
-  console.log("📢 seccionParam:", seccionParam);
-  console.log("📢 id from useParams:", id);
-  console.log("📢 idMateria from useParams:", idMateria);
-  console.log("📢 materiaId calculado:", materiaId);
-  console.log("📢 materia?.Secciones:", materia?.Secciones);
-  console.log("📢 backendUrl:", backendUrl);
-  console.log("📢 Usuario actual:", user);
-  console.log("📢 URL completa:", window.location.href);
-  console.log("📢 Parámetros de URL:", Object.fromEntries(search.entries()));
-
-  // Si no tenemos idSeccion, intentar obtenerlo de la URL actual
-  let finalIdSeccion = idSeccion;
-  
-  // Verificar si el idSeccion es igual al materiaId (caso de Netlify)
-  if (finalIdSeccion && finalIdSeccion === materiaId) {
-    console.log("⚠ idSeccion es igual al materiaId, esto puede ser un error en Netlify");
-    console.log("⚠ URL problemática detectada:", window.location.href);
-    
-    // Usar directamente la primera sección (misma lógica que ParticipantesList)
-    if (materia?.Secciones && materia.Secciones.length > 0) {
-      finalIdSeccion = materia.Secciones[0].idSeccion;
-      console.log("📢 Corrigiendo problema de Netlify - usando primera sección:", finalIdSeccion);
-    } else {
-      finalIdSeccion = null; // Reset para buscar la sección correcta
-    }
-  }
-  
-  // Si aún no tenemos idSeccion y tenemos materia, usar la primera sección
-  if (!finalIdSeccion && materia?.Secciones && materia.Secciones.length > 0) {
-    finalIdSeccion = materia.Secciones[0].idSeccion;
-    console.log("📢 Usando primera sección de la materia:", finalIdSeccion);
-  }
-  
-  // Si aún no tenemos idSeccion, intentar usar un valor por defecto para esta materia
-  if (!finalIdSeccion && materiaId) {
-    // Para la materia 202521411, sabemos que la sección correcta es 4
-    if (materiaId === "202521411") {
-      finalIdSeccion = "4";
-      console.log("📢 Usando sección por defecto para materia 202521411:", finalIdSeccion);
-    }
-  }
-  
-  // IMPORTANTE: Usar la misma lógica que ParticipantesList - siempre usar la primera sección
-  if (!finalIdSeccion && materia?.Secciones && materia.Secciones.length > 0) {
-    finalIdSeccion = materia.Secciones[0].idSeccion;
-    console.log("📢 Usando primera sección (misma lógica que ParticipantesList):", finalIdSeccion);
-  }
-  
-  // Si aún no tenemos idSeccion, intentar obtenerlo del backend
-  if (!finalIdSeccion && materiaId) {
-    console.log("🔄 Intentando obtener secciones del backend para materia:", materiaId);
-    // Esta lógica se manejará en el useEffect que obtiene datos de materia
-  }
-
-  // Verificar que el docente tenga acceso a esta sección
-  const verificarAccesoDocente = () => {
-    if (!docenteCedula || !materia?.Secciones) return true; // Si no tenemos datos, permitir acceso
-    
-    const seccionAccesible = materia.Secciones.find(seccion => 
-      seccion.idDocente === docenteCedula && seccion.idSeccion === finalIdSeccion
-    );
-    
-    if (!seccionAccesible) {
-      console.warn("⚠ El docente no tiene acceso a esta sección");
-      return false;
-    }
-    
-    return true;
-  };
-
-  if (!finalIdSeccion) {
-    console.warn("⚠ No se pudo obtener idSeccion de ninguna fuente");
-    setError("No se pudo obtener el ID de la sección. Verifica que la materia tenga secciones configuradas o que la URL sea correcta.");
-    setLoading(false);
-    return;
-  }
-
-  if (!verificarAccesoDocente()) {
-    setError("No tienes acceso a esta sección. Solo puedes ver las secciones que impartes.");
-    setLoading(false);
-    return;
-  }
-
-  const fetchParticipantes = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      // Usar la URL del archivo config.js
-      const url = `${backendUrl}/secciones/${finalIdSeccion}/participantes`;
-      console.log("🌐 Solicitando participantes desde:", url);
-
-      const res = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        // Agregar timeout para evitar esperas infinitas
-        signal: AbortSignal.timeout(10000) // 10 segundos
-      });
-
-      if (!res.ok) {
-        throw new Error(`Error del servidor: ${res.status} - ${res.statusText}`);
-      }
-
-      const data = await res.json();
-      console.log("📦 Respuesta del backend:", data);
-
-      setDocente(data.docente || null);
-      setEstudiantes(Array.isArray(data.estudiantes) ? data.estudiantes : []);
-
-      // Usar la función helper para adaptar estudiantes (igual que en ParticipantesList)
-      const adaptados = adaptStudents(data.estudiantes || []);
-      console.log("📊 Estudiantes adaptados:", adaptados);
-      
-      setAdaptedStudents(adaptados);
-
-      const initAttendance = {};
-      adaptados.forEach(s => {
-        initAttendance[s.id] = {};
-        fakeDates.forEach(date => initAttendance[s.id][date] = false);
-      });
-      setAttendance(initAttendance);
-
-      setError(null);
-    } catch (err) {
-      console.error("🚨 Error cargando participantes:", err.message);
-      
-      // Si el fetch falla, intentar usar los estudiantes que vienen como props
-      if (students && students.length > 0) {
-        console.log("🔄 Usando estudiantes de props como fallback");
-        const adaptados = adaptStudents(students);
-        console.log("📊 Estudiantes de props adaptados:", adaptados);
-        
-        setAdaptedStudents(adaptados);
-        setEstudiantes(students);
-        
-        const initAttendance = {};
-        adaptados.forEach(s => {
-          initAttendance[s.id] = {};
-          fakeDates.forEach(date => initAttendance[s.id][date] = false);
-        });
-        setAttendance(initAttendance);
-        setError(null);
-      } else {
-        setError(`No se pudieron cargar los participantes. Error: ${err.message}`);
-        setDocente(null);
-        setEstudiantes([]);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchParticipantes();
-}, [idSeccion, materia, students, seccionParam, materiaId, location.pathname, docenteCedula]);
-
-  // Función para obtener solo las secciones que imparte el docente
-  const obtenerSeccionesDelDocente = (materiaData, cedulaDocente) => {
-    if (!materiaData?.Secciones || !cedulaDocente) return materiaData?.Secciones || [];
-    
-    const seccionesDelDocente = materiaData.Secciones.filter(seccion => 
-      seccion.idDocente === cedulaDocente
-    );
-    
-    console.log("📊 Secciones del docente:", seccionesDelDocente);
-    console.log("📊 Total de secciones en la materia:", materiaData.Secciones.length);
-    console.log("📊 Secciones filtradas:", seccionesDelDocente.length);
-    
-    return seccionesDelDocente;
-  };
-
-  // Función para intentar obtener datos de la materia si no están disponibles
-  const fetchMateriaData = async (materiaId) => {
-    try {
-      const url = `${backendUrl}/materias-aulavirtual/${materiaId}`;
-      console.log("🌐 Intentando obtener datos de materia desde:", url);
-      
-      const res = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        signal: AbortSignal.timeout(10000) // 10 segundos
-      });
-      
-      if (res.ok) {
-        const materiaData = await res.json();
-        console.log("📦 Datos de materia obtenidos:", materiaData);
-        
-        // Si tenemos la cédula del docente, filtrar las secciones
-        if (docenteCedula) {
-          const seccionesFiltradas = obtenerSeccionesDelDocente(materiaData, docenteCedula);
-          if (seccionesFiltradas.length > 0) {
-            return {
-              ...materiaData,
-              Secciones: seccionesFiltradas
-            };
-          }
-        }
-        
-        return materiaData;
-      }
-    } catch (err) {
-      console.error("🚨 Error obteniendo datos de materia:", err.message);
-    }
-    return null;
-  };
-
-  // Si no tenemos materia pero tenemos un ID, intentar obtenerla
+  // Obtener fechas de tutorías reales
   useEffect(() => {
-    if ((!materia || !idSeccion) && materiaId && !loading) {
-      console.log("🔄 Intentando obtener datos de materia con ID:", materiaId);
-      fetchMateriaData(materiaId).then(materiaData => {
-        if (materiaData && materiaData.Secciones && materiaData.Secciones.length > 0) {
-          console.log("✅ Datos de materia obtenidos exitosamente");
-          console.log("📊 Secciones disponibles:", materiaData.Secciones);
-          
-          // Si no tenemos idSeccion o es igual al materiaId, usar la primera sección
-          let newIdSeccion = idSeccion;
-          if (!newIdSeccion || newIdSeccion === materiaId) {
-            newIdSeccion = materiaData.Secciones[0].idSeccion;
-            console.log("🔄 Usando primera sección disponible:", newIdSeccion);
-          }
-          
-          if (newIdSeccion && newIdSeccion !== idSeccion) {
-            console.log("🔄 Intentando obtener participantes con nuevo idSeccion:", newIdSeccion);
-            // Aquí podríamos hacer una nueva llamada para obtener participantes
-            // Por ahora, actualizamos el estado para que se ejecute el useEffect principal
-          }
-        }
-      });
-    }
-  }, [materia, materiaId, loading, idSeccion, docenteCedula]);
+    console.log("idSeccion usado para tutorías:", idSeccion);
+    if (!idSeccion) return;
+    setLoadingTutorias(true);
+    fetch(`${backendUrl}/aulavirtual-docente/tutorias/${idSeccion}`)
+      .then(res => res.json())
+      .then(data => {
+        console.log("Tutorías obtenidas:", data);
+        setTutorias(data);
+        setLoadingTutorias(false);
+      })
+      .catch(() => setTutorias([]));
+  }, [idSeccion]);
 
-  const [selectedDateForStats, setSelectedDateForStats] = useState(fakeDates[0]);
+  // Actualizar fechasTutorias cuando cambian las tutorias
+  useEffect(() => {
+    if (tutorias && tutorias.length > 0) {
+      setFechasTutorias(tutorias.map(t => t.fecha?.split('T')[0]));
+    } else {
+      setFechasTutorias([]);
+    }
+  }, [tutorias]);
+
+  // Obtener asistencias reales
+  useEffect(() => {
+    if (!idSeccion) return;
+    fetch(`${backendUrl}/aulavirtual-docente/asistencias/${idSeccion}`)
+      .then(res => res.json())
+      .then(data => setAsistencias(data))
+      .catch(() => setAsistencias([]));
+  }, [idSeccion]);
+
+  // Obtener la cédula del docente si es necesario
+  useEffect(() => {
+    const fetchDocenteCedula = async () => {
+      if (user && user.userId && (user.role === 2 || user.role === "2")) {
+        try {
+          const url = `${backendUrl}/cedula-personal?userId=${user.userId}`;
+          const res = await fetch(url, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+            signal: AbortSignal.timeout(10000)
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setDocenteCedula(data.cedula);
+          }
+        } catch (err) {
+            // Silenciar error
+        }
+      }
+    };
+    fetchDocenteCedula();
+  }, [user]);
+
+  // Cargar estudiantes y adaptar
+  useEffect(() => {
+    let finalIdSeccion = idSeccion;
+    if (finalIdSeccion && finalIdSeccion === materiaId && materia?.Secciones && materia.Secciones.length > 0) {
+      finalIdSeccion = materia.Secciones[0].idSeccion;
+    }
+    if (!finalIdSeccion && materia?.Secciones && materia.Secciones.length > 0) {
+      finalIdSeccion = materia.Secciones[0].idSeccion;
+    }
+    if (!finalIdSeccion) {
+      setError("No se pudo obtener el ID de la sección. Verifica que la materia tenga secciones configuradas o que la URL sea correcta.");
+      setLoading(false);
+      return;
+    }
+    const fetchParticipantes = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const url = `${backendUrl}/secciones/${finalIdSeccion}/participantes`;
+        const res = await fetch(url, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+          signal: AbortSignal.timeout(10000)
+        });
+        if (!res.ok) throw new Error(`Error del servidor: ${res.status} - ${res.statusText}`);
+        const data = await res.json();
+        setDocente(data.docente || null);
+        setEstudiantes(Array.isArray(data.estudiantes) ? data.estudiantes : []);
+        const adaptados = adaptStudents(data.estudiantes || []);
+        setAdaptedStudents(adaptados);
+      } catch (err) {
+        if (students && students.length > 0) {
+          const adaptados = adaptStudents(students);
+          setAdaptedStudents(adaptados);
+          setEstudiantes(students);
+          setError(null);
+        } else {
+          setError(`No se pudieron cargar los participantes. Error: ${err.message}`);
+          setDocente(null);
+          setEstudiantes([]);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchParticipantes();
+  }, [idSeccion, materia, students, seccionParam, materiaId, location.pathname, docenteCedula]);
+
+  // Sincronizar attendance con asistencias reales y fechas
+  useEffect(() => {
+    if (adaptedStudents.length === 0 || fechasTutorias.length === 0) {
+      setAttendance({});
+      return;
+    }
+    const initAttendance = {};
+    adaptedStudents.forEach(s => {
+      initAttendance[s.id] = {};
+      fechasTutorias.forEach(date => {
+        // Buscar tutoria y asistencia
+        const tutoria = tutorias.find(t => t.fecha?.split('T')[0] === date);
+        const asistencia = asistencias.find(a => a.idEstudiante === s.id && a.idTutoria === tutoria?.idTutoria);
+        initAttendance[s.id][date] = asistencia ? asistencia.asistencia : false;
+      });
+    });
+    setAttendance(initAttendance);
+  }, [adaptedStudents, fechasTutorias, asistencias, tutorias]);
+
+  // Inicializar fecha seleccionada para estadísticas
+  useEffect(() => {
+    if (fechasTutorias.length > 0) {
+      setSelectedDateForStats(fechasTutorias[0]);
+    } else {
+      setSelectedDateForStats('');
+    }
+  }, [fechasTutorias]);
 
   const exportToExcel = async () => {
-    console.log("🚀 Iniciando exportación a Excel con ExcelJS...");
-    
-    // Crear un nuevo libro de trabajo
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Asistencias');
-    
-    // Configurar la vista para ocultar headers de columnas y filas
-    worksheet.views = [
-      {
-        showRowColHeaders: false,
-        showGridLines: true,
-        showRuler: false,
-        showOutlineSymbols: false
-      }
-    ];
-    
-    // Configuración adicional para forzar la ocultación de headers
-    worksheet.properties.showRowColHeaders = false;
-    
-    // Configurar el ancho de las columnas
-    worksheet.getColumn('A').width = 5;   // Columna vacía
-    worksheet.getColumn('B').width = 5;   // Numeración
-    worksheet.getColumn('C').width = 15;  // Cédula
-    worksheet.getColumn('D').width = 30;  // Nombre
-    
-    // Configurar ancho para las columnas de fechas
-    fakeDates.forEach((_, index) => {
-      const columnLetter = String.fromCharCode(69 + index); // E, F, G, etc.
+    worksheet.views = [{ showRowColHeaders: false, showGridLines: true }];
+    worksheet.getColumn('A').width = 5;
+    worksheet.getColumn('B').width = 5;
+    worksheet.getColumn('C').width = 15;
+    worksheet.getColumn('D').width = 30;
+    fechasTutorias.forEach((_, index) => {
+      const columnLetter = String.fromCharCode(69 + index);
       worksheet.getColumn(columnLetter).width = 12;
     });
-    
-    // Agregar título principal
     worksheet.getCell('D1').value = 'CONTROL DE ASISTENCIAS';
     worksheet.getCell('D1').font = { bold: true, size: 14 };
     worksheet.getCell('D1').alignment = { horizontal: 'center' };
-    
-    // Agregar información de la materia
     worksheet.getCell('C3').value = 'Materia:';
     worksheet.getCell('D3').value = materia?.categoria || 'N/A';
-    
     worksheet.getCell('C4').value = 'Carrera:';
     worksheet.getCell('D4').value = materia?.Carreras?.nombre || 'N/A';
-    
     worksheet.getCell('C5').value = 'Profesor:';
     worksheet.getCell('D5').value = docente ? `${docente.nombre1 || ''} ${docente.apellido1 || ''}`.trim() : 'N/A';
-    
-    // Agregar "tabla asistencias"
     worksheet.getCell('E8').value = 'tabla asistencias';
-    
-    // Agregar encabezados de la tabla
     worksheet.getCell('B10').value = 'n';
     worksheet.getCell('C10').value = 'Cédula';
     worksheet.getCell('D10').value = 'Nombre';
-    
-    // Agregar encabezados de fechas
-    fakeDates.forEach((date, index) => {
-      const columnLetter = String.fromCharCode(69 + index); // E, F, G, etc.
+    fechasTutorias.forEach((date, index) => {
+      const columnLetter = String.fromCharCode(69 + index);
       const formattedDate = new Date(date).toLocaleDateString('es-ES', {
         day: '2-digit',
         month: '2-digit',
@@ -400,20 +222,15 @@ function CourseViewAsistencias ({ students, materia }) {
       });
       worksheet.getCell(`${columnLetter}10`).value = formattedDate;
     });
-    
-    // Agregar datos de estudiantes
     adaptedStudents.forEach((student, studentIndex) => {
       const rowNumber = 11 + studentIndex;
-      
       worksheet.getCell(`B${rowNumber}`).value = studentIndex + 1;
       worksheet.getCell(`C${rowNumber}`).value = student.id;
       worksheet.getCell(`D${rowNumber}`).value = student.name;
-      
       const today = new Date();
-      fakeDates.forEach((date, index) => {
-        const columnLetter = String.fromCharCode(69 + index); // E, F, G, etc.
+      fechasTutorias.forEach((date, index) => {
+        const columnLetter = String.fromCharCode(69 + index);
         const dateObj = new Date(date);
-        
         if (dateObj <= today) {
           const attendanceStatus = attendance[student.id][date] ? 'Asistente' : 'Inasistente';
           worksheet.getCell(`${columnLetter}${rowNumber}`).value = attendanceStatus;
@@ -422,35 +239,14 @@ function CourseViewAsistencias ({ students, materia }) {
         }
       });
     });
-    
-    // Configuración adicional del libro de trabajo
-    workbook.views = [
-      {
-        showRowColHeaders: false,
-        showGridLines: true,
-        showHorizontalScroll: true,
-        showVerticalScroll: true
-      }
-    ];
-    
-    // Configuración específica para ocultar headers usando propiedades de Excel
-    worksheet.properties.showRowColHeaders = false;
-    worksheet.properties.showGridLines = true;
-    
-    // Intentar configurar propiedades específicas de Excel
-    if (!worksheet.properties) worksheet.properties = {};
-    worksheet.properties.showRowColHeaders = false;
-    
-    // Generar el archivo
     const buffer = await workbook.xlsx.writeBuffer();
     const data = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     saveAs(data, `asistencias_${materia?.categoria || 'materia'}_${new Date().toISOString().split('T')[0]}.xlsx`);
-    console.log("✅ Excel exportado exitosamente con ExcelJS");
   };
 
   const getAttendanceStatsByDate = () => {
     const statsByDate = {};
-    fakeDates.forEach(date => {
+    fechasTutorias.forEach(date => {
       let presentCount = 0;
       let absentCount = 0;
       adaptedStudents.forEach(student => {
@@ -475,7 +271,7 @@ function CourseViewAsistencias ({ students, materia }) {
   const columns = [
     { field: 'id', headerName: 'Cédula', width: 100 },
     { field: 'name', headerName: 'Nombre', width: 200 },
-    ...fakeDates.map(date => ({
+    ...fechasTutorias.map(date => ({
       field: date,
       headerName: new Date(date).toLocaleDateString('es-ES', {
         day: '2-digit',
@@ -491,14 +287,28 @@ function CourseViewAsistencias ({ students, materia }) {
             <Tooltip title={isPresent ? 'Presente' : 'Ausente'}>
               <IconButton
                 size="small"
-                onClick={() => {
+                onClick={async () => {
+                  // Busca la tutoria correspondiente
+                  const tutoria = tutorias.find(t => t.fecha?.split('T')[0] === params.field);
+                  if (!tutoria) return;
+                  const nuevoValor = !isPresent;
                   setAttendance(prev => ({
                     ...prev,
                     [params.row.id]: {
                       ...prev[params.row.id],
-                      [params.field]: !isPresent
+                      [params.field]: nuevoValor
                     }
                   }));
+                  // Llama al backend para registrar la asistencia
+                  await fetch(`${backendUrl}/aulavirtual-docente/asistencias`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      idTutoria: tutoria.idTutoria,
+                      idEstudiante: params.row.id,
+                      asistencia: nuevoValor
+                    })
+                  });
                 }}
                 sx={{
                   backgroundColor: isPresent ? '#4caf50' : '#f44336',
@@ -523,7 +333,7 @@ function CourseViewAsistencias ({ students, materia }) {
   const rows = adaptedStudents.map(s => ({
     id: s.id,
     name: s.name,
-    ...fakeDates.reduce((acc, date) => {
+    ...fechasTutorias.reduce((acc, date) => {
       acc[date] = attendance[s.id]?.[date] || false;
       return acc;
     }, {})
@@ -548,76 +358,6 @@ function CourseViewAsistencias ({ students, materia }) {
         <MDTypography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
           No se pudieron cargar los estudiantes de la sección. Verifica la conexión con el backend.
         </MDTypography>
-        
-        <MDBox sx={{ mt: 2, p: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
-          <MDTypography variant="body2" color="text.secondary">
-            <strong>Información de debug:</strong>
-          </MDTypography>
-          <MDTypography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            • ID de la materia: {materiaId || 'No disponible'}
-          </MDTypography>
-          <MDTypography variant="body2" color="text.secondary">
-            • ID de sección: {idSeccion || 'No disponible'}
-          </MDTypography>
-          <MDTypography variant="body2" color="text.secondary">
-            • Materia recibida: {materia ? 'Sí' : 'No'}
-          </MDTypography>
-          <MDTypography variant="body2" color="text.secondary">
-            • Estudiantes recibidos: {students ? students.length : 0}
-          </MDTypography>
-          <MDTypography variant="body2" color="text.secondary">
-            • URL actual: {location.pathname}
-          </MDTypography>
-          <MDTypography variant="body2" color="text.secondary">
-            • Backend URL: {backendUrl}
-          </MDTypography>
-          <MDTypography variant="body2" color="text.secondary">
-            • Cédula del docente: {docenteCedula || 'No disponible'}
-          </MDTypography>
-          <MDTypography variant="body2" color="text.secondary">
-            • Rol del usuario: {user?.role || 'No disponible'}
-          </MDTypography>
-          <MDTypography variant="body2" color="text.secondary">
-            • idSeccion vs materiaId: {idSeccion === materiaId ? 'IGUALES (problema Netlify)' : 'Diferentes'}
-          </MDTypography>
-          <MDTypography variant="body2" color="text.secondary">
-            • idSeccion final usado: {finalIdSeccion || 'No disponible'}
-          </MDTypography>
-          <MDTypography variant="body2" color="text.secondary">
-            • Secciones disponibles: {materia?.Secciones ? materia.Secciones.length : 0}
-          </MDTypography>
-        </MDBox>
-        
-        <MDBox sx={{ mt: 2, display: 'flex', gap: 2 }}>
-          <MDButton 
-            variant="contained" 
-            color="primary" 
-            onClick={() => {
-              setLoading(true);
-              setError(null);
-              // Forzar una nueva carga
-              setTimeout(() => {
-                window.location.reload();
-              }, 100);
-            }}
-          >
-            Reintentar
-          </MDButton>
-          <MDButton 
-            variant="outlined" 
-            color="secondary" 
-            onClick={() => {
-              console.log("📢 Información completa de debug:");
-              console.log("📢 URL completa:", window.location.href);
-              console.log("📢 Parámetros de URL:", Object.fromEntries(search.entries()));
-              console.log("📢 Pathname:", location.pathname);
-              console.log("📢 Search:", location.search);
-              console.log("📢 Backend URL:", backendUrl);
-            }}
-          >
-            Ver más debug
-          </MDButton>
-        </MDBox>
       </MDBox>
     );
   }
@@ -648,7 +388,7 @@ function CourseViewAsistencias ({ students, materia }) {
               onChange={(e) => setSelectedDateForStats(e.target.value)}
               startAdornment={<CalendarToday sx={{ mr: 1, color: '#1976d2', height: 50 }} />}
             >
-              {fakeDates.map(date => (
+              {fechasTutorias.map(date => (
                 <MenuItem key={date} value={date}>
                   {new Date(date).toLocaleDateString('es-ES', {
                     weekday: 'long',

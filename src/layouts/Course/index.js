@@ -33,7 +33,9 @@ import DataTable from "examples/Tables/DataTable";
 
 // Data
 import coursesTableData from "layouts/Course/data/coursesTableData";
+import DialogContentText from "@mui/material/DialogContentText"
 
+;
 function Course() {
   // Estados para datos
   const [courses, setCourses] = useState([]); // materias
@@ -54,6 +56,12 @@ function Course() {
     { Header: "Estatus", accessor: "estatus" },
     { Header: "Action", accessor: "action" },
   ]);
+
+  // Estados para modal de comunicado general
+  const [openComunicado, setOpenComunicado] = useState(false);
+  const [comunicado, setComunicado] = useState({ titulo: "", mensaje: "" });
+  const [loadingComunicado, setLoadingComunicado] = useState(false);
+
 
   // Estados para formulario de creación
   const [openNewDialog, setOpenNewDialog] = useState(false);
@@ -165,6 +173,7 @@ function Course() {
       }),
     });
 
+
     const data = await response.json();
 
     if (response.ok) {
@@ -186,10 +195,49 @@ function Course() {
     setOpenNewDialog(false);
   };
 
+  // Función para enviar comunicado general
+  const handleEnviarComunicado = async () => {
+    setLoadingComunicado(true);
+    try {
+      const response = await fetch(`${backendUrl}/comunicados`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          titulo: comunicado.titulo,
+          texto: comunicado.mensaje,
+          idUsuario: null, // Puedes ajustar esto según tu lógica
+        }),
+      });
+      if (response.ok) {
+        setSnackbar({
+          open: true,
+          message: "Comunicado enviado correctamente",
+          severity: "success",
+        });
+        setOpenComunicado(false);
+        setComunicado({ titulo: "", mensaje: "" });
+      } else {
+        setSnackbar({
+          open: true,
+          message: "Error al enviar el comunicado",
+          severity: "error",
+        });
+      }
+    } catch {
+      setSnackbar({
+        open: true,
+        message: "Error de conexión al enviar el comunicado",
+        severity: "error",
+      });
+    }
+    setLoadingComunicado(false);
+  };
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
       <MDBox pt={6} pb={3}>
+        
         <Grid container spacing={6}>
           <Grid item xs={12}>
             <Card>
@@ -264,13 +312,22 @@ function Course() {
                 <Grid item></Grid>
                 <Grid item></Grid>
                 <Grid item></Grid>
+
                 <Grid item>
                   <Stack spacing={2} direction="row">
                     <Button variant="contained" onClick={() => setOpenNewDialog(true)}>
                       Agregar Área
                     </Button>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={() => setOpenComunicado(true)}
+                    >
+                      Enviar Comunicado General
+                    </Button>
                   </Stack>
                 </Grid>
+
               </Grid>
               <MDBox pt={1}>
                 <DataTable
@@ -285,6 +342,44 @@ function Course() {
           </Grid>
         </Grid>
       </MDBox>
+        {/* Modal de Comunicado General */}
+        <Dialog open={openComunicado} onClose={() => setOpenComunicado(false)}>
+          <DialogTitle>Enviar Comunicado General</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Este comunicado será enviado a todas las áreas/materias.
+            </DialogContentText>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Título"
+              fullWidth
+              variant="standard"
+              value={comunicado.titulo}
+              onChange={(e) => setComunicado({ ...comunicado, titulo: e.target.value })}
+            />
+            <TextField
+              margin="dense"
+              label="Mensaje"
+              fullWidth
+              multiline
+              minRows={3}
+              variant="standard"
+              value={comunicado.mensaje}
+              onChange={(e) => setComunicado({ ...comunicado, mensaje: e.target.value })}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setOpenComunicado(false)}>Cancelar</Button>
+            <Button
+              onClick={handleEnviarComunicado}
+              variant="contained"
+              disabled={loadingComunicado || !comunicado.titulo || !comunicado.mensaje}
+            >
+              Enviar
+            </Button>
+          </DialogActions>
+        </Dialog>
       <Dialog open={openNewDialog} onClose={() => setOpenNewDialog(false)}>
         <DialogTitle>Agregar Area</DialogTitle>
         <DialogContent>
@@ -358,6 +453,7 @@ function Course() {
           </Button>
         </DialogActions>
       </Dialog>
+      
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}

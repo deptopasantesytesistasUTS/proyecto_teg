@@ -655,13 +655,15 @@ function Students() {
       // Crear hoja con estructura simple: n | carrera | ci | nombre y apellido
       const wsSimple = XLSX.utils.aoa_to_sheet([
         // Fila 1: Encabezados
-        ['N°', 'Carrera', 'CI', 'Nombre y Apellido'],
+        ['N°', 'Carrera', 'CI', 'Nombre y Apellido', 'Email', 'localidad '],
         // Filas de datos
         ...filtered.map((student, index) => [
           index + 1, // N°
           student.carrera || '', // Carrera
           student.cedula || '', // CI
           student.nombre || '', // Nombre y Apellido
+          student.email || '', // Email (opcional, se puede eliminar si no se necesita)
+          student.localidad || '', // Localidad (opcional, se puede eliminar si no se necesita
         ])
       ]);
 
@@ -671,6 +673,8 @@ function Students() {
         { wch: 25 }, // Carrera
         { wch: 15 }, // CI
         { wch: 40 }, // Nombre y Apellido
+        { wch: 40 }, // Email
+        { wch: 20 }  // Localidad
       ];
 
       // Aplicar estilos a los encabezados
@@ -921,7 +925,7 @@ function Students() {
         <DialogTitle>Agregar Estudiante</DialogTitle>
         <DialogContent>
           <Grid container spacing={2}>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={6} mt={2}>
               <TextField
                 label="Primer Nombre"
                 name="nombre1"
@@ -932,7 +936,7 @@ function Students() {
                 helperText={validationErrors.nombre1}
               />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={6} mt={2}>
               <TextField
                 label="Segundo Nombre"
                 name="nombre2"
