@@ -588,7 +588,7 @@ function Recursos({carrera}) {
             </Modal>
           </Paper>
         </Grid>
-        {resources.map((r) => (
+        {/*{resources.map((r) => (
           <Grid item xs={12} sm={6} md={4} key={r.name}>
             <Paper
               elevation={0}
@@ -645,7 +645,7 @@ function Recursos({carrera}) {
               </Button>
             </Paper>
           </Grid>
-        ))}
+        ))}*/}
       </Grid>
     </Card>
   );

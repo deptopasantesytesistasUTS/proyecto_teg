@@ -107,7 +107,7 @@ function Cronograma({categoria, idMateria}) {
       }
     };
 
-  const pdfUrl = "/ruta/al/cronograma.pdf"; // Cambia esto por la ruta real
+  const [pdfUrl, setpdfUrl] = useState("")
 
   // Estado para archivo de carga académica
   const [archivoCarga, setArchivoCarga] = React.useState(null);
@@ -171,7 +171,9 @@ function Cronograma({categoria, idMateria}) {
                descripcion: "Instrumentos de Investigaccion",
                fechaLimite: data.semester.inv2Borrador4,
              },
+             
            ]);
+           setpdfUrl(data.semester.urlCronograma2);
          } else if (categoria === "Trabajo_Especial_de_Grado") {
            setEntregas([
              { descripcion: "Entrega Instrumento 1", fechaLimite: data.semester.fechaEntInst },
@@ -186,7 +188,9 @@ function Cronograma({categoria, idMateria}) {
                fechaLimite: data.semester.thirdDraftDate,
              },
              { descripcion: "Entrega de Diapositivas", fechaLimite: data.semester.finalDraftDate },
+             
            ]);
+           setpdfUrl(data.semester.urlCronograma);
          } else {
            setEntregas([
              { descripcion: "Fecha Inicio", fechaLimite: data.semester.tutInicio },

@@ -561,63 +561,6 @@ function SemesterConfig() {
                         </MDTypography>
                       </MDBox>
                     </Grid>
-                    {/* Trabajo de Grado */}
-                    <Grid item xs={12}>
-                      <MDTypography variant="h6" fontWeight="bold" color="info" mb={1}>
-                        Fechas de Trabajo de Grado
-                      </MDTypography>
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <MDBox mb={2}>
-                        <MDTypography variant="button" fontWeight="bold" color="text">
-                          Entrega de Intrumentos:
-                        </MDTypography>
-                        <MDTypography variant="body2" color="text">
-                          {formatDate(currentSemester.fechaEntInst)}
-                        </MDTypography>
-                      </MDBox>
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <MDBox mb={2}>
-                        <MDTypography variant="button" fontWeight="bold" color="text">
-                          Entrega de Propuesta:
-                        </MDTypography>
-                        <MDTypography variant="body2" color="text">
-                          {formatDate(currentSemester.firstDraftDate)}
-                        </MDTypography>
-                      </MDBox>
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <MDBox mb={2}>
-                        <MDTypography variant="button" fontWeight="bold" color="text">
-                          Informe Completo:
-                        </MDTypography>
-                        <MDTypography variant="body2" color="text">
-                          {formatDate(currentSemester.secondDraftDate)}
-                        </MDTypography>
-                      </MDBox>
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <MDBox mb={2}>
-                        <MDTypography variant="button" fontWeight="bold" color="text">
-                          Tomo Completo (Correciones de Predefensa):
-                        </MDTypography>
-                        <MDTypography variant="body2" color="text">
-                          {formatDate(currentSemester.thirdDraftDate)}
-                        </MDTypography>
-                      </MDBox>
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                      <MDBox mb={2}>
-                        <MDTypography variant="button" fontWeight="bold" color="text">
-                          Entrega de Diapositivas
-                        </MDTypography>
-                        <MDTypography variant="body2" color="text">
-                          {formatDate(currentSemester.finalDraftDate)}
-                        </MDTypography>
-                      </MDBox>
-                    </Grid>
-
                     {/* Investigación 2 */}
                     <Grid item xs={12}>
                       <MDTypography variant="h6" fontWeight="bold" color="info" mb={1}>
@@ -681,6 +624,62 @@ function SemesterConfig() {
                         </MDTypography>
                         <MDTypography variant="body2" color="text">
                           {formatDate(currentSemester.inv2Borrador4)}
+                        </MDTypography>
+                      </MDBox>
+                    </Grid>
+                    {/* Trabajo de Grado */}
+                    <Grid item xs={12}>
+                      <MDTypography variant="h6" fontWeight="bold" color="info" mb={1}>
+                        Fechas de Trabajo de Grado
+                      </MDTypography>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <MDBox mb={2}>
+                        <MDTypography variant="button" fontWeight="bold" color="text">
+                          Entrega de Intrumentos:
+                        </MDTypography>
+                        <MDTypography variant="body2" color="text">
+                          {formatDate(currentSemester.fechaEntInst)}
+                        </MDTypography>
+                      </MDBox>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <MDBox mb={2}>
+                        <MDTypography variant="button" fontWeight="bold" color="text">
+                          Entrega de Propuesta:
+                        </MDTypography>
+                        <MDTypography variant="body2" color="text">
+                          {formatDate(currentSemester.firstDraftDate)}
+                        </MDTypography>
+                      </MDBox>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <MDBox mb={2}>
+                        <MDTypography variant="button" fontWeight="bold" color="text">
+                          Informe Completo:
+                        </MDTypography>
+                        <MDTypography variant="body2" color="text">
+                          {formatDate(currentSemester.secondDraftDate)}
+                        </MDTypography>
+                      </MDBox>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <MDBox mb={2}>
+                        <MDTypography variant="button" fontWeight="bold" color="text">
+                          Tomo Completo (Correciones de Predefensa):
+                        </MDTypography>
+                        <MDTypography variant="body2" color="text">
+                          {formatDate(currentSemester.thirdDraftDate)}
+                        </MDTypography>
+                      </MDBox>
+                    </Grid>
+                    <Grid item xs={12} md={6}>
+                      <MDBox mb={2}>
+                        <MDTypography variant="button" fontWeight="bold" color="text">
+                          Entrega de Diapositivas
+                        </MDTypography>
+                        <MDTypography variant="body2" color="text">
+                          {formatDate(currentSemester.finalDraftDate)}
                         </MDTypography>
                       </MDBox>
                     </Grid>
@@ -818,82 +817,6 @@ function SemesterConfig() {
                 margin="normal"
               />
             </Grid>
-            {/* Trabajo de Grado */}
-            <Grid item xs={12}>
-              <MDTypography variant="h6" fontWeight="bold" color="info" mb={1}>
-                Fechas de Trabajo de Grado
-              </MDTypography>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Entrega de Intrumentos"
-                type="date"
-                value={newSemester.fechaEntInst}
-                onChange={(e) => handleFormChange("new", "fechaEntInst", e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                inputProps={{ min: getCurrentDate() }}
-                error={!!errors.fechaEntInst}
-                helperText={errors.fechaEntInst}
-                margin="normal"
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Entrega de Propuestas"
-                type="date"
-                value={newSemester.firstDraftDate}
-                onChange={(e) => handleFormChange("new", "firstDraftDate", e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                inputProps={{ min: getCurrentDate() }}
-                error={!!errors.firstDraftDate}
-                helperText={errors.firstDraftDate}
-                margin="normal"
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Entrega Informe Completo"
-                type="date"
-                value={newSemester.secondDraftDate}
-                onChange={(e) => handleFormChange("new", "secondDraftDate", e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                inputProps={{ min: getCurrentDate() }}
-                error={!!errors.secondDraftDate}
-                helperText={errors.secondDraftDate}
-                margin="normal"
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Entrega Tomo Completo (Correciones Predefensa)"
-                type="date"
-                value={newSemester.thirdDraftDate}
-                onChange={(e) => handleFormChange("new", "thirdDraftDate", e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                inputProps={{ min: getCurrentDate() }}
-                error={!!errors.thirdDraftDate}
-                helperText={errors.thirdDraftDate}
-                margin="normal"
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Entrega de Diapositivas"
-                type="date"
-                value={newSemester.finalDraftDate}
-                onChange={(e) => handleFormChange("new", "finalDraftDate", e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                inputProps={{ min: getCurrentDate() }}
-                error={!!errors.finalDraftDate}
-                helperText={errors.finalDraftDate}
-                margin="normal"
-              />
-            </Grid>
             {/* Investigación 2 */}
             <Grid item xs={12}>
               <MDTypography variant="h6" fontWeight="bold" color="info" mb={1}>
@@ -984,6 +907,83 @@ function SemesterConfig() {
                 margin="normal"
               />
             </Grid>
+            {/* Trabajo de Grado */}
+            <Grid item xs={12}>
+              <MDTypography variant="h6" fontWeight="bold" color="info" mb={1}>
+                Fechas de Trabajo de Grado
+              </MDTypography>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Entrega de Intrumentos"
+                type="date"
+                value={newSemester.fechaEntInst}
+                onChange={(e) => handleFormChange("new", "fechaEntInst", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: getCurrentDate() }}
+                error={!!errors.fechaEntInst}
+                helperText={errors.fechaEntInst}
+                margin="normal"
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Entrega de Propuestas"
+                type="date"
+                value={newSemester.firstDraftDate}
+                onChange={(e) => handleFormChange("new", "firstDraftDate", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: getCurrentDate() }}
+                error={!!errors.firstDraftDate}
+                helperText={errors.firstDraftDate}
+                margin="normal"
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Entrega Informe Completo"
+                type="date"
+                value={newSemester.secondDraftDate}
+                onChange={(e) => handleFormChange("new", "secondDraftDate", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: getCurrentDate() }}
+                error={!!errors.secondDraftDate}
+                helperText={errors.secondDraftDate}
+                margin="normal"
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Entrega Tomo Completo (Correciones Predefensa)"
+                type="date"
+                value={newSemester.thirdDraftDate}
+                onChange={(e) => handleFormChange("new", "thirdDraftDate", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: getCurrentDate() }}
+                error={!!errors.thirdDraftDate}
+                helperText={errors.thirdDraftDate}
+                margin="normal"
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Entrega de Diapositivas"
+                type="date"
+                value={newSemester.finalDraftDate}
+                onChange={(e) => handleFormChange("new", "finalDraftDate", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: getCurrentDate() }}
+                error={!!errors.finalDraftDate}
+                helperText={errors.finalDraftDate}
+                margin="normal"
+              />
+            </Grid>
+
             {/* Tutorías */}
             <Grid item xs={12}>
               <MDTypography variant="h6" fontWeight="bold" color="info" mb={1}>
@@ -1044,12 +1044,6 @@ function SemesterConfig() {
             pasaron.
           </DialogContentText>
           <Grid container spacing={3}>
-            {/* Trabajo de Grado */}
-            <Grid item xs={12}>
-              <MDTypography variant="h6" fontWeight="bold" color="info" mb={1}>
-                Fechas de Trabajo de Grado
-              </MDTypography>
-            </Grid>
             <Grid item xs={12} md={6}>
               <TextField
                 fullWidth
@@ -1112,101 +1106,6 @@ function SemesterConfig() {
                 error={!!errors.urlCronograma2}
                 helperText={errors.urlCronograma2}
                 margin="normal"
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Entrega de Intrumentos"
-                type="date"
-                value={editSemester.fechaEntInst}
-                onChange={(e) => handleFormChange("new", "fechaEntInst", e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                inputProps={{
-                  min: isDateEditable(currentSemester?.fechaEntInst)
-                    ? getCurrentDate()
-                    : currentSemester?.fechaEntInst,
-                }}
-                error={!!errors.fechaEntInst}
-                helperText={errors.fechaEntInst}
-                disabled={!isDateEditable(currentSemester?.fechaEntInst)}
-                margin="normal"
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Entrega de Propuesta"
-                type="date"
-                value={editSemester.firstDraftDate}
-                onChange={(e) => handleFormChange("edit", "firstDraftDate", e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                inputProps={{
-                  min: isDateEditable(currentSemester?.firstDraftDate)
-                    ? getCurrentDate()
-                    : currentSemester?.firstDraftDate,
-                }}
-                error={!!errors.firstDraftDate}
-                helperText={errors.firstDraftDate}
-                margin="normal"
-                disabled={!isDateEditable(currentSemester?.firstDraftDate)}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Entrega Informe Completo"
-                type="date"
-                value={editSemester.secondDraftDate}
-                onChange={(e) => handleFormChange("edit", "secondDraftDate", e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                inputProps={{
-                  min: isDateEditable(currentSemester?.secondDraftDate)
-                    ? getCurrentDate()
-                    : currentSemester?.secondDraftDate,
-                }}
-                error={!!errors.secondDraftDate}
-                helperText={errors.secondDraftDate}
-                margin="normal"
-                disabled={!isDateEditable(currentSemester?.secondDraftDate)}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Entrega Tomo Completo (Correciones Predefensa)"
-                type="date"
-                value={editSemester.thirdDraftDate}
-                onChange={(e) => handleFormChange("edit", "thirdDraftDate", e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                inputProps={{
-                  min: isDateEditable(currentSemester?.thirdDraftDate)
-                    ? getCurrentDate()
-                    : currentSemester?.thirdDraftDate,
-                }}
-                error={!!errors.thirdDraftDate}
-                helperText={errors.thirdDraftDate}
-                margin="normal"
-                disabled={!isDateEditable(currentSemester?.thirdDraftDate)}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                label="Entrega de Diapositivas"
-                type="date"
-                value={editSemester.finalDraftDate}
-                onChange={(e) => handleFormChange("edit", "finalDraftDate", e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                inputProps={{
-                  min: isDateEditable(currentSemester?.finalDraftDate)
-                    ? getCurrentDate()
-                    : currentSemester?.finalDraftDate,
-                }}
-                error={!!errors.finalDraftDate}
-                helperText={errors.finalDraftDate}
-                margin="normal"
-                disabled={!isDateEditable(currentSemester?.finalDraftDate)}
               />
             </Grid>
             {/* Investigación 2 */}
@@ -1307,6 +1206,108 @@ function SemesterConfig() {
                 helperText={errors.inv2Borrador4}
                 margin="normal"
                 disabled={!isDateEditable(currentSemester?.inv2Borrador4)}
+              />
+            </Grid>
+            {/* Trabajo de Grado */}
+            <Grid item xs={12}>
+              <MDTypography variant="h6" fontWeight="bold" color="info" mb={1}>
+                Fechas de Trabajo de Grado
+              </MDTypography>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Entrega de Intrumentos"
+                type="date"
+                value={editSemester.fechaEntInst}
+                onChange={(e) => handleFormChange("new", "fechaEntInst", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{
+                  min: isDateEditable(currentSemester?.fechaEntInst)
+                    ? getCurrentDate()
+                    : currentSemester?.fechaEntInst,
+                }}
+                error={!!errors.fechaEntInst}
+                helperText={errors.fechaEntInst}
+                disabled={!isDateEditable(currentSemester?.fechaEntInst)}
+                margin="normal"
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Entrega de Propuesta"
+                type="date"
+                value={editSemester.firstDraftDate}
+                onChange={(e) => handleFormChange("edit", "firstDraftDate", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{
+                  min: isDateEditable(currentSemester?.firstDraftDate)
+                    ? getCurrentDate()
+                    : currentSemester?.firstDraftDate,
+                }}
+                error={!!errors.firstDraftDate}
+                helperText={errors.firstDraftDate}
+                margin="normal"
+                disabled={!isDateEditable(currentSemester?.firstDraftDate)}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Entrega Informe Completo"
+                type="date"
+                value={editSemester.secondDraftDate}
+                onChange={(e) => handleFormChange("edit", "secondDraftDate", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{
+                  min: isDateEditable(currentSemester?.secondDraftDate)
+                    ? getCurrentDate()
+                    : currentSemester?.secondDraftDate,
+                }}
+                error={!!errors.secondDraftDate}
+                helperText={errors.secondDraftDate}
+                margin="normal"
+                disabled={!isDateEditable(currentSemester?.secondDraftDate)}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Entrega Tomo Completo (Correciones Predefensa)"
+                type="date"
+                value={editSemester.thirdDraftDate}
+                onChange={(e) => handleFormChange("edit", "thirdDraftDate", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{
+                  min: isDateEditable(currentSemester?.thirdDraftDate)
+                    ? getCurrentDate()
+                    : currentSemester?.thirdDraftDate,
+                }}
+                error={!!errors.thirdDraftDate}
+                helperText={errors.thirdDraftDate}
+                margin="normal"
+                disabled={!isDateEditable(currentSemester?.thirdDraftDate)}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Entrega de Diapositivas"
+                type="date"
+                value={editSemester.finalDraftDate}
+                onChange={(e) => handleFormChange("edit", "finalDraftDate", e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{
+                  min: isDateEditable(currentSemester?.finalDraftDate)
+                    ? getCurrentDate()
+                    : currentSemester?.finalDraftDate,
+                }}
+                error={!!errors.finalDraftDate}
+                helperText={errors.finalDraftDate}
+                margin="normal"
+                disabled={!isDateEditable(currentSemester?.finalDraftDate)}
               />
             </Grid>
             {/* Tutorías */}

@@ -24,7 +24,7 @@ import {
 } from "@mui/material";
 import PropTypes from "prop-types";
 
-function EstadisticasEntregas({ estadisticas, totalEstudiantes = 25 }) {
+function EstadisticasEntregas({idSeccion,idMateria, estadisticas, totalEstudiantes = 25 }) {
   // Calcular estadísticas generales
   const totalEntregas = estadisticas.reduce((sum, e) => sum + e.value, 0);
   const promedioEntregas = totalEntregas / estadisticas.length;
@@ -286,6 +286,8 @@ function EstadisticasEntregas({ estadisticas, totalEstudiantes = 25 }) {
 }
 
 EstadisticasEntregas.propTypes = {
+  idSeccion: PropTypes.number,
+  idMateria: PropTypes.number,
   estadisticas: PropTypes.arrayOf(
     PropTypes.shape({
       label: PropTypes.string.isRequired,
